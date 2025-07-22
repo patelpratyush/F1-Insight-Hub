@@ -23,5 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# F1 data cache
+# F1 data cache and logs
 backend/cache/
+# backend/*.log
