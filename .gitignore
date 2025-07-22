@@ -31,3 +31,4 @@ dist-ssr
 # F1 data cache and logs
 backend/cache/
 # backend/*.log
+backend/.env

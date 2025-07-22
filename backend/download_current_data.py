@@ -13,6 +13,13 @@ import logging
 from typing import List, Dict, Optional
 import time
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not required, will use system env vars
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
