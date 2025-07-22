@@ -14,11 +14,13 @@ FastAPI backend that predicts F1 driver performance using Gradient Boosting Mach
 ## Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ### 2. Run Server
+
 ```bash
 python3 main.py
 ```
@@ -26,6 +28,7 @@ python3 main.py
 Server starts on `http://localhost:8000`
 
 ### 3. Test API
+
 ```bash
 curl -X POST "http://localhost:8000/api/predict/driver" \
   -H "Content-Type: application/json" \
@@ -40,9 +43,11 @@ curl -X POST "http://localhost:8000/api/predict/driver" \
 ## API Endpoints
 
 ### `POST /api/predict/driver`
+
 Predicts driver performance for a specific race.
 
 **Request:**
+
 ```json
 {
   "driver": "VER",
@@ -53,6 +58,7 @@ Predicts driver performance for a specific race.
 ```
 
 **Response:**
+
 ```json
 {
   "predicted_qualifying_position": 3,
@@ -63,22 +69,26 @@ Predicts driver performance for a specific race.
 ```
 
 ### `GET /health`
+
 Returns server health status.
 
 ## How It Works
 
 ### 1. Data Source
+
 - **f1_data.csv**: 738 race records from 2024-2025 seasons
 - **cache/**: FastF1 cached telemetry data
 - **models/**: Pre-trained XGBoost models
 
 ### 2. Machine Learning
+
 - **Algorithm**: XGBoost Gradient Boosting
 - **Two Models**: Separate models for qualifying and race predictions
 - **Features**: Driver history, track performance, team stats, weather factors
 - **Training**: Historical performance patterns from 2024-2025
 
 ### 3. Feature Engineering
+
 - Driver performance at specific tracks
 - Recent form (last 5 races)
 - Team performance trends
@@ -86,6 +96,7 @@ Returns server health status.
 - 2025 driver transfers (Hamilton to Ferrari)
 
 ### 4. Prediction Process
+
 1. Normalize track names and team mappings
 2. Extract features from historical data
 3. Scale features using trained scaler
@@ -95,7 +106,7 @@ Returns server health status.
 
 ## File Structure
 
-```
+```bash
 backend/
 ├── main.py              # FastAPI server
 ├── f1_data.csv          # Training data

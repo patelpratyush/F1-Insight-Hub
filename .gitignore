@@ -26,6 +26,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.claude
 
 # F1 data cache and logs
 backend/cache/
