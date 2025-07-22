@@ -1,10 +1,10 @@
-# Formula Future Track
+# F1 Insight Hub
 
 Modern React-based Formula 1 prediction application with advanced machine learning backend for race and qualifying position predictions.
 
 ## Overview
 
-Formula Future Track combines cutting-edge machine learning with intuitive user interface to deliver accurate F1 predictions. Built with React + TypeScript frontend and Python FastAPI backend using ensemble ML models.
+F1 Insight Hub combines cutting-edge machine learning with intuitive user interface to deliver accurate F1 predictions. Built with React + TypeScript frontend and Python FastAPI backend using ensemble ML models.
 
 ## Features
 
@@ -63,7 +63,7 @@ Formula Future Track combines cutting-edge machine learning with intuitive user 
 
    ```bash
    git clone <repository-url>
-   cd formula-future-track
+   cd F1-Insight-Hub
    ```
 
 2. **Install Dependencies**
@@ -215,7 +215,7 @@ Create `.env` file in root directory:
 
 ```env
 VITE_API_URL=http://localhost:8000
-VITE_APP_TITLE=Formula Future Track
+VITE_APP_TITLE=F1 Insight Hub
 ```
 
 ### Adding New Features
