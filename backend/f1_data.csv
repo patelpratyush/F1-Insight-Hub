@@ -1,0 +1,719 @@
+season,race,driver,team,qualifying_position,race_position,avg_lap_time,gap_to_winner,weather,points,grid_position,status
+2024,Bahrain Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,1,96.574421,0.0,Dry,26,1,Finished
+2024,Bahrain Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,5.0,2,96.968403,22.457,Dry,18,5,Finished
+2024,Bahrain Grand Prix,Carlos Sainz,Scuderia Ferrari,4.0,3,97.014947,25.11,Dry,15,4,Finished
+2024,Bahrain Grand Prix,Charles Leclerc,Scuderia Ferrari,2.0,4,97.270368,39.669,Dry,12,2,Finished
+2024,Bahrain Grand Prix,George Russell,Mercedes,3.0,5,97.395263,46.788,Dry,10,3,Finished
+2024,Bahrain Grand Prix,Lando Norris,McLaren Mercedes,7.0,6,97.424561,48.458,Dry,8,7,Finished
+2024,Bahrain Grand Prix,Lewis Hamilton,Mercedes,9.0,7,97.457298,50.324,Dry,6,9,Finished
+2024,Bahrain Grand Prix,Oscar Piastri,McLaren Mercedes,8.0,8,97.558315,56.082,Dry,4,8,Finished
+2024,Bahrain Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,6.0,9,97.888228,74.887,Dry,2,6,Finished
+2024,Bahrain Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,12.0,10,98.209789,93.216,Dry,1,12,Finished
+2024,Bahrain Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,17.0,11,98.41966,6.759,Dry,0,17,Lapped
+2024,Bahrain Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,15.0,12,98.447464,8.316,Dry,0,15,Lapped
+2024,Bahrain Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,14.0,13,98.458928,8.958,Dry,0,14,Lapped
+2024,Bahrain Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,11.0,14,98.468285,9.482,Dry,0,11,Lapped
+2024,Bahrain Grand Prix,Alexander Albon,Williams Mercedes,13.0,15,98.511214,11.886,Dry,0,13,Lapped
+2024,Bahrain Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,10.0,16,98.613821,17.632,Dry,0,10,Lapped
+2024,Bahrain Grand Prix,Esteban Ocon,BWT Alpine F1 Team,19.0,17,98.860571,31.45,Dry,0,19,Lapped
+2024,Bahrain Grand Prix,Pierre Gasly,BWT Alpine F1 Team,20.0,18,98.877839,32.417,Dry,0,20,Lapped
+2024,Bahrain Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,16.0,19,98.503745,83.23,Dry,0,16,Lapped
+2024,Bahrain Grand Prix,Logan Sargeant,Williams Mercedes,18.0,20,99.327351,20.795,Dry,0,18,Lapped
+2024,Saudi Arabian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,1,93.608229,0.0,Dry,25,1,Finished
+2024,Saudi Arabian Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,3.0,2,93.867729,13.643,Dry,18,3,Finished
+2024,Saudi Arabian Grand Prix,Charles Leclerc,Scuderia Ferrari,2.0,3,94.101208,18.639,Dry,16,2,Finished
+2024,Saudi Arabian Grand Prix,Oscar Piastri,McLaren Mercedes,5.0,4,94.468937,32.007,Dry,12,5,Finished
+2024,Saudi Arabian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,4.0,5,94.55775,35.759,Dry,10,4,Finished
+2024,Saudi Arabian Grand Prix,George Russell,Mercedes,7.0,6,94.753187,39.936,Dry,8,7,Finished
+2024,Saudi Arabian Grand Prix,Oliver Bearman,Unknown,11.0,7,96.048244,42.679,Dry,6,11,Finished
+2024,Saudi Arabian Grand Prix,Lando Norris,McLaren Mercedes,6.0,8,94.85802,45.708,Dry,4,6,Finished
+2024,Saudi Arabian Grand Prix,Lewis Hamilton,Mercedes,8.0,9,94.955041,47.391,Dry,2,8,Finished
+2024,Saudi Arabian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,15.0,10,95.764625,76.996,Dry,1,15,Finished
+2024,Saudi Arabian Grand Prix,Alexander Albon,Williams Mercedes,12.0,11,96.972326,88.354,Dry,0,12,Finished
+2024,Saudi Arabian Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,13.0,12,96.91802,105.737,Dry,0,13,Finished
+2024,Saudi Arabian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,17.0,13,97.310541,4.001,Dry,0,17,Lapped
+2024,Saudi Arabian Grand Prix,Logan Sargeant,Williams Mercedes,19.0,14,97.349375,6.785,Dry,0,19,Lapped
+2024,Saudi Arabian Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,9.0,15,97.275916,10.533,Dry,0,9,Lapped
+2024,Saudi Arabian Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,14.0,16,97.297416,20.715,Dry,0,14,Lapped
+2024,Saudi Arabian Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,16.0,17,97.688666,23.115,Dry,0,16,Lapped
+2024,Saudi Arabian Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,18,98.048479,29.553,Dry,0,20,Lapped
+2024,Saudi Arabian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,10.0,19,97.1216,0.0,Dry,0,10,Retired
+2024,Saudi Arabian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,18.0,20,121.453,0.0,Dry,0,18,Retired
+2024,Australian Grand Prix,Carlos Sainz,Scuderia Ferrari,2.0,1,83.221431,0.0,Dry,25,2,Finished
+2024,Australian Grand Prix,Charles Leclerc,Scuderia Ferrari,5.0,2,83.262224,2.366,Dry,19,4,Finished
+2024,Australian Grand Prix,Lando Norris,McLaren Mercedes,4.0,3,83.323224,5.904,Dry,15,3,Finished
+2024,Australian Grand Prix,Oscar Piastri,McLaren Mercedes,6.0,4,83.838155,35.77,Dry,12,5,Finished
+2024,Australian Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,3.0,5,84.192275,56.309,Dry,10,6,Finished
+2024,Australian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,9.0,6,84.828706,93.222,Dry,8,9,Finished
+2024,Australian Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,8.0,7,84.869724,95.601,Dry,6,8,Finished
+2024,Australian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,10.0,8,84.617844,100.992,Dry,4,10,Finished
+2024,Australian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,16.0,9,85.024068,104.553,Dry,2,16,Finished
+2024,Australian Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,14.0,10,84.753052,4.081,Dry,1,14,Lapped
+2024,Australian Grand Prix,Alexander Albon,Williams Mercedes,12.0,11,84.769333,5.009,Dry,0,12,Lapped
+2024,Australian Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,18.0,12,84.88335,11.508,Dry,0,18,Lapped
+2024,Australian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,17.0,13,85.31221,40.953,Dry,0,17,Lapped
+2024,Australian Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,13.0,14,85.424017,42.326,Dry,0,13,Lapped
+2024,Australian Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,19.0,15,85.458526,44.293,Dry,0,19,Lapped
+2024,Australian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,15.0,16,85.628456,53.979,Dry,0,15,Lapped
+2024,Australian Grand Prix,George Russell,Mercedes,7.0,17,83.655964,0.0,Dry,0,7,Retired
+2024,Australian Grand Prix,Lewis Hamilton,Mercedes,11.0,18,85.2284,0.0,Dry,0,11,Retired
+2024,Australian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,19,84.890666,0.0,Dry,0,1,Retired
+2024,Japanese Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,1,97.637509,0.0,Dry,26,1,Finished
+2024,Japanese Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,2.0,2,97.903705,12.535,Dry,18,2,Finished
+2024,Japanese Grand Prix,Carlos Sainz,Scuderia Ferrari,4.0,3,98.135137,20.866,Dry,15,4,Finished
+2024,Japanese Grand Prix,Charles Leclerc,Scuderia Ferrari,8.0,4,98.537588,26.522,Dry,12,8,Finished
+2024,Japanese Grand Prix,Lando Norris,McLaren Mercedes,3.0,5,98.261392,29.7,Dry,10,3,Finished
+2024,Japanese Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,5.0,6,98.639313,44.272,Dry,8,5,Finished
+2024,Japanese Grand Prix,George Russell,Mercedes,9.0,7,98.978901,45.951,Dry,6,9,Finished
+2024,Japanese Grand Prix,Oscar Piastri,McLaren Mercedes,6.0,8,98.760941,47.525,Dry,4,6,Finished
+2024,Japanese Grand Prix,Lewis Hamilton,Mercedes,7.0,9,98.922862,48.626,Dry,2,7,Finished
+2024,Japanese Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,10.0,10,100.2397,1.6019999999999999,Dry,1,10,Lapped
+2024,Japanese Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,12.0,11,100.18244,7.168,Dry,0,12,Lapped
+2024,Japanese Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,16.0,12,101.298843,11.233,Dry,0,16,Lapped
+2024,Japanese Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,18.0,13,101.488705,17.919,Dry,0,18,Lapped
+2024,Japanese Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,13.0,14,101.448647,18.893,Dry,0,13,Lapped
+2024,Japanese Grand Prix,Esteban Ocon,BWT Alpine F1 Team,15.0,15,101.825666,41.152,Dry,0,15,Lapped
+2024,Japanese Grand Prix,Pierre Gasly,BWT Alpine F1 Team,17.0,16,102.096196,55.066,Dry,0,17,Lapped
+2024,Japanese Grand Prix,Logan Sargeant,Williams Mercedes,19.0,17,102.584352,72.765,Dry,0,19,Lapped
+2024,Japanese Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,18,115.406272,0.0,Dry,0,20,Retired
+2024,Japanese Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,11.0,19,,0.0,Dry,0,11,Retired
+2024,Japanese Grand Prix,Alexander Albon,Williams Mercedes,14.0,20,,0.0,Dry,0,14,Retired
+2024,Chinese Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,1,105.235452,0.0,Dry,25,1,Finished
+2024,Chinese Grand Prix,Lando Norris,McLaren Mercedes,4.0,2,107.444545,13.773,Dry,18,4,Finished
+2024,Chinese Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,2.0,3,105.899509,19.16,Dry,15,2,Finished
+2024,Chinese Grand Prix,Charles Leclerc,Scuderia Ferrari,6.0,4,106.020943,23.623,Dry,12,6,Finished
+2024,Chinese Grand Prix,Carlos Sainz,Scuderia Ferrari,7.0,5,107.085851,33.983,Dry,10,7,Finished
+2024,Chinese Grand Prix,George Russell,Mercedes,8.0,6,107.987909,38.724,Dry,8,8,Finished
+2024,Chinese Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,3.0,7,107.299648,43.414,Dry,7,3,Finished
+2024,Chinese Grand Prix,Oscar Piastri,McLaren Mercedes,5.0,8,108.321363,56.198,Dry,4,5,Finished
+2024,Chinese Grand Prix,Lewis Hamilton,Mercedes,18.0,9,109.116785,57.986,Dry,2,18,Finished
+2024,Chinese Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,9.0,10,108.411909,60.476,Dry,1,9,Finished
+2024,Chinese Grand Prix,Esteban Ocon,BWT Alpine F1 Team,13.0,11,109.202964,62.812,Dry,0,13,Finished
+2024,Chinese Grand Prix,Alexander Albon,Williams Mercedes,14.0,12,109.251071,65.506,Dry,0,14,Finished
+2024,Chinese Grand Prix,Pierre Gasly,BWT Alpine F1 Team,15.0,13,109.317446,69.223,Dry,0,15,Finished
+2024,Chinese Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,16.0,14,108.577672,71.689,Dry,0,16,Finished
+2024,Chinese Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,11.0,15,105.80332,82.786,Dry,0,11,Finished
+2024,Chinese Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,17.0,16,108.536345,87.533,Dry,0,17,Finished
+2024,Chinese Grand Prix,Logan Sargeant,Williams Mercedes,20.0,17,109.601142,95.11,Dry,0,20,Finished
+2024,Chinese Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,12.0,18,113.897187,0.0,Dry,0,12,Retired
+2024,Chinese Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,19.0,19,111.04673,0.0,Dry,0,19,Retired
+2024,Chinese Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,10.0,20,104.132631,0.0,Dry,0,10,Retired
+2024,Miami Grand Prix,Lando Norris,McLaren Mercedes,5.0,1,94.522071,0.0,Dry,25,5,Finished
+2024,Miami Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,2,94.686696,7.612,Dry,18,1,Finished
+2024,Miami Grand Prix,Charles Leclerc,Scuderia Ferrari,2.0,3,94.780892,9.92,Dry,15,2,Finished
+2024,Miami Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,4.0,4,95.868877,14.65,Dry,12,4,Finished
+2024,Miami Grand Prix,Carlos Sainz,Scuderia Ferrari,3.0,5,95.811982,16.407,Dry,10,3,Finished
+2024,Miami Grand Prix,Lewis Hamilton,Mercedes,8.0,6,95.902824,16.585,Dry,8,8,Finished
+2024,Miami Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,10.0,7,96.071245,26.185,Dry,6,10,Finished
+2024,Miami Grand Prix,George Russell,Mercedes,7.0,8,96.222192,34.789,Dry,4,7,Finished
+2024,Miami Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,15.0,9,96.262859,37.107,Dry,2,15,Finished
+2024,Miami Grand Prix,Esteban Ocon,BWT Alpine F1 Team,13.0,10,96.309157,39.746,Dry,1,13,Finished
+2024,Miami Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,9.0,11,96.327456,40.789,Dry,0,9,Finished
+2024,Miami Grand Prix,Pierre Gasly,BWT Alpine F1 Team,12.0,12,96.400596,44.958,Dry,0,12,Finished
+2024,Miami Grand Prix,Oscar Piastri,McLaren Mercedes,6.0,13,95.521267,49.756,Dry,0,6,Finished
+2024,Miami Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,14,96.488684,49.979,Dry,0,19,Finished
+2024,Miami Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,18.0,15,96.505824,50.956,Dry,0,20,Finished
+2024,Miami Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,16.0,16,96.530385,52.356,Dry,0,16,Finished
+2024,Miami Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,11.0,17,96.404368,55.173,Dry,0,11,Finished
+2024,Miami Grand Prix,Alexander Albon,Williams Mercedes,14.0,18,96.946789,76.091,Dry,0,14,Finished
+2024,Miami Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,19.0,19,96.57121,84.683,Dry,0,18,Finished
+2024,Miami Grand Prix,Logan Sargeant,Williams Mercedes,17.0,20,95.686666,0.0,Dry,0,17,Retired
+2024,Emilia Romagna Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,1,81.353206,0.0,Dry,25,1,Finished
+2024,Emilia Romagna Grand Prix,Lando Norris,McLaren Mercedes,3.0,2,81.364714,0.725,Dry,18,2,Finished
+2024,Emilia Romagna Grand Prix,Charles Leclerc,Scuderia Ferrari,4.0,3,81.478857,7.916,Dry,15,3,Finished
+2024,Emilia Romagna Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,4,81.577523,14.132,Dry,12,5,Finished
+2024,Emilia Romagna Grand Prix,Carlos Sainz,Scuderia Ferrari,5.0,5,81.707571,22.325,Dry,10,4,Finished
+2024,Emilia Romagna Grand Prix,Lewis Hamilton,Mercedes,8.0,6,81.910412,35.104,Dry,8,8,Finished
+2024,Emilia Romagna Grand Prix,George Russell,Mercedes,6.0,7,82.101682,47.154,Dry,7,6,Finished
+2024,Emilia Romagna Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,11.0,8,82.222666,54.776,Dry,4,11,Finished
+2024,Emilia Romagna Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,13.0,9,82.616,79.556,Dry,2,13,Finished
+2024,Emilia Romagna Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,7.0,10,82.953354,17.856,Dry,1,7,Lapped
+2024,Emilia Romagna Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,10.0,11,83.073048,25.277,Dry,0,10,Lapped
+2024,Emilia Romagna Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,18.0,12,83.091709,26.434,Dry,0,18,Lapped
+2024,Emilia Romagna Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,9.0,13,83.1115,27.661,Dry,0,9,Lapped
+2024,Emilia Romagna Grand Prix,Esteban Ocon,BWT Alpine F1 Team,12.0,14,83.373532,43.907,Dry,0,12,Lapped
+2024,Emilia Romagna Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,17.0,15,83.39008,44.933,Dry,0,17,Lapped
+2024,Emilia Romagna Grand Prix,Pierre Gasly,BWT Alpine F1 Team,15.0,16,83.467209,49.715,Dry,0,15,Lapped
+2024,Emilia Romagna Grand Prix,Logan Sargeant,Williams Mercedes,20.0,17,83.488758,51.051,Dry,0,19,Lapped
+2024,Emilia Romagna Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,16.0,18,83.574112,56.343,Dry,0,16,Lapped
+2024,Emilia Romagna Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,19.0,19,83.877032,75.124,Dry,0,20,Lapped
+2024,Emilia Romagna Grand Prix,Alexander Albon,Williams Mercedes,14.0,20,84.49362,0.0,Dry,0,14,Retired
+2024,Monaco Grand Prix,Charles Leclerc,Scuderia Ferrari,1.0,1,109.32074,0.0,Dry,25,1,Finished
+2024,Monaco Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,2,109.43609,7.152,Dry,18,2,Finished
+2024,Monaco Grand Prix,Carlos Sainz,Scuderia Ferrari,3.0,3,109.486688,7.585,Dry,15,3,Finished
+2024,Monaco Grand Prix,Lando Norris,McLaren Mercedes,4.0,4,109.565428,8.65,Dry,12,4,Finished
+2024,Monaco Grand Prix,George Russell,Mercedes,5.0,5,109.697363,13.309,Dry,10,5,Finished
+2024,Monaco Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,6.0,6,109.765766,13.853,Dry,8,6,Finished
+2024,Monaco Grand Prix,Lewis Hamilton,Mercedes,7.0,7,109.83961,14.908,Dry,7,7,Finished
+2024,Monaco Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,8.0,8,112.143389,39.487,Dry,4,8,Lapped
+2024,Monaco Grand Prix,Alexander Albon,Williams Mercedes,9.0,9,112.332545,54.052,Dry,2,9,Lapped
+2024,Monaco Grand Prix,Pierre Gasly,BWT Alpine F1 Team,10.0,10,112.412922,60.241,Dry,1,10,Lapped
+2024,Monaco Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,14.0,11,113.150105,3.854,Dry,0,14,Lapped
+2024,Monaco Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,12.0,12,113.1555,4.264,Dry,0,12,Lapped
+2024,Monaco Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,17.0,13,113.158447,4.4879999999999995,Dry,0,17,Lapped
+2024,Monaco Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,13.0,14,113.177907,5.967,Dry,0,13,Lapped
+2024,Monaco Grand Prix,Logan Sargeant,Williams Mercedes,15.0,15,113.218157,9.026,Dry,0,15,Lapped
+2024,Monaco Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,18.0,16,113.8265,55.26,Dry,0,18,Lapped
+2024,Monaco Grand Prix,Esteban Ocon,BWT Alpine F1 Team,11.0,17,,0.0,Dry,0,11,Retired
+2024,Monaco Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,16.0,18,,0.0,Dry,0,16,Retired
+2024,Monaco Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,14.0,19,,0.0,Dry,0,19,Retired
+2024,Monaco Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,15.0,20,,0.0,Dry,0,20,Retired
+2024,Canadian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,2.0,1,90.684671,0.0,Dry,25,2,Finished
+2024,Canadian Grand Prix,Lando Norris,McLaren Mercedes,3.0,2,90.740085,3.879,Dry,18,3,Finished
+2024,Canadian Grand Prix,George Russell,Mercedes,1.0,3,90.746342,4.317,Dry,15,1,Finished
+2024,Canadian Grand Prix,Lewis Hamilton,Mercedes,7.0,4,90.754885,4.915,Dry,13,7,Finished
+2024,Canadian Grand Prix,Oscar Piastri,McLaren Mercedes,4.0,5,90.830371,10.199,Dry,10,4,Finished
+2024,Canadian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,6.0,6,90.934814,17.51,Dry,8,6,Finished
+2024,Canadian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,9.0,7,91.022171,23.625,Dry,6,9,Finished
+2024,Canadian Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,5.0,8,91.094271,28.672,Dry,4,5,Finished
+2024,Canadian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,15.0,9,91.113542,30.021,Dry,2,15,Finished
+2024,Canadian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,18.0,10,91.117714,30.313,Dry,1,18,Finished
+2024,Canadian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,19.0,11,91.125014,30.824,Dry,0,17,Finished
+2024,Canadian Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,14.0,12,91.131142,31.253,Dry,0,14,Finished
+2024,Canadian Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,17.0,13,91.263057,40.487,Dry,0,19,Finished
+2024,Canadian Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,8.0,14,91.437442,52.694,Dry,0,8,Finished
+2024,Canadian Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,15,92.77471,53.528,Dry,0,20,Lapped
+2024,Canadian Grand Prix,Carlos Sainz,Scuderia Ferrari,12.0,16,92.086,0.0,Dry,0,12,Retired
+2024,Canadian Grand Prix,Alexander Albon,Williams Mercedes,10.0,17,92.096923,0.0,Dry,0,10,Retired
+2024,Canadian Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,16.0,18,92.368,0.0,Dry,0,16,Retired
+2024,Canadian Grand Prix,Charles Leclerc,Scuderia Ferrari,11.0,19,96.0827,0.0,Dry,0,11,Retired
+2024,Canadian Grand Prix,Logan Sargeant,Williams Mercedes,13.0,20,94.109521,0.0,Dry,0,13,Retired
+2024,Spanish Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,2.0,1,80.306469,0.0,Dry,25,2,Finished
+2024,Spanish Grand Prix,Lando Norris,McLaren Mercedes,1.0,2,80.34009,2.219,Dry,19,1,Finished
+2024,Spanish Grand Prix,Lewis Hamilton,Mercedes,3.0,3,80.576015,17.79,Dry,15,3,Finished
+2024,Spanish Grand Prix,George Russell,Mercedes,4.0,4,80.644651,22.32,Dry,12,4,Finished
+2024,Spanish Grand Prix,Charles Leclerc,Scuderia Ferrari,5.0,5,80.650545,22.709,Dry,10,5,Finished
+2024,Spanish Grand Prix,Carlos Sainz,Scuderia Ferrari,6.0,6,80.77659,31.028,Dry,8,6,Finished
+2024,Spanish Grand Prix,Oscar Piastri,McLaren Mercedes,10.0,7,80.817984,33.76,Dry,6,9,Finished
+2024,Spanish Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,8.0,8,81.208348,59.524,Dry,4,11,Finished
+2024,Spanish Grand Prix,Pierre Gasly,BWT Alpine F1 Team,7.0,9,81.246242,62.025,Dry,2,7,Finished
+2024,Spanish Grand Prix,Esteban Ocon,BWT Alpine F1 Team,9.0,10,81.395696,71.889,Dry,1,8,Finished
+2024,Spanish Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,13.0,11,81.430939,79.215,Dry,0,13,Finished
+2024,Spanish Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,11.0,12,81.688061,9.497,Dry,0,10,Lapped
+2024,Spanish Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,15.0,13,81.780046,15.475999999999999,Dry,0,15,Lapped
+2024,Spanish Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,14.0,14,81.930446,25.252,Dry,0,14,Lapped
+2024,Spanish Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,18.0,15,82.219646,44.05,Dry,0,18,Lapped
+2024,Spanish Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,12.0,16,82.362153,53.313,Dry,0,12,Lapped
+2024,Spanish Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,16.0,17,82.384846,54.788,Dry,0,16,Lapped
+2024,Spanish Grand Prix,Alexander Albon,Williams Mercedes,19.0,18,82.436553,58.149,Dry,0,20,Lapped
+2024,Spanish Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,17.0,19,82.525092,68.904,Dry,0,17,Lapped
+2024,Spanish Grand Prix,Logan Sargeant,Williams Mercedes,20.0,20,82.892078,4.866,Dry,0,19,Lapped
+2024,Austrian Grand Prix,George Russell,Mercedes,3.0,1,71.307014,0.0,Dry,25,3,Finished
+2024,Austrian Grand Prix,Oscar Piastri,McLaren Mercedes,7.0,2,71.333859,1.9060000000000001,Dry,18,7,Finished
+2024,Austrian Grand Prix,Carlos Sainz,Scuderia Ferrari,4.0,3,71.370859,4.533,Dry,15,4,Finished
+2024,Austrian Grand Prix,Lewis Hamilton,Mercedes,5.0,4,71.632957,23.142,Dry,12,5,Finished
+2024,Austrian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,5,71.690859,37.253,Dry,10,1,Finished
+2024,Austrian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,9.0,6,72.068816,54.088,Dry,8,9,Finished
+2024,Austrian Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,8.0,7,72.077042,54.672,Dry,6,8,Finished
+2024,Austrian Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,12.0,8,72.157084,60.355,Dry,4,12,Finished
+2024,Austrian Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,11.0,9,72.168549,61.169,Dry,2,11,Finished
+2024,Austrian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,13.0,10,72.176957,61.766,Dry,1,13,Finished
+2024,Austrian Grand Prix,Charles Leclerc,Scuderia Ferrari,6.0,11,72.251464,67.056,Dry,0,6,Finished
+2024,Austrian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,10.0,12,72.269338,68.325,Dry,0,10,Finished
+2024,Austrian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,17.0,13,72.471885,10.234,Dry,0,17,Lapped
+2024,Austrian Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,14.0,14,72.513471,13.145,Dry,0,14,Lapped
+2024,Austrian Grand Prix,Alexander Albon,Williams Mercedes,16.0,15,72.480914,15.866,Dry,0,16,Lapped
+2024,Austrian Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,18.0,16,72.602471,19.375,Dry,0,18,Lapped
+2024,Austrian Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,17,72.966857,44.882,Dry,0,20,Lapped
+2024,Austrian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,15.0,18,73.006542,47.66,Dry,0,15,Lapped
+2024,Austrian Grand Prix,Logan Sargeant,Williams Mercedes,19.0,19,73.465318,6.309,Dry,0,19,Lapped
+2024,Austrian Grand Prix,Lando Norris,McLaren Mercedes,2.0,20,71.735218,0.0,Dry,0,2,Lapped
+2024,British Grand Prix,Lewis Hamilton,Mercedes,2.0,1,95.13575,0.0,Dry,25,2,Finished
+2024,British Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,4.0,2,95.163923,1.465,Dry,18,4,Finished
+2024,British Grand Prix,Lando Norris,McLaren Mercedes,3.0,3,95.280884,7.547,Dry,15,3,Finished
+2024,British Grand Prix,Oscar Piastri,McLaren Mercedes,5.0,4,95.374769,12.429,Dry,12,5,Finished
+2024,British Grand Prix,Carlos Sainz,Scuderia Ferrari,7.0,5,96.045711,47.318,Dry,11,7,Finished
+2024,British Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,6.0,6,96.207326,55.722,Dry,8,6,Finished
+2024,British Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,8.0,7,96.223615,56.569,Dry,6,8,Finished
+2024,British Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,10.0,8,96.358384,63.577,Dry,4,10,Finished
+2024,British Grand Prix,Alexander Albon,Williams Mercedes,9.0,9,96.450884,68.387,Dry,2,9,Finished
+2024,British Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,13.0,10,96.660807,79.303,Dry,1,13,Finished
+2024,British Grand Prix,Logan Sargeant,Williams Mercedes,12.0,11,96.846519,88.96,Dry,0,12,Finished
+2024,British Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,17.0,12,96.869461,90.153,Dry,0,17,Finished
+2024,British Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,15.0,13,97.196,9.937,Dry,0,15,Lapped
+2024,British Grand Prix,Charles Leclerc,Scuderia Ferrari,11.0,14,97.794745,40.473,Dry,0,11,Lapped
+2024,British Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,16.0,15,97.821176,41.821,Dry,0,16,Lapped
+2024,British Grand Prix,Esteban Ocon,BWT Alpine F1 Team,18.0,16,99.15482,10.682,Dry,0,18,Lapped
+2024,British Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,19.0,17,99.30128,18.005,Dry,0,20,Lapped
+2024,British Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,14.0,18,100.0307,54.476,Dry,0,14,Lapped
+2024,British Grand Prix,George Russell,Mercedes,1.0,19,96.111424,0.0,Dry,0,1,Retired
+2024,British Grand Prix,Pierre Gasly,BWT Alpine F1 Team,20.0,20,,0.0,Dry,0,19,Did not start
+2024,Hungarian Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,1,84.028414,0.0,Dry,25,2,Finished
+2024,Hungarian Grand Prix,Lando Norris,McLaren Mercedes,1.0,2,84.059,2.141,Dry,18,1,Finished
+2024,Hungarian Grand Prix,Lewis Hamilton,Mercedes,5.0,3,84.240985,14.88,Dry,15,5,Finished
+2024,Hungarian Grand Prix,Charles Leclerc,Scuderia Ferrari,6.0,4,84.309642,19.686,Dry,12,6,Finished
+2024,Hungarian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,3.0,5,84.3334,21.349,Dry,10,3,Finished
+2024,Hungarian Grand Prix,Carlos Sainz,Scuderia Ferrari,4.0,6,84.358028,23.073,Dry,8,4,Finished
+2024,Hungarian Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,16.0,7,84.596871,39.792,Dry,6,16,Finished
+2024,Hungarian Grand Prix,George Russell,Mercedes,17.0,8,84.633671,42.368,Dry,5,17,Finished
+2024,Hungarian Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,10.0,9,85.132114,77.259,Dry,2,10,Finished
+2024,Hungarian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,8.0,10,85.142357,77.976,Dry,1,8,Finished
+2024,Hungarian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,7.0,11,85.206414,82.46,Dry,0,7,Finished
+2024,Hungarian Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,9.0,12,85.505985,17.924,Dry,0,9,Lapped
+2024,Hungarian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,11.0,13,85.727144,33.184,Dry,0,11,Lapped
+2024,Hungarian Grand Prix,Alexander Albon,Williams Mercedes,13.0,14,85.779101,36.769,Dry,0,13,Lapped
+2024,Hungarian Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,15.0,15,85.902768,45.302,Dry,0,15,Lapped
+2024,Hungarian Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,12.0,16,85.904318,45.409,Dry,0,12,Lapped
+2024,Hungarian Grand Prix,Logan Sargeant,Williams Mercedes,14.0,17,86.008405,52.591,Dry,0,14,Lapped
+2024,Hungarian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,19.0,18,86.129246,60.929,Dry,0,19,Lapped
+2024,Hungarian Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,18.0,19,86.167927,63.598,Dry,0,18,Lapped
+2024,Hungarian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,20.0,20,86.64409,0.0,Dry,0,20,Retired
+2024,Belgian Grand Prix,Lewis Hamilton,Mercedes,4.0,1,109.03559,0.0,Dry,25,3,Finished
+2024,Belgian Grand Prix,Oscar Piastri,McLaren Mercedes,6.0,2,109.050295,0.647,Dry,18,5,Finished
+2024,Belgian Grand Prix,Charles Leclerc,Scuderia Ferrari,2.0,3,109.217931,8.023,Dry,15,1,Finished
+2024,Belgian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,4,109.233318,8.7,Dry,12,11,Finished
+2024,Belgian Grand Prix,Lando Norris,McLaren Mercedes,5.0,5,109.2475,9.324,Dry,10,4,Finished
+2024,Belgian Grand Prix,Carlos Sainz,Scuderia Ferrari,8.0,6,109.473522,19.269,Dry,8,7,Finished
+2024,Belgian Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,3.0,7,110.00534,42.669,Dry,7,2,Finished
+2024,Belgian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,9.0,8,110.159159,49.437,Dry,4,8,Finished
+2024,Belgian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,10.0,9,110.218,52.026,Dry,2,9,Finished
+2024,Belgian Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,13.0,10,110.271954,54.4,Dry,1,13,Finished
+2024,Belgian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,15.0,11,110.455704,62.485,Dry,0,15,Finished
+2024,Belgian Grand Prix,Alexander Albon,Williams Mercedes,11.0,12,110.47025,63.125,Dry,0,10,Finished
+2024,Belgian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,12.0,13,110.486477,63.839,Dry,0,12,Finished
+2024,Belgian Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,17.0,14,110.537977,66.105,Dry,0,17,Finished
+2024,Belgian Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,14.0,15,110.629045,70.112,Dry,0,14,Finished
+2024,Belgian Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,18.0,16,110.767659,76.211,Dry,0,20,Finished
+2024,Belgian Grand Prix,Logan Sargeant,Williams Mercedes,19.0,17,110.979477,85.531,Dry,0,18,Finished
+2024,Belgian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,16.0,18,111.042568,88.307,Dry,0,16,Finished
+2024,Belgian Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,19,119.80725,0.0,Dry,0,19,Retired
+2024,Belgian Grand Prix,George Russell,Mercedes,7.0,20,109.023636,0.0,Dry,0,6,Disqualified
+2024,Dutch Grand Prix,Lando Norris,McLaren Mercedes,1.0,1,75.632208,0.0,Dry,26,1,Finished
+2024,Dutch Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,2.0,2,75.950208,22.896,Dry,18,2,Finished
+2024,Dutch Grand Prix,Charles Leclerc,Scuderia Ferrari,6.0,3,75.985527,25.439,Dry,15,6,Finished
+2024,Dutch Grand Prix,Oscar Piastri,McLaren Mercedes,3.0,4,76.011888,27.337,Dry,12,3,Finished
+2024,Dutch Grand Prix,Carlos Sainz,Scuderia Ferrari,10.0,5,76.078555,32.137,Dry,10,10,Finished
+2024,Dutch Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,5.0,6,76.181402,39.542,Dry,8,5,Finished
+2024,Dutch Grand Prix,George Russell,Mercedes,4.0,7,76.251888,44.617,Dry,6,4,Finished
+2024,Dutch Grand Prix,Lewis Hamilton,Mercedes,11.0,8,76.321083,49.599,Dry,4,14,Finished
+2024,Dutch Grand Prix,Pierre Gasly,BWT Alpine F1 Team,9.0,9,76.818633,8.604,Dry,2,9,Lapped
+2024,Dutch Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,7.0,10,76.888056,13.533,Dry,1,7,Lapped
+2024,Dutch Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,13.0,11,76.96807,19.214,Dry,0,12,Lapped
+2024,Dutch Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,15.0,12,76.994169,21.067,Dry,0,13,Lapped
+2024,Dutch Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,8.0,13,76.989169,25.712,Dry,0,8,Lapped
+2024,Dutch Grand Prix,Alexander Albon,Williams Mercedes,10.0,14,77.270845,40.711,Dry,0,19,Lapped
+2024,Dutch Grand Prix,Esteban Ocon,BWT Alpine F1 Team,16.0,15,77.357704,46.878,Dry,0,15,Lapped
+2024,Dutch Grand Prix,Logan Sargeant,Williams Mercedes,20.0,16,77.60645,64.539,Dry,0,18,Lapped
+2024,Dutch Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,12.0,17,77.615,65.146,Dry,0,11,Lapped
+2024,Dutch Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,14.0,18,77.622901,65.707,Dry,0,20,Lapped
+2024,Dutch Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,17.0,19,77.839528,3.248,Dry,0,16,Lapped
+2024,Dutch Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,18.0,20,78.307685,36.019,Dry,0,17,Lapped
+2024,Italian Grand Prix,Charles Leclerc,Scuderia Ferrari,4.0,1,84.542018,0.0,Dry,25,4,Finished
+2024,Italian Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,2,84.592283,2.664,Dry,18,2,Finished
+2024,Italian Grand Prix,Lando Norris,McLaren Mercedes,1.0,3,84.658113,6.153,Dry,16,1,Finished
+2024,Italian Grand Prix,Carlos Sainz,Scuderia Ferrari,5.0,4,84.836754,15.621,Dry,12,5,Finished
+2024,Italian Grand Prix,Lewis Hamilton,Mercedes,6.0,5,84.972584,22.82,Dry,10,6,Finished
+2024,Italian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,7.0,6,85.257716,37.932,Dry,8,7,Finished
+2024,Italian Grand Prix,George Russell,Mercedes,3.0,7,85.291358,39.715,Dry,6,3,Finished
+2024,Italian Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,8.0,8,85.563679,54.148,Dry,4,8,Finished
+2024,Italian Grand Prix,Alexander Albon,Williams Mercedes,9.0,9,85.814773,67.456,Dry,2,9,Finished
+2024,Italian Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,13.0,10,85.642056,68.302,Dry,1,13,Finished
+2024,Italian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,11.0,11,85.834377,68.495,Dry,0,11,Finished
+2024,Italian Grand Prix,Franco Colapinto,Unknown,18.0,12,86.076132,81.308,Dry,0,18,Finished
+2024,Italian Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,12.0,13,86.022245,93.452,Dry,0,12,Finished
+2024,Italian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,15.0,14,86.411269,12.659,Dry,0,15,Lapped
+2024,Italian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,14.0,15,86.520596,18.344,Dry,0,14,Lapped
+2024,Italian Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,19.0,16,86.691115,27.211,Dry,0,19,Lapped
+2024,Italian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,10.0,17,86.76148,30.87,Dry,0,10,Lapped
+2024,Italian Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,18,86.938115,40.055,Dry,0,20,Lapped
+2024,Italian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,17.0,19,87.004519,43.508,Dry,0,17,Lapped
+2024,Italian Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,16.0,20,90.952714,0.0,Dry,0,16,Retired
+2024,Azerbaijan Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,1,108.49346,0.0,Dry,25,2,Finished
+2024,Azerbaijan Grand Prix,Charles Leclerc,Scuderia Ferrari,1.0,2,108.67784,10.91,Dry,18,1,Finished
+2024,Azerbaijan Grand Prix,George Russell,Mercedes,5.0,3,109.1279,31.328,Dry,15,5,Finished
+2024,Azerbaijan Grand Prix,Lando Norris,McLaren Mercedes,16.0,4,109.23942,36.143,Dry,13,15,Finished
+2024,Azerbaijan Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,6.0,5,109.063102,77.098,Dry,10,6,Finished
+2024,Azerbaijan Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,8.0,6,110.22398,85.468,Dry,8,7,Finished
+2024,Azerbaijan Grand Prix,Alexander Albon,Williams Mercedes,10.0,7,110.25446,87.396,Dry,6,9,Finished
+2024,Azerbaijan Grand Prix,Franco Colapinto,Unknown,9.0,8,110.29074,89.541,Dry,4,8,Finished
+2024,Azerbaijan Grand Prix,Lewis Hamilton,Mercedes,7.0,9,110.33262,92.401,Dry,2,19,Finished
+2024,Azerbaijan Grand Prix,Oliver Bearman,Unknown,11.0,10,110.3577,93.127,Dry,1,10,Finished
+2024,Azerbaijan Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,13.0,11,110.39266,93.465,Dry,0,12,Finished
+2024,Azerbaijan Grand Prix,Pierre Gasly,BWT Alpine F1 Team,15.0,12,110.61432,117.189,Dry,0,18,Finished
+2024,Azerbaijan Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,15.0,13,110.269224,146.907,Dry,0,14,Finished
+2024,Azerbaijan Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,18.0,14,110.67104,148.841,Dry,0,17,Finished
+2024,Azerbaijan Grand Prix,Esteban Ocon,BWT Alpine F1 Team,19.0,15,110.882448,21.344,Dry,0,20,Lapped
+2024,Azerbaijan Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,17.0,16,111.245938,25.395,Dry,0,16,Lapped
+2024,Azerbaijan Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,4.0,17,108.595877,0.0,Dry,0,4,Finished
+2024,Azerbaijan Grand Prix,Carlos Sainz,Scuderia Ferrari,3.0,18,108.60751,0.0,Dry,0,3,Finished
+2024,Azerbaijan Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,14.0,19,111.135111,0.0,Dry,0,13,Finished
+2024,Azerbaijan Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,12.0,20,115.903642,0.0,Dry,0,11,Retired
+2024,Singapore Grand Prix,Lando Norris,McLaren Mercedes,1.0,1,97.622112,0.0,Dry,25,1,Finished
+2024,Singapore Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,2.0,2,97.959935,20.945,Dry,18,2,Finished
+2024,Singapore Grand Prix,Oscar Piastri,McLaren Mercedes,5.0,3,98.296677,41.823,Dry,15,5,Finished
+2024,Singapore Grand Prix,George Russell,Mercedes,4.0,4,98.606629,61.04,Dry,12,4,Finished
+2024,Singapore Grand Prix,Charles Leclerc,Scuderia Ferrari,9.0,5,98.629048,62.43,Dry,10,9,Finished
+2024,Singapore Grand Prix,Lewis Hamilton,Mercedes,3.0,6,98.99708,85.248,Dry,8,3,Finished
+2024,Singapore Grand Prix,Carlos Sainz,Scuderia Ferrari,10.0,7,99.171129,96.039,Dry,6,10,Finished
+2024,Singapore Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,7.0,8,99.236786,0.873,Dry,4,7,Lapped
+2024,Singapore Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,6.0,9,99.27395,3.14,Dry,2,6,Lapped
+2024,Singapore Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,13.0,10,99.298278,4.624,Dry,1,13,Lapped
+2024,Singapore Grand Prix,Franco Colapinto,Unknown,12.0,11,99.325491,6.284,Dry,0,12,Lapped
+2024,Singapore Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,8.0,12,99.366606,8.792,Dry,0,8,Lapped
+2024,Singapore Grand Prix,Esteban Ocon,BWT Alpine F1 Team,15.0,13,99.943868,44.005,Dry,0,15,Lapped
+2024,Singapore Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,17.0,14,100.002327,47.571,Dry,0,17,Lapped
+2024,Singapore Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,15,100.160508,57.22,Dry,0,20,Lapped
+2024,Singapore Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,19.0,16,100.170491,57.829,Dry,0,19,Lapped
+2024,Singapore Grand Prix,Pierre Gasly,BWT Alpine F1 Team,18.0,17,100.190655,59.059,Dry,0,18,Lapped
+2024,Singapore Grand Prix,Daniel Ricciardo,Scuderia AlphaTauri Honda RBPT,16.0,18,100.69454,89.796,Dry,0,16,Lapped
+2024,Singapore Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,14.0,19,100.736535,0.0,Dry,0,14,Finished
+2024,Singapore Grand Prix,Alexander Albon,Williams Mercedes,11.0,20,104.046866,0.0,Dry,0,11,Retired
+2024,United States Grand Prix,Charles Leclerc,Scuderia Ferrari,4.0,1,99.808333,0.0,Dry,25,4,Finished
+2024,United States Grand Prix,Carlos Sainz,Scuderia Ferrari,3.0,2,99.997796,8.562,Dry,18,3,Finished
+2024,United States Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,2.0,3,100.183925,19.412,Dry,15,2,Finished
+2024,United States Grand Prix,Lando Norris,McLaren Mercedes,1.0,4,100.158407,20.354,Dry,12,1,Finished
+2024,United States Grand Prix,Oscar Piastri,McLaren Mercedes,5.0,5,101.223745,21.921,Dry,10,5,Finished
+2024,United States Grand Prix,George Russell,Mercedes,6.0,6,102.10569,56.295,Dry,8,20,Finished
+2024,United States Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,10.0,7,101.158074,59.072,Dry,6,9,Finished
+2024,United States Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,12.0,8,102.163254,62.957,Dry,4,11,Finished
+2024,United States Grand Prix,Liam Lawson,Unknown,15.0,9,101.463074,70.563,Dry,2,19,Finished
+2024,United States Grand Prix,Franco Colapinto,Unknown,17.0,10,102.377981,71.979,Dry,1,15,Finished
+2024,United States Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,9.0,11,101.468925,79.782,Dry,0,8,Finished
+2024,United States Grand Prix,Pierre Gasly,BWT Alpine F1 Team,7.0,12,102.454363,90.558,Dry,0,6,Finished
+2024,United States Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,8.0,13,102.904203,1.726,Dry,0,7,Lapped
+2024,United States Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,11.0,14,102.001339,8.212,Dry,0,10,Lapped
+2024,United States Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,14.0,15,102.341622,16.983,Dry,0,13,Lapped
+2024,United States Grand Prix,Alexander Albon,Williams Mercedes,16.0,16,103.177629,18.092,Dry,0,14,Lapped
+2024,United States Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,18.0,17,103.58574,34.333,Dry,0,16,Lapped
+2024,United States Grand Prix,Esteban Ocon,BWT Alpine F1 Team,13.0,18,103.72374,42.112,Dry,0,12,Lapped
+2024,United States Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,19,104.70689,49.24,Dry,0,18,Lapped
+2024,United States Grand Prix,Lewis Hamilton,Mercedes,19.0,20,108.064,0.0,Dry,0,17,Retired
+2024,Mexico City Grand Prix,Carlos Sainz,Scuderia Ferrari,1.0,1,85.292957,0.0,Dry,25,1,Finished
+2024,Mexico City Grand Prix,Lando Norris,McLaren Mercedes,3.0,2,85.359225,4.705,Dry,18,3,Finished
+2024,Mexico City Grand Prix,Charles Leclerc,Scuderia Ferrari,4.0,3,85.777281,34.387,Dry,16,4,Finished
+2024,Mexico City Grand Prix,Lewis Hamilton,Mercedes,6.0,4,85.923661,44.78,Dry,12,6,Finished
+2024,Mexico City Grand Prix,George Russell,Mercedes,5.0,5,85.976563,48.536,Dry,10,5,Finished
+2024,Mexico City Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,2.0,6,86.131802,59.558,Dry,8,2,Finished
+2024,Mexico City Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,7.0,7,86.189323,63.642,Dry,6,7,Finished
+2024,Mexico City Grand Prix,Oscar Piastri,McLaren Mercedes,17.0,8,86.207436,64.928,Dry,4,17,Finished
+2024,Mexico City Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,10.0,9,86.550285,2.7199999999999998,Dry,2,10,Lapped
+2024,Mexico City Grand Prix,Pierre Gasly,BWT Alpine F1 Team,8.0,10,86.776957,18.587,Dry,1,8,Lapped
+2024,Mexico City Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,14.0,11,86.8696,25.072,Dry,0,14,Lapped
+2024,Mexico City Grand Prix,Franco Colapinto,Unknown,16.0,12,86.904242,37.497,Dry,0,16,Lapped
+2024,Mexico City Grand Prix,Esteban Ocon,BWT Alpine F1 Team,19.0,13,87.078042,39.663,Dry,0,0,Lapped
+2024,Mexico City Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,15.0,14,87.114671,42.227,Dry,0,15,Lapped
+2024,Mexico City Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,15,87.393171,61.722,Dry,0,19,Lapped
+2024,Mexico City Grand Prix,Liam Lawson,Unknown,12.0,16,87.432371,64.466,Dry,0,12,Lapped
+2024,Mexico City Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,18.0,17,87.558342,73.284,Dry,0,18,Lapped
+2024,Mexico City Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,13.0,18,101.749266,0.0,Dry,0,13,Retired
+2024,Mexico City Grand Prix,Alexander Albon,Williams Mercedes,9.0,19,,0.0,Dry,0,9,Retired
+2024,Mexico City Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,11.0,20,,0.0,Dry,0,11,Retired
+2024,São Paulo Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,12.0,1,88.050611,0.0,Dry,26,17,Finished
+2024,São Paulo Grand Prix,Esteban Ocon,BWT Alpine F1 Team,4.0,2,88.326164,19.477,Dry,18,4,Finished
+2024,São Paulo Grand Prix,Pierre Gasly,BWT Alpine F1 Team,15.0,3,88.442597,22.532,Dry,15,13,Finished
+2024,São Paulo Grand Prix,George Russell,Mercedes,2.0,4,88.507522,23.265,Dry,12,2,Finished
+2024,São Paulo Grand Prix,Charles Leclerc,Scuderia Ferrari,6.0,5,88.651791,30.177,Dry,10,6,Finished
+2024,São Paulo Grand Prix,Lando Norris,McLaren Mercedes,1.0,6,88.599283,31.372,Dry,8,1,Finished
+2024,São Paulo Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,3.0,7,88.801492,42.056,Dry,6,3,Finished
+2024,São Paulo Grand Prix,Oscar Piastri,McLaren Mercedes,8.0,8,88.761955,44.943,Dry,4,8,Finished
+2024,São Paulo Grand Prix,Liam Lawson,Unknown,5.0,9,89.12991,50.452,Dry,2,5,Finished
+2024,São Paulo Grand Prix,Lewis Hamilton,Mercedes,16.0,10,89.130164,50.753,Dry,1,14,Finished
+2024,São Paulo Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,13.0,11,89.382447,51.531,Dry,0,12,Finished
+2024,São Paulo Grand Prix,Oliver Bearman,Unknown,17.0,12,89.372194,57.085,Dry,0,15,Finished
+2024,São Paulo Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,11.0,13,89.533074,63.588,Dry,0,11,Finished
+2024,São Paulo Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,9.0,14,89.482089,78.049,Dry,0,9,Finished
+2024,São Paulo Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,20.0,15,90.416363,79.649,Dry,0,19,Finished
+2024,São Paulo Grand Prix,Carlos Sainz,Scuderia Ferrari,14.0,16,90.714388,0.0,Dry,0,20,Retired
+2024,São Paulo Grand Prix,Franco Colapinto,Unknown,18.0,17,90.275366,0.0,Dry,0,16,Retired
+2024,São Paulo Grand Prix,Alexander Albon,Williams Mercedes,7.0,18,90.0,0.0,Dry,0,7,Did not start
+2024,São Paulo Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,10.0,19,,0.0,Dry,0,10,Did not start
+2024,São Paulo Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,19.0,20,88.307925,0.0,Dry,0,18,Disqualified
+2024,Las Vegas Grand Prix,George Russell,Mercedes,1.0,1,98.51938,0.0,Dry,25,1,Finished
+2024,Las Vegas Grand Prix,Lewis Hamilton,Mercedes,10.0,2,98.66564,7.313,Dry,18,10,Finished
+2024,Las Vegas Grand Prix,Carlos Sainz,Scuderia Ferrari,2.0,3,98.7575,11.906,Dry,15,2,Finished
+2024,Las Vegas Grand Prix,Charles Leclerc,Scuderia Ferrari,4.0,4,98.80504,14.283,Dry,12,4,Finished
+2024,Las Vegas Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,5.0,5,98.85102,16.582,Dry,10,5,Finished
+2024,Las Vegas Grand Prix,Lando Norris,McLaren Mercedes,6.0,6,99.38708,43.385,Dry,9,6,Finished
+2024,Las Vegas Grand Prix,Oscar Piastri,McLaren Mercedes,8.0,7,99.54668,51.365,Dry,6,8,Finished
+2024,Las Vegas Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,9.0,8,99.71554,59.808,Dry,4,9,Finished
+2024,Las Vegas Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,7.0,9,99.77554,62.808,Dry,2,7,Finished
+2024,Las Vegas Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,16.0,10,99.78166,63.114,Dry,1,15,Finished
+2024,Las Vegas Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,17.0,11,99.90328,69.195,Dry,0,16,Finished
+2024,Las Vegas Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,12.0,12,99.91544,69.803,Dry,0,12,Finished
+2024,Las Vegas Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,13.0,13,100.00108,74.085,Dry,0,13,Finished
+2024,Las Vegas Grand Prix,Franco Colapinto,Unknown,14.0,14,100.02282,75.172,Dry,0,20,Finished
+2024,Las Vegas Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,20.0,15,100.20142,84.102,Dry,0,18,Finished
+2024,Las Vegas Grand Prix,Liam Lawson,Unknown,15.0,16,100.33948,91.005,Dry,0,14,Finished
+2024,Las Vegas Grand Prix,Esteban Ocon,BWT Alpine F1 Team,11.0,17,100.57202,2.06,Dry,0,11,Lapped
+2024,Las Vegas Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,19.0,18,100.760285,11.285,Dry,0,19,Lapped
+2024,Las Vegas Grand Prix,Alexander Albon,Williams Mercedes,18.0,19,101.28084,0.0,Dry,0,17,Retired
+2024,Las Vegas Grand Prix,Pierre Gasly,BWT Alpine F1 Team,3.0,20,102.464866,0.0,Dry,0,3,Retired
+2024,Qatar Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,1,91.006566,0.0,Dry,25,2,Finished
+2024,Qatar Grand Prix,Charles Leclerc,Scuderia Ferrari,5.0,2,93.575745,6.031,Dry,18,5,Finished
+2024,Qatar Grand Prix,Oscar Piastri,McLaren Mercedes,4.0,3,94.76075,6.819,Dry,15,4,Finished
+2024,Qatar Grand Prix,George Russell,Mercedes,2.0,4,96.042578,14.104,Dry,12,1,Finished
+2024,Qatar Grand Prix,Pierre Gasly,BWT Alpine F1 Team,11.0,5,96.17728,16.782,Dry,10,11,Finished
+2024,Qatar Grand Prix,Carlos Sainz,Scuderia Ferrari,7.0,6,96.189456,17.476,Dry,8,7,Finished
+2024,Qatar Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,8.0,7,96.231403,19.867,Dry,6,8,Finished
+2024,Qatar Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,12.0,8,96.327771,25.36,Dry,4,12,Finished
+2024,Qatar Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,10.0,9,96.447368,32.177,Dry,2,10,Finished
+2024,Qatar Grand Prix,Lando Norris,McLaren Mercedes,3.0,10,92.820925,35.762,Dry,2,3,Finished
+2024,Qatar Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,13.0,11,94.4432,50.243,Dry,0,13,Finished
+2024,Qatar Grand Prix,Lewis Hamilton,Mercedes,6.0,12,94.067527,56.122,Dry,0,6,Finished
+2024,Qatar Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,14.0,13,96.954789,61.1,Dry,0,14,Finished
+2024,Qatar Grand Prix,Liam Lawson,Unknown,17.0,14,95.866839,62.656,Dry,0,17,Finished
+2024,Qatar Grand Prix,Alexander Albon,Williams Mercedes,16.0,15,97.826642,12.969,Dry,0,16,Lapped
+2024,Qatar Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,18.0,16,98.320717,0.0,Dry,0,18,Retired
+2024,Qatar Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,9.0,17,95.456405,0.0,Dry,0,9,Retired
+2024,Qatar Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,15.0,18,121.44525,0.0,Dry,0,15,Retired
+2024,Qatar Grand Prix,Franco Colapinto,Unknown,19.0,19,,0.0,Dry,0,19,Retired
+2024,Qatar Grand Prix,Esteban Ocon,BWT Alpine F1 Team,20.0,20,,0.0,Dry,0,20,Retired
+2024,Abu Dhabi Grand Prix,Lando Norris,McLaren Mercedes,1.0,1,89.5395,0.0,Dry,25,1,Finished
+2024,Abu Dhabi Grand Prix,Carlos Sainz,Scuderia Ferrari,3.0,2,89.640051,5.832,Dry,18,3,Finished
+2024,Abu Dhabi Grand Prix,Charles Leclerc,Scuderia Ferrari,14.0,3,90.089982,31.928,Dry,15,19,Finished
+2024,Abu Dhabi Grand Prix,Lewis Hamilton,Mercedes,18.0,4,90.168517,36.483,Dry,12,16,Finished
+2024,Abu Dhabi Grand Prix,George Russell,Mercedes,7.0,5,90.186706,37.538,Dry,10,6,Finished
+2024,Abu Dhabi Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,5.0,6,90.398931,49.847,Dry,8,4,Finished
+2024,Abu Dhabi Grand Prix,Pierre Gasly,BWT Alpine F1 Team,6.0,7,90.790534,72.56,Dry,6,5,Finished
+2024,Abu Dhabi Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,4.0,8,90.842155,75.554,Dry,4,7,Finished
+2024,Abu Dhabi Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,8.0,9,90.959724,82.373,Dry,2,8,Finished
+2024,Abu Dhabi Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,10,90.984689,83.821,Dry,1,2,Finished
+2024,Abu Dhabi Grand Prix,Alexander Albon,Williams Mercedes,16.0,11,91.307754,11.251,Dry,0,18,Lapped
+2024,Abu Dhabi Grand Prix,Yuki Tsunoda,Scuderia AlphaTauri Honda RBPT,11.0,12,91.368929,14.738,Dry,0,11,Lapped
+2024,Abu Dhabi Grand Prix,Guanyu Zhou,Alfa Romeo F1 Team Stake,17.0,13,91.413947,17.304,Dry,0,15,Lapped
+2024,Abu Dhabi Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,13.0,14,91.346736,18.473,Dry,0,13,Lapped
+2024,Abu Dhabi Grand Prix,Jack Doohan,Unknown,20.0,15,91.576245,26.555,Dry,0,17,Lapped
+2024,Abu Dhabi Grand Prix,Kevin Magnussen,MoneyGram Haas F1 Team,15.0,16,92.471719,77.597,Dry,0,14,Lapped
+2024,Abu Dhabi Grand Prix,Liam Lawson,Unknown,12.0,17,92.308163,0.0,Dry,0,12,Finished
+2024,Abu Dhabi Grand Prix,Valtteri Bottas,Alfa Romeo F1 Team Stake,9.0,18,94.909333,0.0,Dry,0,9,Retired
+2024,Abu Dhabi Grand Prix,Franco Colapinto,Unknown,19.0,19,95.016538,0.0,Dry,0,20,Retired
+2024,Abu Dhabi Grand Prix,Sergio Perez,Red Bull Racing Honda RBPT,10.0,20,,0.0,Dry,0,10,Retired
+2025,Australian Grand Prix,Lando Norris,McLaren Mercedes,1.0,1,103.428301,0.0,Dry,25,1,Finished
+2025,Australian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,3.0,2,103.34115,0.895,Dry,18,3,Finished
+2025,Australian Grand Prix,George Russell,Mercedes,4.0,3,103.686339,8.481,Dry,15,4,Finished
+2025,Australian Grand Prix,Andrea Kimi Antonelli,Unknown,16.0,4,104.57937,10.135,Dry,12,16,Finished
+2025,Australian Grand Prix,Alexander Albon,Williams Mercedes,6.0,5,104.672388,12.773,Dry,10,6,Finished
+2025,Australian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,13.0,6,104.730129,17.413,Dry,8,13,Finished
+2025,Australian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,17.0,7,104.740166,18.423,Dry,6,17,Finished
+2025,Australian Grand Prix,Charles Leclerc,Scuderia Ferrari,7.0,8,103.933528,19.826,Dry,4,7,Finished
+2025,Australian Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,9,102.084461,20.448,Dry,2,2,Finished
+2025,Australian Grand Prix,Lewis Hamilton,Scuderia Ferrari,8.0,10,103.967188,22.473,Dry,1,8,Finished
+2025,Australian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,9.0,11,104.889166,26.502,Dry,0,9,Finished
+2025,Australian Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,5.0,12,104.085698,29.884,Dry,0,5,Finished
+2025,Australian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,19.0,13,103.848698,33.161,Dry,0,19,Finished
+2025,Australian Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,20.0,14,103.870075,40.351,Dry,0,20,Finished
+2025,Australian Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,18.0,15,101.752523,0.0,Dry,0,18,Retired
+2025,Australian Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,15.0,16,102.655634,0.0,Dry,0,15,Retired
+2025,Australian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,12.0,17,98.517379,0.0,Dry,0,12,Retired
+2025,Australian Grand Prix,Carlos Sainz,Williams Mercedes,10.0,18,,0.0,Dry,0,10,Retired
+2025,Australian Grand Prix,Jack Doohan,Unknown,14.0,19,,0.0,Dry,0,14,Retired
+2025,Australian Grand Prix,Isack Hadjar,Kick Sauber F1 Team,11.0,20,,0.0,Dry,0,11,Retired
+2025,Chinese Grand Prix,Oscar Piastri,McLaren Mercedes,1.0,1,97.411178,0.0,Dry,25,1,Finished
+2025,Chinese Grand Prix,Lando Norris,McLaren Mercedes,3.0,2,97.58525,9.748,Dry,18,3,Finished
+2025,Chinese Grand Prix,George Russell,Mercedes,2.0,3,97.609339,11.097,Dry,15,2,Finished
+2025,Chinese Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,4.0,4,97.708607,16.656,Dry,12,4,Finished
+2025,Chinese Grand Prix,Esteban Ocon,BWT Alpine F1 Team,11.0,5,98.303482,49.969,Dry,10,11,Finished
+2025,Chinese Grand Prix,Kimi Antonelli,Mercedes,,6,98.370964,53.748,Dry,8,8,Finished
+2025,Chinese Grand Prix,Alexander Albon,Williams Mercedes,10.0,7,98.41691,56.321,Dry,6,10,Finished
+2025,Chinese Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,17.0,8,98.505875,61.303,Dry,4,17,Finished
+2025,Chinese Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,14.0,9,98.664821,70.204,Dry,2,14,Finished
+2025,Chinese Grand Prix,Carlos Sainz,Williams Mercedes,15.0,10,98.775232,76.387,Dry,1,15,Finished
+2025,Chinese Grand Prix,Isack Hadjar,Kick Sauber F1 Team,7.0,11,98.81966,78.875,Dry,0,7,Finished
+2025,Chinese Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,20.0,12,98.860232,81.147,Dry,0,20,Finished
+2025,Chinese Grand Prix,Jack Doohan,Unknown,18.0,13,98.811196,88.401,Dry,0,18,Finished
+2025,Chinese Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,19.0,14,99.377854,10.756,Dry,0,19,Lapped
+2025,Chinese Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,12.0,15,99.550036,20.226,Dry,0,12,Lapped
+2025,Chinese Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,9.0,16,99.609763,23.511,Dry,0,9,Lapped
+2025,Chinese Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,13.0,17,111.3935,0.0,Dry,0,13,Retired
+2025,Chinese Grand Prix,Charles Leclerc,Scuderia Ferrari,6.0,18,97.82566,0.0,Dry,0,6,Disqualified
+2025,Chinese Grand Prix,Lewis Hamilton,Scuderia Ferrari,5.0,19,97.86441,0.0,Dry,0,5,Disqualified
+2025,Chinese Grand Prix,Pierre Gasly,BWT Alpine F1 Team,16.0,20,98.611089,0.0,Dry,0,16,Disqualified
+2025,Japanese Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,1,92.961943,0.0,Dry,25,1,Finished
+2025,Japanese Grand Prix,Lando Norris,McLaren Mercedes,2.0,2,92.988792,1.423,Dry,18,2,Finished
+2025,Japanese Grand Prix,Oscar Piastri,McLaren Mercedes,3.0,3,93.002113,2.129,Dry,15,3,Finished
+2025,Japanese Grand Prix,Charles Leclerc,Scuderia Ferrari,4.0,4,93.26566,16.097,Dry,12,4,Finished
+2025,Japanese Grand Prix,George Russell,Mercedes,5.0,5,93.289528,17.362,Dry,10,5,Finished
+2025,Japanese Grand Prix,Kimi Antonelli,Mercedes,6.0,6,93.314226,18.671,Dry,8,6,Finished
+2025,Japanese Grand Prix,Lewis Hamilton,Scuderia Ferrari,8.0,7,93.512547,29.182,Dry,6,8,Finished
+2025,Japanese Grand Prix,Isack Hadjar,Kick Sauber F1 Team,7.0,8,93.662584,37.134,Dry,4,7,Finished
+2025,Japanese Grand Prix,Alexander Albon,Williams Mercedes,9.0,9,93.723584,40.367,Dry,2,9,Finished
+2025,Japanese Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,10.0,10,93.990792,54.529,Dry,1,10,Finished
+2025,Japanese Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,13.0,11,94.043698,57.333,Dry,0,12,Finished
+2025,Japanese Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,15.0,12,94.063849,58.401,Dry,0,14,Finished
+2025,Japanese Grand Prix,Pierre Gasly,BWT Alpine F1 Team,11.0,13,94.134056,62.122,Dry,0,11,Finished
+2025,Japanese Grand Prix,Carlos Sainz,Williams Mercedes,12.0,14,94.360603,74.129,Dry,0,15,Finished
+2025,Japanese Grand Prix,Jack Doohan,Unknown,19.0,15,94.496169,81.314,Dry,0,19,Finished
+2025,Japanese Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,16.0,16,94.508301,81.957,Dry,0,16,Finished
+2025,Japanese Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,14.0,17,94.522962,82.734,Dry,0,13,Finished
+2025,Japanese Grand Prix,Esteban Ocon,BWT Alpine F1 Team,18.0,18,94.536245,83.438,Dry,0,18,Finished
+2025,Japanese Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,17.0,19,94.544905,83.897,Dry,0,17,Finished
+2025,Japanese Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,20.0,20,94.998307,12.929,Dry,0,20,Lapped
+2025,Bahrain Grand Prix,Oscar Piastri,McLaren Mercedes,1.0,1,99.524375,0.0,Dry,25,1,Finished
+2025,Bahrain Grand Prix,George Russell,Mercedes,2.0,2,99.94875,15.499,Dry,18,3,Finished
+2025,Bahrain Grand Prix,Lando Norris,McLaren Mercedes,6.0,3,99.984,16.273,Dry,15,6,Finished
+2025,Bahrain Grand Prix,Charles Leclerc,Scuderia Ferrari,3.0,4,100.018642,19.679,Dry,12,2,Finished
+2025,Bahrain Grand Prix,Lewis Hamilton,Scuderia Ferrari,9.0,5,100.272035,27.993,Dry,10,9,Finished
+2025,Bahrain Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,7.0,6,101.295263,34.395,Dry,8,7,Finished
+2025,Bahrain Grand Prix,Pierre Gasly,BWT Alpine F1 Team,5.0,7,101.323456,36.002,Dry,6,4,Finished
+2025,Bahrain Grand Prix,Esteban Ocon,BWT Alpine F1 Team,14.0,8,101.468052,44.244,Dry,4,14,Finished
+2025,Bahrain Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,10.0,9,100.589035,45.061,Dry,2,10,Finished
+2025,Bahrain Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,20.0,10,101.526824,47.594,Dry,1,20,Finished
+2025,Bahrain Grand Prix,Kimi Antonelli,Mercedes,4.0,11,100.647446,48.016,Dry,0,5,Finished
+2025,Bahrain Grand Prix,Alexander Albon,Williams Mercedes,15.0,12,100.663357,48.839,Dry,0,15,Finished
+2025,Bahrain Grand Prix,Isack Hadjar,Kick Sauber F1 Team,12.0,13,101.679807,56.314,Dry,0,12,Finished
+2025,Bahrain Grand Prix,Jack Doohan,Unknown,11.0,14,101.618263,57.806,Dry,0,11,Finished
+2025,Bahrain Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,13.0,15,100.858357,60.34,Dry,0,13,Finished
+2025,Bahrain Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,17.0,16,100.656357,64.435,Dry,0,17,Finished
+2025,Bahrain Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,19.0,17,100.934,65.489,Dry,0,19,Finished
+2025,Bahrain Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,18.0,18,100.971571,66.872,Dry,0,18,Finished
+2025,Bahrain Grand Prix,Carlos Sainz,Williams Mercedes,8.0,19,102.382954,0.0,Dry,0,8,Retired
+2025,Bahrain Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,16.0,20,101.629947,0.0,Dry,0,16,Disqualified
+2025,Saudi Arabian Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,1,94.322645,0.0,Dry,25,2,Finished
+2025,Saudi Arabian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,2,94.357229,2.843,Dry,18,1,Finished
+2025,Saudi Arabian Grand Prix,Charles Leclerc,Scuderia Ferrari,4.0,3,94.547104,8.104,Dry,15,4,Finished
+2025,Saudi Arabian Grand Prix,Lando Norris,McLaren Mercedes,10.0,4,94.714229,9.196,Dry,12,10,Finished
+2025,Saudi Arabian Grand Prix,George Russell,Mercedes,3.0,5,94.932833,27.236,Dry,10,3,Finished
+2025,Saudi Arabian Grand Prix,Kimi Antonelli,Mercedes,5.0,6,95.124645,34.688,Dry,8,5,Finished
+2025,Saudi Arabian Grand Prix,Lewis Hamilton,Scuderia Ferrari,7.0,7,95.27227,39.073,Dry,6,7,Finished
+2025,Saudi Arabian Grand Prix,Carlos Sainz,Williams Mercedes,6.0,8,95.821916,64.63,Dry,4,6,Finished
+2025,Saudi Arabian Grand Prix,Alexander Albon,Williams Mercedes,11.0,9,95.926666,66.515,Dry,2,11,Finished
+2025,Saudi Arabian Grand Prix,Isack Hadjar,Kick Sauber F1 Team,14.0,10,96.00102,67.091,Dry,1,14,Finished
+2025,Saudi Arabian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,13.0,11,96.135208,75.917,Dry,0,13,Finished
+2025,Saudi Arabian Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,12.0,12,96.065041,78.451,Dry,0,12,Finished
+2025,Saudi Arabian Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,15.0,13,96.305375,79.194,Dry,0,15,Finished
+2025,Saudi Arabian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,19.0,14,96.801416,99.723,Dry,0,19,Finished
+2025,Saudi Arabian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,18.0,15,96.809021,4.609,Dry,0,18,Lapped
+2025,Saudi Arabian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,16.0,16,96.807148,5.527,Dry,0,16,Lapped
+2025,Saudi Arabian Grand Prix,Jack Doohan,Unknown,17.0,17,97.136212,19.264,Dry,0,17,Lapped
+2025,Saudi Arabian Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,20.0,18,97.150893,19.306,Dry,0,20,Lapped
+2025,Saudi Arabian Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,8.0,19,165.662,0.0,Dry,0,8,Retired
+2025,Saudi Arabian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,9.0,20,,0.0,Dry,0,9,Retired
+2025,Miami Grand Prix,Oscar Piastri,McLaren Mercedes,4.0,1,93.536614,0.0,Dry,25,4,Finished
+2025,Miami Grand Prix,Lando Norris,McLaren Mercedes,2.0,2,93.617842,4.63,Dry,18,2,Finished
+2025,Miami Grand Prix,George Russell,Mercedes,5.0,3,94.197035,37.644,Dry,15,5,Finished
+2025,Miami Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,4,94.237596,39.956,Dry,12,1,Finished
+2025,Miami Grand Prix,Alexander Albon,Williams Mercedes,7.0,5,94.379894,48.067,Dry,10,7,Finished
+2025,Miami Grand Prix,Kimi Antonelli,Mercedes,3.0,6,94.510333,55.502,Dry,8,3,Finished
+2025,Miami Grand Prix,Charles Leclerc,Scuderia Ferrari,8.0,7,94.537245,57.036,Dry,6,8,Finished
+2025,Miami Grand Prix,Lewis Hamilton,Scuderia Ferrari,12.0,8,94.592508,60.186,Dry,4,12,Finished
+2025,Miami Grand Prix,Carlos Sainz,Williams Mercedes,6.0,9,94.599368,60.577,Dry,2,6,Finished
+2025,Miami Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,10.0,10,94.754754,74.434,Dry,1,10,Finished
+2025,Miami Grand Prix,Isack Hadjar,Kick Sauber F1 Team,11.0,11,94.845421,74.602,Dry,0,11,Finished
+2025,Miami Grand Prix,Esteban Ocon,BWT Alpine F1 Team,9.0,12,94.975315,82.006,Dry,0,9,Finished
+2025,Miami Grand Prix,Pierre Gasly,BWT Alpine F1 Team,18.0,13,95.123368,90.445,Dry,0,20,Finished
+2025,Miami Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,16.0,14,95.227535,1.155,Dry,0,16,Lapped
+2025,Miami Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,17.0,15,95.581535,20.979,Dry,0,17,Lapped
+2025,Miami Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,19.0,16,95.656232,25.162,Dry,0,18,Lapped
+2025,Miami Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,15.0,17,98.514194,0.0,Dry,0,15,Retired
+2025,Miami Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,13.0,18,98.1153,0.0,Dry,0,13,Retired
+2025,Miami Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,20.0,19,95.954555,0.0,Dry,0,19,Retired
+2025,Miami Grand Prix,Jack Doohan,Unknown,14.0,20,,0.0,Dry,0,14,Retired
+2025,Emilia Romagna Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,2.0,1,87.193634,0.0,Dry,25,2,Finished
+2025,Emilia Romagna Grand Prix,Lando Norris,McLaren Mercedes,4.0,2,87.290603,6.109,Dry,18,4,Finished
+2025,Emilia Romagna Grand Prix,Oscar Piastri,McLaren Mercedes,1.0,3,87.399285,12.956,Dry,15,1,Finished
+2025,Emilia Romagna Grand Prix,Lewis Hamilton,Scuderia Ferrari,12.0,4,87.421507,14.356,Dry,12,12,Finished
+2025,Emilia Romagna Grand Prix,Alexander Albon,Williams Mercedes,7.0,5,87.478476,17.945,Dry,10,7,Finished
+2025,Emilia Romagna Grand Prix,Charles Leclerc,Scuderia Ferrari,11.0,6,87.52338,20.774,Dry,8,11,Finished
+2025,Emilia Romagna Grand Prix,George Russell,Mercedes,3.0,7,87.54338,22.034,Dry,6,3,Finished
+2025,Emilia Romagna Grand Prix,Carlos Sainz,Williams Mercedes,6.0,8,87.557095,22.898,Dry,4,6,Finished
+2025,Emilia Romagna Grand Prix,Isack Hadjar,Kick Sauber F1 Team,9.0,9,87.568015,23.586,Dry,2,9,Finished
+2025,Emilia Romagna Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,20.0,10,87.613412,26.446,Dry,1,20,Finished
+2025,Emilia Romagna Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,5.0,11,87.626174,27.25,Dry,0,5,Finished
+2025,Emilia Romagna Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,17.0,12,87.674523,30.296,Dry,0,17,Finished
+2025,Emilia Romagna Grand Prix,Pierre Gasly,BWT Alpine F1 Team,10.0,13,87.692428,31.424,Dry,0,10,Finished
+2025,Emilia Romagna Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,16.0,14,87.709682,32.511,Dry,0,15,Finished
+2025,Emilia Romagna Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,8.0,15,87.717333,32.993,Dry,0,8,Finished
+2025,Emilia Romagna Grand Prix,Franco Colapinto,Williams Mercedes,15.0,16,87.723968,33.411,Dry,0,16,Finished
+2025,Emilia Romagna Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,19.0,17,87.730269,33.808,Dry,0,19,Finished
+2025,Emilia Romagna Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,14.0,18,87.805888,38.572,Dry,0,14,Finished
+2025,Emilia Romagna Grand Prix,Kimi Antonelli,Mercedes,13.0,19,83.857818,0.0,Dry,0,13,Retired
+2025,Emilia Romagna Grand Prix,Esteban Ocon,BWT Alpine F1 Team,18.0,20,83.790185,0.0,Dry,0,18,Retired
+2025,Monaco Grand Prix,Lando Norris,McLaren Mercedes,1.0,1,77.356961,0.0,Dry,25,1,Finished
+2025,Monaco Grand Prix,Charles Leclerc,Scuderia Ferrari,2.0,2,77.397102,3.1310000000000002,Dry,18,2,Finished
+2025,Monaco Grand Prix,Oscar Piastri,McLaren Mercedes,3.0,3,77.403858,3.658,Dry,15,3,Finished
+2025,Monaco Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,5.0,4,77.620705,20.572,Dry,12,4,Finished
+2025,Monaco Grand Prix,Lewis Hamilton,Scuderia Ferrari,4.0,5,78.015769,51.387,Dry,10,7,Finished
+2025,Monaco Grand Prix,Isack Hadjar,Kick Sauber F1 Team,6.0,6,79.206818,65.082,Dry,8,5,Lapped
+2025,Monaco Grand Prix,Esteban Ocon,BWT Alpine F1 Team,8.0,7,79.219116,66.029,Dry,6,8,Lapped
+2025,Monaco Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,9.0,8,79.228428,66.746,Dry,4,9,Lapped
+2025,Monaco Grand Prix,Alexander Albon,Williams Mercedes,10.0,9,79.548842,11.869,Dry,2,10,Lapped
+2025,Monaco Grand Prix,Carlos Sainz,Williams Mercedes,11.0,10,79.593092,15.232,Dry,1,11,Lapped
+2025,Monaco Grand Prix,George Russell,Mercedes,14.0,11,79.837986,33.844,Dry,0,14,Lapped
+2025,Monaco Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,17.0,12,80.112315,54.693,Dry,0,20,Lapped
+2025,Monaco Grand Prix,Franco Colapinto,Williams Mercedes,20.0,13,80.144171,57.114,Dry,0,18,Lapped
+2025,Monaco Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,16.0,14,80.292986,68.424,Dry,0,16,Lapped
+2025,Monaco Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,19.0,15,80.318921,70.395,Dry,0,19,Lapped
+2025,Monaco Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,13.0,16,80.334039,71.544,Dry,0,13,Lapped
+2025,Monaco Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,12.0,17,80.338052,71.849,Dry,0,12,Lapped
+2025,Monaco Grand Prix,Kimi Antonelli,Mercedes,15.0,18,80.56336,8.409,Dry,0,15,Lapped
+2025,Monaco Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,7.0,19,80.752833,0.0,Dry,0,6,Retired
+2025,Monaco Grand Prix,Pierre Gasly,BWT Alpine F1 Team,18.0,20,93.944142,0.0,Dry,0,17,Retired
+2025,Spanish Grand Prix,Oscar Piastri,McLaren Mercedes,1.0,1,84.505681,0.0,Dry,25,1,Finished
+2025,Spanish Grand Prix,Lando Norris,McLaren Mercedes,2.0,2,84.543121,2.471,Dry,18,2,Finished
+2025,Spanish Grand Prix,Charles Leclerc,Scuderia Ferrari,7.0,3,84.66409,10.455,Dry,15,7,Finished
+2025,Spanish Grand Prix,George Russell,Mercedes,4.0,4,84.677787,11.359,Dry,12,4,Finished
+2025,Spanish Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,16.0,5,84.712469,13.648,Dry,10,15,Finished
+2025,Spanish Grand Prix,Lewis Hamilton,Scuderia Ferrari,5.0,6,84.740651,15.508,Dry,8,5,Finished
+2025,Spanish Grand Prix,Isack Hadjar,Kick Sauber F1 Team,9.0,7,84.748439,16.022,Dry,6,9,Finished
+2025,Spanish Grand Prix,Pierre Gasly,BWT Alpine F1 Team,8.0,8,84.776621,17.882,Dry,4,8,Finished
+2025,Spanish Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,10.0,9,84.832409,21.564,Dry,2,10,Finished
+2025,Spanish Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,3.0,10,84.684863,21.826,Dry,1,3,Finished
+2025,Spanish Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,13.0,11,84.89253,25.532,Dry,0,13,Finished
+2025,Spanish Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,12.0,12,84.89956,25.996,Dry,0,12,Finished
+2025,Spanish Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,20.0,13,84.942378,28.822,Dry,0,19,Finished
+2025,Spanish Grand Prix,Carlos Sainz,Williams Mercedes,18.0,14,84.949757,29.309,Dry,0,17,Finished
+2025,Spanish Grand Prix,Franco Colapinto,Williams Mercedes,19.0,15,84.981151,31.381,Dry,0,18,Finished
+2025,Spanish Grand Prix,Esteban Ocon,BWT Alpine F1 Team,17.0,16,84.993515,32.197,Dry,0,16,Finished
+2025,Spanish Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,15.0,17,84.915757,37.065,Dry,0,14,Finished
+2025,Spanish Grand Prix,Kimi Antonelli,Mercedes,6.0,18,82.074188,0.0,Dry,0,6,Retired
+2025,Spanish Grand Prix,Alexander Albon,Williams Mercedes,11.0,19,85.301777,0.0,Dry,0,11,Retired
+2025,Canadian Grand Prix,George Russell,Mercedes,1.0,1,78.752685,0.0,Dry,25,1,Finished
+2025,Canadian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,2.0,2,78.755942,0.228,Dry,18,2,Finished
+2025,Canadian Grand Prix,Kimi Antonelli,Mercedes,4.0,3,78.767171,1.014,Dry,15,4,Finished
+2025,Canadian Grand Prix,Oscar Piastri,McLaren Mercedes,3.0,4,78.782814,2.109,Dry,12,3,Finished
+2025,Canadian Grand Prix,Charles Leclerc,Scuderia Ferrari,8.0,5,78.801857,3.442,Dry,10,8,Finished
+2025,Canadian Grand Prix,Lewis Hamilton,Scuderia Ferrari,5.0,6,78.905728,10.713,Dry,8,5,Finished
+2025,Canadian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,6.0,7,78.909428,10.972,Dry,6,6,Finished
+2025,Canadian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,13.0,8,78.972171,15.364,Dry,4,11,Finished
+2025,Canadian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,15.0,9,79.915376,1.4729999999999999,Dry,2,14,Lapped
+2025,Canadian Grand Prix,Carlos Sainz,Williams Mercedes,17.0,10,79.921362,1.8860000000000001,Dry,1,16,Lapped
+2025,Canadian Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,14.0,11,79.947898,3.717,Dry,0,13,Lapped
+2025,Canadian Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,11.0,12,79.973101,5.456,Dry,0,18,Lapped
+2025,Canadian Grand Prix,Franco Colapinto,Williams Mercedes,12.0,13,79.995739,7.018,Dry,0,10,Lapped
+2025,Canadian Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,16.0,14,80.008217,7.879,Dry,0,15,Lapped
+2025,Canadian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,20.0,15,80.009246,7.95,Dry,0,20,Lapped
+2025,Canadian Grand Prix,Isack Hadjar,Kick Sauber F1 Team,9.0,16,80.020652,8.737,Dry,0,12,Lapped
+2025,Canadian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,18.0,17,80.025376,9.063,Dry,0,17,Lapped
+2025,Canadian Grand Prix,Lando Norris,McLaren Mercedes,7.0,18,76.325303,0.0,Dry,0,7,Retired
+2025,Canadian Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,19.0,19,78.420226,0.0,Dry,0,19,Retired
+2025,Canadian Grand Prix,Alexander Albon,Williams Mercedes,10.0,20,78.327826,0.0,Dry,0,9,Retired
+2025,Austrian Grand Prix,Lando Norris,McLaren Mercedes,1.0,1,71.824185,0.0,Dry,25,1,Finished
+2025,Austrian Grand Prix,Oscar Piastri,McLaren Mercedes,3.0,2,71.862685,2.695,Dry,18,3,Finished
+2025,Austrian Grand Prix,Charles Leclerc,Scuderia Ferrari,2.0,3,72.107328,19.82,Dry,15,2,Finished
+2025,Austrian Grand Prix,Lewis Hamilton,Scuderia Ferrari,4.0,4,72.238757,29.02,Dry,12,4,Finished
+2025,Austrian Grand Prix,George Russell,Mercedes,5.0,5,72.715557,62.396,Dry,10,5,Finished
+2025,Austrian Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,6.0,6,72.7921,67.754,Dry,8,6,Finished
+2025,Austrian Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,11.0,7,72.885942,1.437,Dry,6,11,Lapped
+2025,Austrian Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,8.0,8,72.893405,1.952,Dry,4,8,Lapped
+2025,Austrian Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,20.0,9,72.977,7.72,Dry,2,20,Lapped
+2025,Austrian Grand Prix,Esteban Ocon,BWT Alpine F1 Team,17.0,10,73.00984,9.986,Dry,1,17,Lapped
+2025,Austrian Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,15.0,11,73.225318,24.854,Dry,0,15,Lapped
+2025,Austrian Grand Prix,Isack Hadjar,Kick Sauber F1 Team,13.0,12,73.270289,27.957,Dry,0,13,Lapped
+2025,Austrian Grand Prix,Pierre Gasly,BWT Alpine F1 Team,10.0,13,73.344173,33.055,Dry,0,10,Lapped
+2025,Austrian Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,16.0,14,73.364565,34.462,Dry,0,16,Lapped
+2025,Austrian Grand Prix,Franco Colapinto,Williams Mercedes,14.0,15,73.411376,42.692,Dry,0,14,Lapped
+2025,Austrian Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,18.0,16,73.98047,2.979,Dry,0,18,Lapped
+2025,Austrian Grand Prix,Alexander Albon,Williams Mercedes,12.0,17,80.0152,0.0,Dry,0,12,Retired
+2025,Austrian Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,7.0,18,,0.0,Dry,0,7,Retired
+2025,Austrian Grand Prix,Kimi Antonelli,Mercedes,9.0,19,,0.0,Dry,0,9,Retired
+2025,Austrian Grand Prix,Carlos Sainz,Williams Mercedes,19.0,20,,0.0,Dry,0,19,Did not start
+2025,British Grand Prix,Lando Norris,McLaren Mercedes,3.0,1,105.549217,0.0,Dry,25,3,Finished
+2025,British Grand Prix,Oscar Piastri,McLaren Mercedes,2.0,2,105.341282,6.812,Dry,18,2,Finished
+2025,British Grand Prix,Nico Hulkenberg,MoneyGram Haas F1 Team,19.0,3,106.56926,34.742,Dry,15,19,Finished
+2025,British Grand Prix,Lewis Hamilton,Scuderia Ferrari,5.0,4,107.648276,39.812,Dry,12,5,Finished
+2025,British Grand Prix,Max Verstappen,Red Bull Racing Honda RBPT,1.0,5,106.58663,56.781,Dry,10,1,Finished
+2025,British Grand Prix,Pierre Gasly,BWT Alpine F1 Team,10.0,6,108.054234,59.857,Dry,8,8,Finished
+2025,British Grand Prix,Lance Stroll,Aston Martin Aramco Mercedes,18.0,7,107.027543,60.603,Dry,6,17,Finished
+2025,British Grand Prix,Alexander Albon,Williams Mercedes,14.0,8,108.297744,64.135,Dry,4,13,Finished
+2025,British Grand Prix,Fernando Alonso,Aston Martin Aramco Mercedes,9.0,9,108.271,65.858,Dry,2,7,Finished
+2025,British Grand Prix,George Russell,Mercedes,4.0,10,108.341957,70.674,Dry,1,4,Finished
+2025,British Grand Prix,Oliver Bearman,MoneyGram Haas F1 Team,8.0,11,108.613659,72.095,Dry,0,18,Finished
+2025,British Grand Prix,Carlos Sainz,Williams Mercedes,11.0,12,108.568468,76.592,Dry,0,9,Finished
+2025,British Grand Prix,Esteban Ocon,BWT Alpine F1 Team,15.0,13,108.310808,77.301,Dry,0,14,Finished
+2025,British Grand Prix,Charles Leclerc,Scuderia Ferrari,6.0,14,108.809574,84.477,Dry,0,6,Finished
+2025,British Grand Prix,Yuki Tsunoda,Visa Cash App RB F1 Team,12.0,15,110.05676,32.25,Dry,0,11,Lapped
+2025,British Grand Prix,Kimi Antonelli,Mercedes,7.0,16,120.091117,0.0,Dry,0,10,Retired
+2025,British Grand Prix,Isack Hadjar,Kick Sauber F1 Team,13.0,17,122.0316,0.0,Dry,0,12,Retired
+2025,British Grand Prix,Gabriel Bortoleto,Kick Sauber F1 Team,17.0,18,136.367666,0.0,Dry,0,16,Retired
+2025,British Grand Prix,Liam Lawson,Visa Cash App RB F1 Team,16.0,19,,0.0,Dry,0,15,Retired
+2025,British Grand Prix,Franco Colapinto,Williams Mercedes,20.0,20,,0.0,Dry,0,20,Did not start

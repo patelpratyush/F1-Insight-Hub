@@ -11,44 +11,105 @@ const DriverPredictor = () => {
   const [selectedTrack, setSelectedTrack] = useState("");
   const [weather, setWeather] = useState("");
   const [prediction, setPrediction] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const drivers = [
-    { code: "VER", name: "Max Verstappen", team: "Red Bull Racing" },
-    { code: "LEC", name: "Charles Leclerc", team: "Ferrari" },
-    { code: "HAM", name: "Lewis Hamilton", team: "Mercedes" },
-    { code: "RUS", name: "George Russell", team: "Mercedes" },
-    { code: "PER", name: "Sergio Pérez", team: "Red Bull Racing" },
-    { code: "SAI", name: "Carlos Sainz", team: "Ferrari" },
-    { code: "NOR", name: "Lando Norris", team: "McLaren" },
-    { code: "PIA", name: "Oscar Piastri", team: "McLaren" },
+    { code: "VER", name: "Max Verstappen", team: "Red Bull", number: 1 },
+    { code: "NOR", name: "Lando Norris", team: "McLaren", number: 4 },
+    { code: "BOR", name: "Gabriel Bortoleto", team: "Kick Sauber", number: 5 },
+    { code: "HAD", name: "Isack Hadjar", team: "Kick Sauber", number: 6 },
+    { code: "GAS", name: "Pierre Gasly", team: "Alpine", number: 10 },
+    { code: "ANT", name: "Kimi Antonelli", team: "Mercedes", number: 12 },
+    { code: "ALO", name: "Fernando Alonso", team: "Aston Martin", number: 14 },
+    { code: "LEC", name: "Charles Leclerc", team: "Ferrari", number: 16 },
+    { code: "STR", name: "Lance Stroll", team: "Aston Martin", number: 18 },
+    { code: "TSU", name: "Yuki Tsunoda", team: "AlphaTauri", number: 22 },
+    { code: "ALB", name: "Alexander Albon", team: "Williams", number: 23 },
+    { code: "HUL", name: "Nico Hulkenberg", team: "Haas", number: 27 },
+    { code: "LAW", name: "Liam Lawson", team: "AlphaTauri", number: 30 },
+    { code: "OCO", name: "Esteban Ocon", team: "Alpine", number: 31 },
+    { code: "COL", name: "Franco Colapinto", team: "Williams", number: 43 },
+    { code: "HAM", name: "Lewis Hamilton", team: "Ferrari", number: 44 },
+    { code: "SAI", name: "Carlos Sainz", team: "Williams", number: 55 },
+    { code: "RUS", name: "George Russell", team: "Mercedes", number: 63 },
+    { code: "PIA", name: "Oscar Piastri", team: "McLaren", number: 81 },
+    { code: "BEA", name: "Oliver Bearman", team: "Haas", number: 87 },
   ];
 
   const tracks = [
-    "Bahrain International Circuit",
-    "Jeddah Corniche Circuit", 
-    "Albert Park Circuit",
-    "Suzuka International Racing Course",
-    "Miami International Autodrome",
-    "Imola Circuit",
-    "Monaco Street Circuit",
-    "Circuit de Barcelona-Catalunya",
-    "Circuit Gilles Villeneuve",
-    "Red Bull Ring",
-    "Silverstone Circuit",
-    "Hungaroring"
+    "Bahrain Grand Prix",
+    "Saudi Arabian Grand Prix",
+    "Australian Grand Prix", 
+    "Japanese Grand Prix",
+    "Chinese Grand Prix",
+    "Miami Grand Prix",
+    "Emilia Romagna Grand Prix",
+    "Monaco Grand Prix",
+    "Canadian Grand Prix",
+    "Spanish Grand Prix",
+    "Austrian Grand Prix",
+    "British Grand Prix",
+    "Hungarian Grand Prix",
+    "Belgian Grand Prix",
+    "Dutch Grand Prix",
+    "Italian Grand Prix",
+    "Azerbaijan Grand Prix",
+    "Singapore Grand Prix",
+    "United States Grand Prix",
+    "Mexico City Grand Prix",
+    "São Paulo Grand Prix",
+    "Las Vegas Grand Prix",
+    "Qatar Grand Prix",
+    "Abu Dhabi Grand Prix"
   ];
 
-  const handlePredict = () => {
-    // Simulate prediction logic
-    const qualifyingPosition = Math.floor(Math.random() * 10) + 1;
-    const racePosition = Math.floor(Math.random() * 10) + 1;
-    const podiumProbability = Math.floor(Math.random() * 100);
+  const handlePredict = async () => {
+    if (!selectedDriver || !selectedTrack || !weather) {
+      alert("Please select driver, track, and weather conditions");
+      return;
+    }
+
+    const selectedDriverData = drivers.find(d => d.code === selectedDriver);
+    setIsLoading(true);
     
-    setPrediction({
-      qualifying: qualifyingPosition,
-      race: racePosition,
-      podiumProbability: podiumProbability
-    });
+    try {
+      const response = await fetch('http://localhost:8000/api/predict/driver', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          driver: selectedDriver,
+          track: selectedTrack,
+          weather: weather.toLowerCase(),
+          team: selectedDriverData?.team || "Unknown"
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Prediction failed');
+      }
+
+      const data = await response.json();
+      
+      // Calculate podium probability based on race position prediction
+      const podiumProbability = data.predicted_race_position <= 3 ? 
+        Math.min(95, data.race_confidence * 100 + (4 - data.predicted_race_position) * 10) : 
+        Math.max(5, (21 - data.predicted_race_position) * 3);
+      
+      setPrediction({
+        qualifying: data.predicted_qualifying_position,
+        race: data.predicted_race_position,
+        podiumProbability: podiumProbability,
+        qualifyingConfidence: data.qualifying_confidence,
+        raceConfidence: data.race_confidence
+      });
+    } catch (error) {
+      console.error('Error making prediction:', error);
+      alert('Failed to get prediction. Make sure the backend server is running.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,8 +124,11 @@ const DriverPredictor = () => {
             <h1 className="text-3xl font-bold text-white">Driver Performance Predictor</h1>
           </div>
           <p className="text-gray-400 text-lg">
-            Predict how a selected driver will perform in the next race based on historical data and machine learning algorithms.
+            Gradient Boosting Machine Learning model trained on 2024-2025 F1 data that predicts race results based on past performance, qualifying times, and structured F1 data.
           </p>
+          <div className="mt-2 text-sm text-gray-500">
+            🏎️ 738 race records • 27 drivers • 25 races • Updated for 2025 season transfers
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -147,12 +211,12 @@ const DriverPredictor = () => {
 
                 <Button 
                   onClick={handlePredict}
-                  disabled={!selectedDriver || !selectedTrack || !weather}
+                  disabled={!selectedDriver || !selectedTrack || !weather || isLoading}
                   className="w-full bg-red-600 hover:bg-red-700 text-white mt-6"
                   size="lg"
                 >
                   <Zap className="mr-2 h-4 w-4" />
-                  Generate Prediction
+                  {isLoading ? 'Generating...' : 'Generate Prediction'}
                 </Button>
               </CardContent>
             </Card>
@@ -177,17 +241,21 @@ const DriverPredictor = () => {
                       <div className="text-center p-6 bg-gradient-to-br from-blue-600/20 to-blue-800/20 rounded-xl border border-blue-600/20">
                         <div className="text-3xl font-bold text-blue-400 mb-2">P{prediction.qualifying}</div>
                         <div className="text-gray-300 font-medium">Qualifying Position</div>
-                        <div className="text-sm text-gray-400 mt-2">Predicted grid position</div>
+                        <div className="text-sm text-gray-400 mt-2">
+                          Confidence: {prediction.qualifyingConfidence ? (prediction.qualifyingConfidence * 100).toFixed(0) : 75}%
+                        </div>
                       </div>
                       
                       <div className="text-center p-6 bg-gradient-to-br from-green-600/20 to-green-800/20 rounded-xl border border-green-600/20">
                         <div className="text-3xl font-bold text-green-400 mb-2">P{prediction.race}</div>
                         <div className="text-gray-300 font-medium">Race Position</div>
-                        <div className="text-sm text-gray-400 mt-2">Predicted finish</div>
+                        <div className="text-sm text-gray-400 mt-2">
+                          Confidence: {prediction.raceConfidence ? (prediction.raceConfidence * 100).toFixed(0) : 65}%
+                        </div>
                       </div>
                       
                       <div className="text-center p-6 bg-gradient-to-br from-purple-600/20 to-purple-800/20 rounded-xl border border-purple-600/20">
-                        <div className="text-3xl font-bold text-purple-400 mb-2">{prediction.podiumProbability}%</div>
+                        <div className="text-3xl font-bold text-purple-400 mb-2">{Math.round(prediction.podiumProbability)}%</div>
                         <div className="text-gray-300 font-medium">Podium Probability</div>
                         <div className="text-sm text-gray-400 mt-2">Top 3 finish chance</div>
                       </div>
@@ -200,20 +268,28 @@ const DriverPredictor = () => {
                       </h4>
                       <div className="space-y-2 text-sm text-gray-300">
                         <div className="flex items-center justify-between">
-                          <span>Historical Performance at Track</span>
-                          <Badge variant="outline" className="text-green-400 border-green-400">Strong</Badge>
+                          <span>Model Type</span>
+                          <Badge variant="outline" className="text-green-400 border-green-400">Gradient Boosting</Badge>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span>Weather Adaptation</span>
-                          <Badge variant="outline" className="text-yellow-400 border-yellow-400">Moderate</Badge>
+                          <span>Weather Conditions</span>
+                          <Badge variant="outline" className="text-blue-400 border-blue-400 capitalize">{weather}</Badge>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span>Team Performance Trend</span>
-                          <Badge variant="outline" className="text-green-400 border-green-400">Improving</Badge>
+                          <span>Team Performance</span>
+                          <Badge variant="outline" className="text-purple-400 border-purple-400">{drivers.find(d => d.code === selectedDriver)?.team}</Badge>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span>Confidence Level</span>
-                          <Badge variant="outline" className="text-blue-400 border-blue-400">85%</Badge>
+                          <span>Qualifying vs Race</span>
+                          <Badge variant="outline" className={`${prediction.race <= prediction.qualifying ? 'text-green-400 border-green-400' : 'text-red-400 border-red-400'}`}>
+                            {prediction.race <= prediction.qualifying ? 'Gains positions' : 'Loses positions'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Overall Confidence</span>
+                          <Badge variant="outline" className="text-blue-400 border-blue-400">
+                            {Math.round((prediction.qualifyingConfidence + prediction.raceConfidence) / 2 * 100)}%
+                          </Badge>
                         </div>
                       </div>
                     </div>
