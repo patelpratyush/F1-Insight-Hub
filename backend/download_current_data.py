@@ -159,9 +159,8 @@ class F1DataDownloader:
         ]
         
         # Sessions to download for telemetry analysis - comprehensive set
-        self.sessions_to_download = ['FP1', 'FP2', 'FP3', 'Q', 'S', 'R']  # Added FP1 and Sprint
+        self.sessions_to_download = ['FP2', 'FP3', 'Q', 'S', 'R']  # Added FP1 and Sprint
         self.session_names = {
-            'FP1': 'Practice 1',
             'FP2': 'Practice 2',
             'FP3': 'Practice 3', 
             'Q': 'Qualifying',
@@ -348,7 +347,7 @@ class F1DataDownloader:
         logger.info("F1 COMPREHENSIVE DATA DOWNLOAD - 2024-2025 SEASONS")
         logger.info("="*60)
         logger.info(f"Seasons to download: {seasons}")
-        logger.info("Sessions per race: FP1, FP2, FP3, Qualifying, Sprint (if available), Race")
+        logger.info("Sessions per race: FP2, FP3, Qualifying, Sprint (if available), Race")
         logger.info("This will download and cache ALL telemetry data for comprehensive analysis")
         logger.info("Estimated time: 30-60 minutes depending on internet speed")
         logger.info("="*60)
@@ -411,7 +410,7 @@ def main():
     print("This script will download:")
     print("• All race weekend data (results, lap times, positions)")
     print("• Complete telemetry data for all sessions")
-    print("• Practice sessions (FP1, FP2, FP3)")
+    print("• Practice sessions (FP2, FP3)")
     print("• Qualifying sessions")
     print("• Sprint sessions (where available)")
     print("• Race sessions")
