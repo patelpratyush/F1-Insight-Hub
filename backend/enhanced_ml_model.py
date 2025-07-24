@@ -353,7 +353,7 @@ class EnhancedF1MLModel:
             return -scores.mean()
         
         study = optuna.create_study(direction='minimize')
-        study.optimize(objective, n_trials=50, show_progress_bar=False)
+        study.optimize(objective, n_trials=15, show_progress_bar=False)  # Reduced for faster training
         
         logger.info(f"Best {model_type} parameters: {study.best_params}")
         return study.best_params

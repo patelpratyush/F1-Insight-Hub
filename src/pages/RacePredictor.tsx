@@ -4,36 +4,103 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Flag, Timer, Zap, Users, Trophy } from "lucide-react";
+import { TrendingUp, Flag, Timer, Zap, Users, Trophy, Loader2 } from "lucide-react";
 
 const RacePredictor = () => {
   const [selectedTrack, setSelectedTrack] = useState("");
   const [weather, setWeather] = useState("");
   const [predictions, setPredictions] = useState(null);
+  const [statistics, setStatistics] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const tracks = [
-    "Bahrain International Circuit",
-    "Jeddah Corniche Circuit", 
-    "Albert Park Circuit",
-    "Suzuka International Racing Course",
-    "Miami International Autodrome",
-    "Monaco Street Circuit",
-    "Silverstone Circuit"
+    { name: "Bahrain Grand Prix", circuit: "Bahrain International Circuit" },
+    { name: "Saudi Arabian Grand Prix", circuit: "Jeddah Corniche Circuit" },
+    { name: "Australian Grand Prix", circuit: "Albert Park Circuit" },
+    { name: "Japanese Grand Prix", circuit: "Suzuka International Racing Course" },
+    { name: "Chinese Grand Prix", circuit: "Shanghai International Circuit" },
+    { name: "Miami Grand Prix", circuit: "Miami International Autodrome" },
+    { name: "Emilia Romagna Grand Prix", circuit: "Autodromo Enzo e Dino Ferrari" },
+    { name: "Monaco Grand Prix", circuit: "Monaco Street Circuit" },
+    { name: "Canadian Grand Prix", circuit: "Circuit Gilles Villeneuve" },
+    { name: "Spanish Grand Prix", circuit: "Circuit de Barcelona-Catalunya" },
+    { name: "Austrian Grand Prix", circuit: "Red Bull Ring" },
+    { name: "British Grand Prix", circuit: "Silverstone Circuit" },
+    { name: "Hungarian Grand Prix", circuit: "Hungaroring" },
+    { name: "Belgian Grand Prix", circuit: "Circuit de Spa-Francorchamps" },
+    { name: "Dutch Grand Prix", circuit: "Circuit Zandvoort" },
+    { name: "Italian Grand Prix", circuit: "Autodromo Nazionale di Monza" },
+    { name: "Azerbaijan Grand Prix", circuit: "Baku City Circuit" },
+    { name: "Singapore Grand Prix", circuit: "Marina Bay Street Circuit" },
+    { name: "United States Grand Prix", circuit: "Circuit of the Americas" },
+    { name: "Mexico City Grand Prix", circuit: "Autodromo Hermanos Rodriguez" },
+    { name: "São Paulo Grand Prix", circuit: "Autodromo Jose Carlos Pace" },
+    { name: "Las Vegas Grand Prix", circuit: "Las Vegas Street Circuit" },
+    { name: "Qatar Grand Prix", circuit: "Losail International Circuit" },
+    { name: "Abu Dhabi Grand Prix", circuit: "Yas Marina Circuit" }
   ];
 
-  const mockDrivers = [
-    { pos: 1, driver: "VER", name: "Max Verstappen", team: "Red Bull Racing", confidence: 92, gap: "Winner" },
-    { pos: 2, driver: "LEC", name: "Charles Leclerc", team: "Ferrari", confidence: 85, gap: "+12.4s" },
-    { pos: 3, driver: "HAM", name: "Lewis Hamilton", team: "Mercedes", confidence: 78, gap: "+28.7s" },
-    { pos: 4, driver: "RUS", name: "George Russell", team: "Mercedes", confidence: 72, gap: "+35.2s" },
-    { pos: 5, driver: "PER", name: "Sergio Pérez", team: "Red Bull Racing", confidence: 68, gap: "+42.1s" },
-    { pos: 6, driver: "SAI", name: "Carlos Sainz", team: "Ferrari", confidence: 65, gap: "+58.9s" },
-    { pos: 7, driver: "NOR", name: "Lando Norris", team: "McLaren", confidence: 61, gap: "+1 lap" },
-    { pos: 8, driver: "PIA", name: "Oscar Piastri", team: "McLaren", confidence: 58, gap: "+1 lap" },
+  const weatherConditions = [
+    { value: "Dry", label: "Dry" },
+    { value: "Light Rain", label: "Light Rain" },
+    { value: "Heavy Rain", label: "Heavy Rain" },
+    { value: "Wet", label: "Wet" },
+    { value: "Mixed", label: "Mixed Conditions" },
+    { value: "Dry to Light Rain", label: "Dry → Light Rain" },
+    { value: "Light Rain to Dry", label: "Light Rain → Dry" },
+    { value: "Dry to Heavy Rain", label: "Dry → Heavy Rain" },
+    { value: "Variable", label: "Variable Weather" }
   ];
 
-  const handlePredict = () => {
-    setPredictions(mockDrivers);
+  const handlePredict = async () => {
+    if (!selectedTrack || !weather) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/predict/race`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          race_name: selectedTrack,
+          weather: weather,
+          temperature: weather === 'Dry' ? 25.0 : 18.0
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform API response to match UI expectations
+        const transformedPredictions = data.predictions.map((pred, index) => ({
+          pos: pred.predicted_position,
+          driver: pred.driver_code,
+          name: pred.driver_name,
+          team: pred.team.replace(' Honda RBPT', '').replace(' Mercedes', '').replace('Scuderia ', '').replace('BWT ', '').replace(' Aramco Mercedes', '').replace('Visa Cash App RB F1 Team', 'RB').replace('MoneyGram Haas F1 Team', 'Haas').replace('Kick Sauber F1 Team', 'Kick Sauber'),
+          confidence: Math.round(pred.confidence),
+          gap: pred.gap_to_winner
+        }));
+        
+        setPredictions(transformedPredictions);
+        setStatistics(data.statistics);
+      } else {
+        throw new Error(data.error || 'Prediction failed');
+      }
+    } catch (err) {
+      console.error('Prediction error:', err);
+      setError(err.message || 'Failed to get race predictions. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getConfidenceColor = (confidence) => {
@@ -87,8 +154,8 @@ const RacePredictor = () => {
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
                       {tracks.map((track) => (
-                        <SelectItem key={track} value={track} className="text-white hover:bg-gray-600">
-                          {track}
+                        <SelectItem key={track.name} value={track.name} className="text-white hover:bg-gray-600">
+                          {track.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -102,21 +169,32 @@ const RacePredictor = () => {
                       <SelectValue placeholder="Select weather" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="dry" className="text-white hover:bg-gray-600">Dry</SelectItem>
-                      <SelectItem value="wet" className="text-white hover:bg-gray-600">Wet</SelectItem>
-                      <SelectItem value="mixed" className="text-white hover:bg-gray-600">Mixed</SelectItem>
+                      {weatherConditions.map((condition) => (
+                        <SelectItem key={condition.value} value={condition.value} className="text-white hover:bg-gray-600">
+                          {condition.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <Button 
                   onClick={handlePredict}
-                  disabled={!selectedTrack || !weather}
+                  disabled={!selectedTrack || !weather || isLoading}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6"
                   size="lg"
                 >
-                  <Zap className="mr-2 h-4 w-4" />
-                  Predict Results
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Predicting...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="mr-2 h-4 w-4" />
+                      Predict Results
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -124,7 +202,25 @@ const RacePredictor = () => {
 
           {/* Results Section */}
           <div className="lg:col-span-3">
-            {predictions ? (
+            {error ? (
+              <Card className="bg-gray-800/50 border-gray-700">
+                <CardContent className="text-center p-8">
+                  <div className="text-red-400 mb-4">
+                    <TrendingUp className="h-16 w-16 mx-auto mb-4" />
+                  </div>
+                  <CardTitle className="text-red-400 mb-2">Prediction Error</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    {error}
+                  </CardDescription>
+                  <Button 
+                    onClick={() => setError(null)}
+                    className="mt-4 bg-blue-600 hover:bg-blue-700"
+                  >
+                    Try Again
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : predictions ? (
               <Card className="bg-gray-800/50 border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center space-x-2">
@@ -179,7 +275,7 @@ const RacePredictor = () => {
                     
                     <div className="text-center p-4 bg-gradient-to-br from-green-600/20 to-green-800/20 rounded-lg border border-green-600/20">
                       <Timer className="h-6 w-6 text-green-400 mx-auto mb-2" />
-                      <div className="text-lg font-bold text-green-400">87%</div>
+                      <div className="text-lg font-bold text-green-400">{statistics?.average_confidence || 87}%</div>
                       <div className="text-sm text-gray-300">Avg Confidence</div>
                     </div>
                     

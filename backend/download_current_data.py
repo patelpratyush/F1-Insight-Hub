@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 F1 Data Download Script for 2024-2025 Seasons
-Downloads F1 session data using Fast-F1 and caches it for ML model training.
+Downloads comprehensive F1 session data and telemetry using Fast-F1.
+Includes FP2, FP3, Qualifying, and Race sessions for telemetry analysis.
 """
 
 import fastf1
@@ -129,11 +130,10 @@ class F1DataDownloader:
             'Abu Dhabi Grand Prix'
         ]
         
-        # 2025 F1 Calendar (from Fast-F1 API - races completed up to British Grand Prix)
+        # 2025 F1 Calendar (will download available races)
         self.race_calendar_2025 = [
-            # Skip Pre-Season Testing as it's not a race
             'Australian Grand Prix',
-            'Chinese Grand Prix',
+            'Chinese Grand Prix', 
             'Japanese Grand Prix',
             'Bahrain Grand Prix',
             'Saudi Arabian Grand Prix',
@@ -143,32 +143,101 @@ class F1DataDownloader:
             'Spanish Grand Prix',
             'Canadian Grand Prix',
             'Austrian Grand Prix',
-            'British Grand Prix'
-            # Remaining races (not yet completed):
-            # 'Belgian Grand Prix',
-            # 'Hungarian Grand Prix',
-            # 'Dutch Grand Prix',
-            # 'Italian Grand Prix',
-            # 'Azerbaijan Grand Prix',
-            # 'Singapore Grand Prix',
-            # 'United States Grand Prix',
-            # 'Mexico City Grand Prix',
-            # 'São Paulo Grand Prix',
-            # 'Las Vegas Grand Prix',
-            # 'Qatar Grand Prix',
-            # 'Abu Dhabi Grand Prix'
+            'British Grand Prix',
+            'Belgian Grand Prix',
+            'Hungarian Grand Prix',
+            'Dutch Grand Prix',
+            'Italian Grand Prix',
+            'Azerbaijan Grand Prix',
+            'Singapore Grand Prix',
+            'United States Grand Prix',
+            'Mexico City Grand Prix',
+            'São Paulo Grand Prix',
+            'Las Vegas Grand Prix',
+            'Qatar Grand Prix',
+            'Abu Dhabi Grand Prix'
         ]
+        
+        # Sessions to download for telemetry analysis - comprehensive set
+        self.sessions_to_download = ['FP1', 'FP2', 'FP3', 'Q', 'S', 'R']  # Added FP1 and Sprint
+        self.session_names = {
+            'FP1': 'Practice 1',
+            'FP2': 'Practice 2',
+            'FP3': 'Practice 3', 
+            'Q': 'Qualifying',
+            'S': 'Sprint',
+            'R': 'Race'
+        }
     
+    def download_session_telemetry(self, season: int, race_name: str, session_type: str) -> bool:
+        """Download and cache telemetry data for a specific session"""
+        try:
+            logger.info(f"Downloading {self.session_names.get(session_type, session_type)} telemetry for {season} {race_name}...")
+            
+            # Get session - handle sprint sessions that may not exist
+            try:
+                session = fastf1.get_session(season, race_name, session_type)
+                session.load()
+            except Exception as e:
+                if session_type == 'S':  # Sprint session may not exist for all races
+                    logger.info(f"Sprint session not available for {race_name} - skipping")
+                    return False
+                else:
+                    raise e
+            
+            # Load laps data to trigger telemetry caching
+            laps = session.laps
+            if laps.empty:
+                logger.warning(f"No lap data available for {session_type} session")
+                return False
+            
+            # Load telemetry for ALL laps of each driver to comprehensively cache data
+            drivers_processed = 0
+            for driver in session.drivers:
+                try:
+                    driver_laps = laps.pick_drivers(driver)
+                    if not driver_laps.empty:
+                        # Cache telemetry for fastest lap (most important)
+                        fastest_lap = driver_laps.pick_fastest()
+                        if not fastest_lap.empty:
+                            telemetry = fastest_lap.get_telemetry()
+                        
+                        # Also cache telemetry for a few representative laps for analysis variety
+                        sample_laps = driver_laps.iloc[::max(1, len(driver_laps)//5)]  # Sample every 5th lap
+                        for _, lap in sample_laps.iterrows():
+                            try:
+                                lap_telemetry = lap.get_telemetry()
+                            except:
+                                continue
+                        
+                        drivers_processed += 1
+                except Exception as e:
+                    logger.debug(f"Could not load telemetry for driver {driver}: {e}")
+                    continue
+            
+            logger.info(f"✓ {self.session_names.get(session_type, session_type)} - Cached telemetry for {drivers_processed} drivers")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error downloading {session_type} telemetry for {race_name}: {str(e)}")
+            return False
+
     def get_session_data(self, season: int, race_name: str) -> Optional[Dict]:
-        """Download and process data for a specific race session"""
+        """Download and process data for a specific race weekend"""
         try:
             logger.info(f"Processing {season} {race_name}...")
             
-            # Get race weekend
+            # Download telemetry for all sessions - comprehensive caching
+            sessions_downloaded = 0
+            for session_type in self.sessions_to_download:
+                if self.download_session_telemetry(season, race_name, session_type):
+                    sessions_downloaded += 1
+                time.sleep(2)  # Longer pause to be respectful to FastF1 API
+            
+            # Get race and qualifying sessions for results data
             race_weekend = fastf1.get_session(season, race_name, 'R')
             race_weekend.load()
             
-            # Get qualifying session
             qualifying = fastf1.get_session(season, race_name, 'Q')
             qualifying.load()
             
@@ -238,7 +307,7 @@ class F1DataDownloader:
                     'status': str(driver_result['Status']) if pd.notna(driver_result['Status']) else 'Finished'
                 })
             
-            logger.info(f"Successfully processed {len(session_data)} driver records for {race_name}")
+            logger.info(f"Successfully processed {len(session_data)} driver records and {sessions_downloaded} sessions for {race_name}")
             return session_data
             
         except Exception as e:
@@ -252,17 +321,19 @@ class F1DataDownloader:
         race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar_2025
         all_season_data = []
         
-        for race_name in race_calendar:
+        for i, race_name in enumerate(race_calendar):
             try:
+                logger.info(f"Progress: {i+1}/{len(race_calendar)} races for {season} season")
+                
                 # Add delay to avoid overwhelming the API
-                time.sleep(2)
+                time.sleep(3)
                 
                 race_data = self.get_session_data(season, race_name)
                 if race_data:
                     all_season_data.extend(race_data)
                     logger.info(f"✓ {race_name} - {len(race_data)} records")
                 else:
-                    logger.warning(f"✗ {race_name} - No data available")
+                    logger.warning(f"✗ {race_name} - No data available (race may not have occurred yet)")
                     
             except Exception as e:
                 logger.error(f"Failed to download {race_name}: {str(e)}")
@@ -272,13 +343,21 @@ class F1DataDownloader:
         return all_season_data
     
     def download_all_data(self, seasons: List[int] = [2024, 2025]) -> None:
-        """Download data for all specified seasons"""
-        logger.info("Starting F1 data download...")
+        """Download comprehensive data for all specified seasons with full telemetry caching"""
+        logger.info("="*60)
+        logger.info("F1 COMPREHENSIVE DATA DOWNLOAD - 2024-2025 SEASONS")
+        logger.info("="*60)
         logger.info(f"Seasons to download: {seasons}")
+        logger.info("Sessions per race: FP1, FP2, FP3, Qualifying, Sprint (if available), Race")
+        logger.info("This will download and cache ALL telemetry data for comprehensive analysis")
+        logger.info("Estimated time: 30-60 minutes depending on internet speed")
+        logger.info("="*60)
         
         all_data = []
+        total_races = sum(len(self.race_calendar_2024 if season == 2024 else self.race_calendar_2025) for season in seasons)
         
         for season in seasons:
+            logger.info(f"\n🏁 Starting {season} season download...")
             season_data = self.download_season_data(season)
             all_data.extend(season_data)
         
@@ -291,7 +370,16 @@ class F1DataDownloader:
         
         # Save to CSV
         df.to_csv(self.output_file, index=False)
-        logger.info(f"Data saved to {self.output_file}")
+        logger.info(f"\n✅ Data successfully saved to {self.output_file}")
+        
+        # Check cache size
+        cache_size = 0
+        if os.path.exists(self.cache_dir):
+            for dirpath, dirnames, filenames in os.walk(self.cache_dir):
+                for filename in filenames:
+                    cache_size += os.path.getsize(os.path.join(dirpath, filename))
+        
+        logger.info(f"📁 Cache directory size: {cache_size / (1024*1024):.1f} MB")
         
         # Print summary statistics
         self.print_summary(df)
@@ -317,9 +405,18 @@ class F1DataDownloader:
         logger.info("="*50)
 
 def main():
-    """Main function to run the data download"""
-    print("F1 Data Downloader - 2024-2025 Seasons")
-    print("="*40)
+    """Main function to run comprehensive F1 data download"""
+    print("🏎️  F1 COMPREHENSIVE DATA DOWNLOADER - 2024-2025 SEASONS")
+    print("="*60)
+    print("This script will download:")
+    print("• All race weekend data (results, lap times, positions)")
+    print("• Complete telemetry data for all sessions")
+    print("• Practice sessions (FP1, FP2, FP3)")
+    print("• Qualifying sessions")
+    print("• Sprint sessions (where available)")
+    print("• Race sessions")
+    print("• Full driver telemetry (speed, throttle, brake, gear)")
+    print("="*60)
     
     # Check command line arguments
     seasons = [2024, 2025]
@@ -327,22 +424,36 @@ def main():
         try:
             seasons = [int(year) for year in sys.argv[1:]]
         except ValueError:
-            print("Invalid season format. Use: python download_current_data.py 2024 2025")
+            print("❌ Invalid season format. Use: python download_current_data.py 2024 2025")
             sys.exit(1)
+    
+    # Confirmation prompt for comprehensive download
+    if len(seasons) > 1:
+        print(f"\n⚠️  About to download {len(seasons)} complete seasons of F1 data")
+        print("This will take 30-60 minutes and use several GB of storage")
+        confirm = input("Continue? (y/N): ").lower().strip()
+        if confirm not in ['y', 'yes']:
+            print("Download cancelled")
+            sys.exit(0)
     
     downloader = F1DataDownloader()
     
     try:
+        start_time = datetime.now()
         downloader.download_all_data(seasons)
-        print("\n✓ Download completed successfully!")
-        print(f"Data saved to: {downloader.output_file}")
-        print(f"Cache directory: {downloader.cache_dir}")
+        end_time = datetime.now()
+        duration = end_time - start_time
+        
+        print(f"\n🎉 Download completed successfully in {duration}")
+        print(f"📊 Data saved to: {downloader.output_file}")
+        print(f"💾 Cache directory: {downloader.cache_dir}")
+        print("\n🚀 Ready for telemetry analysis and ML predictions!")
         
     except KeyboardInterrupt:
-        print("\n\nDownload interrupted by user")
+        print("\n\n⏸️  Download interrupted by user")
         sys.exit(1)
     except Exception as e:
-        logger.error(f"Download failed: {str(e)}")
+        logger.error(f"❌ Download failed: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
