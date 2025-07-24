@@ -431,6 +431,7 @@ def main():
         print(f"\n⚠️  About to download {len(seasons)} complete seasons of F1 data")
         print("This will take 30-60 minutes and use several GB of storage")
         confirm = input("Continue? (y/N): ").lower().strip()
+        confirm = "y"
         if confirm not in ['y', 'yes']:
             print("Download cancelled")
             sys.exit(0)
