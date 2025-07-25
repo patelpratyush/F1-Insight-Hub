@@ -34,19 +34,23 @@ logger = logging.getLogger(__name__)
 
 class F1DataDownloader:
     def __init__(self, cache_dir: str = "cache"):
-        """Initialize the F1 data downloader with cache directory"""
         self.cache_dir = os.path.join(os.path.dirname(__file__), cache_dir)
         os.makedirs(self.cache_dir, exist_ok=True)
-        
-        # Try to setup cache from Google Drive first
+        self.output_file = os.path.join(os.path.dirname(__file__), 'f1_data.csv')
+
+        # Try setting up Google Drive cache
         drive_file_id = os.getenv('GOOGLE_DRIVE_CACHE_FILE_ID')
+        self.cache_ready = False
+
         if drive_file_id:
             from google_drive_data_loader import setup_fastf1_cache_from_drive
             logger.info("Attempting to use Google Drive cache...")
             if setup_fastf1_cache_from_drive(drive_file_id):
-                logger.info("Using Google Drive cache")
-                return
-        
+                logger.info("✓ Google Drive cache setup complete")
+                self.cache_ready = True
+            else:
+                logger.warning("Google Drive cache failed or incomplete. Falling back to local cache.")
+
         # Fallback to local cache
         fastf1.Cache.enable_cache(self.cache_dir)
         logger.info(f"Local cache enabled at: {self.cache_dir}")
@@ -404,20 +408,16 @@ class F1DataDownloader:
         logger.info("="*50)
 
 def main():
-    """Main function to run comprehensive F1 data download"""
+    """Main function to run F1 data download or skip if cache is ready"""
     print("🏎️  F1 COMPREHENSIVE DATA DOWNLOADER - 2024-2025 SEASONS")
     print("="*60)
-    print("This script will download:")
-    print("• All race weekend data (results, lap times, positions)")
-    print("• Complete telemetry data for all sessions")
-    print("• Practice sessions (FP2, FP3)")
-    print("• Qualifying sessions")
-    print("• Sprint sessions (where available)")
-    print("• Race sessions")
-    print("• Full driver telemetry (speed, throttle, brake, gear)")
+    print("This script will download or use cached data for:")
+    print("• Race weekend sessions (FP2, FP3, Q, S, R)")
+    print("• Full telemetry and lap time data")
+    print("• Automatically uses Google Drive cache if available")
     print("="*60)
-    
-    # Check command line arguments
+
+    # Parse command line seasons
     seasons = [2024, 2025]
     if len(sys.argv) > 1:
         try:
@@ -425,35 +425,31 @@ def main():
         except ValueError:
             print("❌ Invalid season format. Use: python download_current_data.py 2024 2025")
             sys.exit(1)
-    
-    # Confirmation prompt for comprehensive download
-    if len(seasons) > 1:
-        print(f"\n⚠️  About to download {len(seasons)} complete seasons of F1 data")
-        print("This will take 30-60 minutes and use several GB of storage")
-        # confirm = input("Continue? (y/N): ").lower().strip()
-        # confirm = "y"
-        # if confirm not in ['y', 'yes']:
-            # print("Download cancelled")
-            # sys.exit(0)
-    
+
     downloader = F1DataDownloader()
-    
+
+    if downloader.cache_ready:
+        print("\n✅ Google Drive cache detected.")
+        print("🚀 Skipping full download — ready to use data for analysis or app.")
+        return
+
     try:
         start_time = datetime.now()
         downloader.download_all_data(seasons)
         end_time = datetime.now()
         duration = end_time - start_time
-        
+
         print(f"\n🎉 Download completed successfully in {duration}")
         print(f"📊 Data saved to: {downloader.output_file}")
         print(f"💾 Cache directory: {downloader.cache_dir}")
-        print("\n🚀 Ready for telemetry analysis and ML predictions!")
-        
+        print("🚀 You are now ready to run your analysis or serve your app.")
+
     except KeyboardInterrupt:
-        print("\n\n⏸️  Download interrupted by user")
+        print("\n⏸️  Download interrupted by user")
         sys.exit(1)
     except Exception as e:
-        logger.error(f"❌ Download failed: {str(e)}")
+        import traceback
+        logger.error("❌ Download failed:\n" + traceback.format_exc())
         sys.exit(1)
 
 if __name__ == "__main__":
