@@ -15,6 +15,8 @@ import {
   Bar,
   ReferenceArea
 } from 'recharts';
+import GraphCustomizationPanel from './GraphCustomizationPanel';
+import useGraphCustomization from '@/hooks/useGraphCustomization';
 
 interface TelemetryData {
   distance: number[];
@@ -56,6 +58,15 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
   analysis,
   corners = []
 }) => {
+  // Use graph customization hook
+  const {
+    customization,
+    updateCustomization,
+    presetNames,
+    savePreset,
+    loadPreset,
+    getVariableColor
+  } = useGraphCustomization();
   // Helper function to safely convert to number
   const safeNumber = (value: any, defaultValue: number = 0): number => {
     const num = typeof value === 'number' ? value : parseFloat(value);
@@ -108,6 +119,15 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Graph Customization Panel */}
+      <GraphCustomizationPanel
+        customization={customization}
+        onCustomizationChange={updateCustomization}
+        onSavePreset={savePreset}
+        onLoadPreset={loadPreset}
+        presetNames={presetNames}
+      />
+
       {/* Lap Information Header */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">

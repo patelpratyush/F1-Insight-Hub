@@ -2,6 +2,10 @@ import React, { useState, useRef, useMemo } from 'react';
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
+  ScatterChart,
+  Scatter,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -12,6 +16,8 @@ import {
   Brush
 } from 'recharts';
 import { Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, Settings2 } from 'lucide-react';
+import GraphCustomizationPanel from './GraphCustomizationPanel';
+import useGraphCustomization from '@/hooks/useGraphCustomization';
 
 interface TelemetryData {
   distance: number[];
@@ -55,15 +61,33 @@ const TelemetryOverlapGraphs: React.FC<TelemetryOverlapGraphsProps> = ({
 }) => {
   const chartRef = useRef<any>(null);
   
-  // Default telemetry variables configuration
+  // Use graph customization hook
+  const {
+    customization,
+    updateCustomization,
+    presetNames,
+    savePreset,
+    loadPreset,
+    getVariableColor
+  } = useGraphCustomization();
+  
+  // Default telemetry variables configuration with dynamic colors
   const [variables, setVariables] = useState<TelemetryVariable[]>([
-    { key: 'speed', label: 'Speed', color: '#3B82F6', yAxisId: 'speed', unit: 'km/h', enabled: true },
-    { key: 'throttle', label: 'Throttle', color: '#10B981', yAxisId: 'percentage', unit: '%', enabled: true },
-    { key: 'brake', label: 'Brake', color: '#EF4444', yAxisId: 'percentage', unit: '%', enabled: true },
-    { key: 'gear', label: 'Gear', color: '#F59E0B', yAxisId: 'gear', unit: '', enabled: false },
-    { key: 'rpm', label: 'RPM', color: '#8B5CF6', yAxisId: 'rpm', unit: 'RPM', enabled: false },
-    { key: 'drs', label: 'DRS', color: '#EC4899', yAxisId: 'drs', unit: '', enabled: false }
+    { key: 'speed', label: 'Speed', color: getVariableColor('speed'), yAxisId: 'speed', unit: 'km/h', enabled: true },
+    { key: 'throttle', label: 'Throttle', color: getVariableColor('throttle'), yAxisId: 'percentage', unit: '%', enabled: true },
+    { key: 'brake', label: 'Brake', color: getVariableColor('brake'), yAxisId: 'percentage', unit: '%', enabled: true },
+    { key: 'gear', label: 'Gear', color: getVariableColor('gear'), yAxisId: 'gear', unit: '', enabled: false },
+    { key: 'rpm', label: 'RPM', color: getVariableColor('rpm'), yAxisId: 'rpm', unit: 'RPM', enabled: false },
+    { key: 'drs', label: 'DRS', color: getVariableColor('drs'), yAxisId: 'drs', unit: '', enabled: false }
   ]);
+
+  // Update variable colors when customization changes
+  React.useEffect(() => {
+    setVariables(prev => prev.map(v => ({
+      ...v,
+      color: getVariableColor(v.key as keyof typeof customization.customColors)
+    })));
+  }, [customization.customColors, getVariableColor]);
 
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState(0);
@@ -120,7 +144,183 @@ const TelemetryOverlapGraphs: React.FC<TelemetryOverlapGraphsProps> = ({
   }, [enabledVariables]);
 
   const xAxisKey = viewMode === 'distance' ? 'distance' : 'time';
-  const xAxisLabel = viewMode === 'distance' ? 'Distance (m)' : 'Time (s)';
+  const xAxisLabel = customization.axisSettings.xAxisLabel || (viewMode === 'distance' ? 'Distance (m)' : 'Time (s)');
+
+  // Render shared chart content (axes, lines, etc.)
+  const renderChartContent = () => (
+    <>
+      {/* X-Axis */}
+      <XAxis 
+        dataKey={xAxisKey}
+        axisLine={false}
+        tickLine={false}
+        tick={{ fill: '#9CA3AF', fontSize: 12 }}
+        label={{ 
+          value: xAxisLabel, 
+          position: 'insideBottom', 
+          offset: -10, 
+          style: { textAnchor: 'middle', fill: '#9CA3AF' } 
+        }}
+        domain={zoomDomain || ['dataMin', 'dataMax']}
+      />
+
+      {/* Multiple Y-Axes for different variable types */}
+      {Object.entries(yAxisGroups).map(([yAxisId, groupVariables], index) => {
+        const isLeft = index % 2 === 0;
+        const yAxisProps: any = {
+          yAxisId,
+          axisLine: false,
+          tickLine: false,
+          tick: { fill: '#9CA3AF', fontSize: 12 },
+          orientation: isLeft ? 'left' : 'right',
+        };
+
+        // Set domain and label based on variable type
+        if (yAxisId === 'percentage') {
+          yAxisProps.domain = [0, 100];
+          yAxisProps.label = { 
+            value: 'Percentage (%)', 
+            angle: -90, 
+            position: isLeft ? 'insideLeft' : 'insideRight',
+            style: { textAnchor: 'middle', fill: '#9CA3AF' } 
+          };
+        } else if (yAxisId === 'gear') {
+          yAxisProps.domain = [1, 8];
+          yAxisProps.label = { 
+            value: 'Gear', 
+            angle: -90, 
+            position: isLeft ? 'insideLeft' : 'insideRight',
+            style: { textAnchor: 'middle', fill: '#9CA3AF' } 
+          };
+        } else if (yAxisId === 'speed') {
+          yAxisProps.label = { 
+            value: 'Speed (km/h)', 
+            angle: -90, 
+            position: isLeft ? 'insideLeft' : 'insideRight',
+            style: { textAnchor: 'middle', fill: '#9CA3AF' } 
+          };
+        } else if (yAxisId === 'rpm') {
+          yAxisProps.label = { 
+            value: 'RPM', 
+            angle: -90, 
+            position: isLeft ? 'insideLeft' : 'insideRight',
+            style: { textAnchor: 'middle', fill: '#9CA3AF' } 
+          };
+        } else if (yAxisId === 'drs') {
+          yAxisProps.domain = [0, 1];
+          yAxisProps.label = { 
+            value: 'DRS', 
+            angle: -90, 
+            position: isLeft ? 'insideLeft' : 'insideRight',
+            style: { textAnchor: 'middle', fill: '#9CA3AF' } 
+          };
+        }
+
+        return <YAxis key={yAxisId} {...yAxisProps} />;
+      })}
+
+      {/* Corner reference lines */}
+      {viewMode === 'distance' && corners.map((corner, index) => (
+        <ReferenceLine 
+          key={`corner-${index}`}
+          x={corner.distance}
+          stroke="#9CA3AF"
+          strokeDasharray="3 3"
+          strokeOpacity={0.4}
+        />
+      ))}
+
+      {/* Telemetry Lines/Areas/Scatters */}
+      {customization.chartType === 'line' && enabledVariables.map((variable) => (
+        <Line
+          key={variable.key}
+          type={customization.displaySettings.smoothLines ? "monotone" : "linear"}
+          dataKey={variable.key}
+          stroke={variable.color}
+          strokeWidth={customization.lineThickness}
+          strokeOpacity={customization.opacity / 100}
+          yAxisId={variable.yAxisId}
+          dot={customization.displaySettings.showDataPoints}
+          fill="none"
+          connectNulls={false}
+        />
+      ))}
+
+      {customization.chartType === 'area' && enabledVariables.map((variable) => (
+        <Area
+          key={variable.key}
+          type={customization.displaySettings.smoothLines ? "monotone" : "linear"}
+          dataKey={variable.key}
+          stroke={variable.color}
+          strokeWidth={customization.lineThickness}
+          fill={variable.color}
+          fillOpacity={customization.displaySettings.fillArea ? 0.3 : 0}
+          yAxisId={variable.yAxisId}
+          dot={customization.displaySettings.showDataPoints}
+        />
+      ))}
+
+      {customization.chartType === 'scatter' && enabledVariables.map((variable) => (
+        <Scatter
+          key={variable.key}
+          dataKey={variable.key}
+          fill={variable.color}
+          fillOpacity={customization.opacity / 100}
+          yAxisId={variable.yAxisId}
+        />
+      ))}
+
+      {/* Tooltip */}
+      <Tooltip
+        content={({ active, payload, label }) => {
+          if (active && payload && payload.length) {
+            return (
+              <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
+                <p className="text-white font-medium mb-2">
+                  {`${viewMode === 'distance' ? 'Distance' : 'Time'}: ${Number(label).toFixed(1)}${viewMode === 'distance' ? 'm' : 's'}`}
+                </p>
+                {payload.map((entry, index) => {
+                  const variable = variables.find(v => v.key === entry.dataKey);
+                  if (variable && variable.enabled) {
+                    return (
+                      <p key={index} style={{ color: entry.color }}>
+                        {`${variable.label}: ${Number(entry.value).toFixed(2)}${variable.unit}`}
+                      </p>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            );
+          }
+          return null;
+        }}
+      />
+
+      {/* Legend */}
+      {customization.legend && (
+        <Legend 
+          verticalAlign="top" 
+          height={36}
+          iconType={customization.chartType === 'line' ? 'line' : customization.chartType === 'area' ? 'rect' : 'circle'}
+          wrapperStyle={{ 
+            paddingBottom: '20px',
+            fontSize: '12px'
+          }}
+        />
+      )}
+
+      {/* Brush for zooming */}
+      {showBrush && (
+        <Brush 
+          dataKey={xAxisKey}
+          height={30}
+          stroke="#8884d8"
+          onChange={handleBrushChange}
+        />
+      )}
+    </>
+  );
 
   // Reset zoom and pan
   const resetView = () => {
@@ -273,136 +473,55 @@ const TelemetryOverlapGraphs: React.FC<TelemetryOverlapGraphsProps> = ({
         </div>
       </div>
 
+      {/* Graph Customization Panel */}
+      <GraphCustomizationPanel
+        customization={customization}
+        onCustomizationChange={updateCustomization}
+        onSavePreset={savePreset}
+        onLoadPreset={loadPreset}
+        presetNames={presetNames}
+      />
+
       {/* Overlap Chart */}
       <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
         <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart 
-              data={chartData} 
-              ref={chartRef}
-              margin={{ top: 20, right: 60, left: 20, bottom: 60 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              
-              {/* X-Axis */}
-              <XAxis 
-                dataKey={xAxisKey}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                label={{ 
-                  value: xAxisLabel, 
-                  position: 'insideBottom', 
-                  offset: -10, 
-                  style: { textAnchor: 'middle', fill: '#9CA3AF' } 
-                }}
-                domain={zoomDomain || ['dataMin', 'dataMax']}
-              />
-
-              {/* Multiple Y-Axes for different variable types */}
-              {Object.entries(yAxisGroups).map(([yAxisId, groupVariables], index) => {
-                const isLeft = index % 2 === 0;
-                const yAxisProps: any = {
-                  yAxisId,
-                  axisLine: false,
-                  tickLine: false,
-                  tick: { fill: '#9CA3AF', fontSize: 12 },
-                  orientation: isLeft ? 'left' : 'right',
-                };
-
-                // Set domain and label based on variable type
-                if (yAxisId === 'percentage') {
-                  yAxisProps.domain = [0, 100];
-                  yAxisProps.label = { 
-                    value: 'Percentage (%)', 
-                    angle: -90, 
-                    position: isLeft ? 'insideLeft' : 'insideRight',
-                    style: { textAnchor: 'middle', fill: '#9CA3AF' } 
-                  };
-                } else if (yAxisId === 'gear') {
-                  yAxisProps.domain = [1, 8];
-                  yAxisProps.label = { 
-                    value: 'Gear', 
-                    angle: -90, 
-                    position: isLeft ? 'insideLeft' : 'insideRight',
-                    style: { textAnchor: 'middle', fill: '#9CA3AF' } 
-                  };
-                } else if (yAxisId === 'speed') {
-                  yAxisProps.label = { 
-                    value: 'Speed (km/h)', 
-                    angle: -90, 
-                    position: isLeft ? 'insideLeft' : 'insideRight',
-                    style: { textAnchor: 'middle', fill: '#9CA3AF' } 
-                  };
-                } else if (yAxisId === 'rpm') {
-                  yAxisProps.label = { 
-                    value: 'RPM', 
-                    angle: -90, 
-                    position: isLeft ? 'insideLeft' : 'insideRight',
-                    style: { textAnchor: 'middle', fill: '#9CA3AF' } 
-                  };
-                } else if (yAxisId === 'drs') {
-                  yAxisProps.domain = [0, 1];
-                  yAxisProps.label = { 
-                    value: 'DRS', 
-                    angle: -90, 
-                    position: isLeft ? 'insideLeft' : 'insideRight',
-                    style: { textAnchor: 'middle', fill: '#9CA3AF' } 
-                  };
-                }
-
-                return <YAxis key={yAxisId} {...yAxisProps} />;
-              })}
-
-              {/* Corner reference lines */}
-              {viewMode === 'distance' && corners.map((corner, index) => (
-                <ReferenceLine 
-                  key={`corner-${index}`}
-                  x={corner.distance}
-                  stroke="#9CA3AF"
-                  strokeDasharray="3 3"
-                  strokeOpacity={0.4}
-                />
-              ))}
-
-              {/* Telemetry Lines */}
-              {enabledVariables.map((variable) => (
-                <Line
-                  key={variable.key}
-                  type="monotone"
-                  dataKey={variable.key}
-                  stroke={variable.color}
-                  strokeWidth={2}
-                  dot={false}
-                  name={variable.label}
-                  yAxisId={variable.yAxisId}
-                  connectNulls={false}
-                />
-              ))}
-
-              {/* Zoom Brush */}
-              {showBrush && (
-                <Brush
-                  dataKey={xAxisKey}
-                  height={30}
-                  stroke="#3B82F6"
-                  fill="#3B82F6"
-                  fillOpacity={0.1}
-                  onChange={handleBrushChange}
-                />
-              )}
-
-              <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                verticalAlign="top" 
-                height={50}
-                iconType="line"
-                wrapperStyle={{ 
-                  paddingBottom: '20px',
-                  fontSize: '12px'
-                }}
-              />
-            </LineChart>
+            {customization.chartType === 'line' ? (
+              <LineChart 
+                data={chartData} 
+                ref={chartRef}
+                margin={{ top: 20, right: 60, left: 20, bottom: 60 }}
+              >
+                {customization.gridLines && (
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                )}
+            
+                {/* Rest of the chart content will be rendered here */}
+                {renderChartContent()}
+              </LineChart>
+            ) : customization.chartType === 'area' ? (
+              <AreaChart 
+                data={chartData} 
+                ref={chartRef}
+                margin={{ top: 20, right: 60, left: 20, bottom: 60 }}
+              >
+                {customization.gridLines && (
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                )}
+                {renderChartContent()}
+              </AreaChart>
+            ) : (
+              <ScatterChart 
+                data={chartData} 
+                ref={chartRef}
+                margin={{ top: 20, right: 60, left: 20, bottom: 60 }}
+              >
+                {customization.gridLines && (
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                )}
+                {renderChartContent()}
+              </ScatterChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>
