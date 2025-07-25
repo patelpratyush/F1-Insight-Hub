@@ -1,10 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Flag, Timer, Zap, Users, Trophy, Loader2 } from "lucide-react";
+import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
+import StaggeredAnimation from "@/components/StaggeredAnimation";
 
 const RacePredictor = () => {
   const [selectedTrack, setSelectedTrack] = useState("");
@@ -13,6 +15,11 @@ const RacePredictor = () => {
   const [statistics, setStatistics] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const tracks = [
     { name: "Bahrain Grand Prix", circuit: "Bahrain International Circuit" },
@@ -117,24 +124,42 @@ const RacePredictor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 overflow-hidden">
+      {/* Animated Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-4 -right-4 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 -left-8 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      <div className="container mx-auto max-w-6xl relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-3 bg-blue-600 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-white" />
+        <AnimatedPageWrapper delay={100}>
+            <div className="mb-8">
+              <div className={`flex items-center space-x-3 mb-4 transition-all duration-1000 delay-300 transform ${
+                isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
+              }`}>
+                <div className="p-3 bg-blue-600 rounded-lg shadow-lg hover:shadow-blue-500/25 transition-all duration-300 hover:scale-110">
+                  <TrendingUp className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold text-white">Race Result Predictor</h1>
+              </div>
+              <div className={`transition-all duration-1000 delay-500 transform ${
+                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+              }`}>
+                <p className="text-gray-400 text-lg">
+                  Predict final positions for all drivers in an upcoming race based on qualifying results and race conditions.
+                </p>
+                <div className="mt-2 text-sm text-gray-500">
+                  🏎️ ML-powered predictions • 20 drivers • Real-time analysis
+                </div>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-white">Race Result Predictor</h1>
-          </div>
-          <p className="text-gray-400 text-lg">
-            Predict final positions for all drivers in an upcoming race based on qualifying results and race conditions.
-          </p>
-        </div>
+          </AnimatedPageWrapper>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Input Section */}
-          <div className="lg:col-span-1">
+          <AnimatedPageWrapper delay={600} className="lg:col-span-1">
             <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center space-x-2">
@@ -198,10 +223,10 @@ const RacePredictor = () => {
                 </Button>
               </CardContent>
             </Card>
-          </div>
+          </AnimatedPageWrapper>
 
           {/* Results Section */}
-          <div className="lg:col-span-3">
+          <AnimatedPageWrapper delay={800} className="lg:col-span-3">
             {error ? (
               <Card className="bg-gray-800/50 border-gray-700">
                 <CardContent className="text-center p-8">
@@ -232,7 +257,11 @@ const RacePredictor = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <StaggeredAnimation
+                    delay={300}
+                    staggerDelay={100}
+                    className="space-y-3"
+                  >
                     {predictions.map((driver, index) => (
                       <div 
                         key={driver.driver}
@@ -264,7 +293,7 @@ const RacePredictor = () => {
                         </div>
                       </div>
                     ))}
-                  </div>
+                  </StaggeredAnimation>
 
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-gradient-to-br from-yellow-600/20 to-yellow-800/20 rounded-lg border border-yellow-600/20">
@@ -298,7 +327,7 @@ const RacePredictor = () => {
                 </CardContent>
               </Card>
             )}
-          </div>
+          </AnimatedPageWrapper>
         </div>
       </div>
     </div>

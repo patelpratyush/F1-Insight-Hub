@@ -1,6 +1,6 @@
 # F1 Insight Hub
 
-Advanced Formula 1 prediction and telemetry analysis platform combining ensemble machine learning with comprehensive React interface for race predictions and real-time telemetry visualization.
+Advanced Formula 1 prediction and telemetry analysis platform combining ensemble machine learning with a beautifully animated React interface for race predictions and real-time telemetry visualization.
 
 ## 🏎️ Overview
 
@@ -22,31 +22,35 @@ F1 Insight Hub delivers the most comprehensive F1 analysis system available, fea
 - **Speed Trace Analysis**: Detailed lap-by-lap telemetry visualization
 - **FastF1 Integration**: Real telemetry data from 2024-2025 seasons
 
-### 🎨 **Professional Interface**
-- **Driver Comparison Mode**: Side-by-side telemetry analysis
-- **Interactive Visualizations**: Real-time graph customization and zoom controls
-- **Responsive Design**: Seamless desktop and mobile experience
-- **Modern UI Components**: Built with shadcn/ui and Tailwind CSS
-- **Authentic F1 Styling**: Racing-inspired design with professional aesthetics
+### 🎨 **Professional Animated Interface**
+- **Smooth Page Transitions**: Elegant fade-in animations with staggered timing
+- **Interactive Visualizations**: Real-time graph customization with animated transitions
+- **Animated Background Elements**: Dynamic floating orbs with F1-themed color schemes
+- **Driver Comparison Mode**: Side-by-side telemetry analysis with smooth animations
+- **Responsive Design**: Seamless desktop and mobile experience with consistent animations
+- **Modern UI Components**: Built with shadcn/ui and Tailwind CSS with custom animation system
+- **Authentic F1 Styling**: Racing-inspired design with professional aesthetics and motion
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React 18** with TypeScript for type safety
+- **React 18** with TypeScript for type safety and modern hooks
 - **Vite** for lightning-fast development and building
-- **Tailwind CSS** for responsive utility-first styling
-- **shadcn/ui** premium component library for consistent UI
+- **Tailwind CSS** for responsive utility-first styling with animation utilities
+- **shadcn/ui** premium component library for consistent UI components
+- **Custom Animation System**: Reusable AnimatedPageWrapper and StaggeredAnimation components
 - **Recharts** for advanced data visualization and telemetry charts
 - **React Router** for seamless navigation between features
-- **Lucide Icons** for consistent iconography
+- **Lucide Icons** for consistent iconography throughout the interface
 
 ### Backend
 - **Python 3.10+** with FastAPI for high-performance async API
-- **Machine Learning**: XGBoost, Random Forest, Neural Networks (optional)
+- **Enhanced Machine Learning**: XGBoost, Random Forest, Neural Networks with Optuna optimization
+- **Advanced Feature Engineering**: Driver momentum, championship pressure, team dynamics
 - **Data Processing**: Pandas, NumPy, Scikit-learn for efficient data handling
-- **F1 Data Integration**: FastF1 API with comprehensive telemetry caching
-- **Google Drive Cache**: Pre-cached telemetry for faster loading
-- **Deployment Ready**: Optimized Docker images for cloud deployment
+- **F1 Data Integration**: FastF1 API with comprehensive telemetry caching and corner annotations
+- **Google Drive Cache**: Pre-cached telemetry for sub-200ms response times
+- **Deployment Ready**: Multi-configuration Docker images for lightweight and full ML deployment
 
 ## 🚀 Quick Start
 
@@ -125,6 +129,8 @@ src/
 ├── components/
 │   ├── ui/                           # shadcn/ui premium components
 │   ├── Layout.tsx                    # Main app layout with navigation
+│   ├── AnimatedPageWrapper.tsx       # Reusable page transition animations
+│   ├── StaggeredAnimation.tsx        # List/grid item staggered animations
 │   ├── TelemetryOverlapGraphs.tsx    # Multi-variable telemetry visualization
 │   ├── TelemetrySpeedTrace.tsx       # Speed trace analysis component
 │   ├── GraphCustomizationPanel.tsx   # Graph styling and configuration
@@ -132,17 +138,161 @@ src/
 │   ├── RaceSelect.tsx                # All 24 F1 circuits selection
 │   └── PredictionForm.tsx            # Enhanced prediction interface
 ├── pages/
-│   ├── Index.tsx                     # Dashboard with race overview
-│   ├── DriverPredictor.tsx           # Individual driver predictions
-│   ├── RacePredictor.tsx             # Full race grid predictions
-│   ├── TelemetryAnalyzer.tsx         # Advanced telemetry analysis
-│   └── StrategySimulator.tsx         # Race strategy optimization
+│   ├── Index.tsx                     # Dashboard with race overview (animated)
+│   ├── DriverPredictor.tsx           # Individual driver predictions (animated)
+│   ├── RacePredictor.tsx             # Full race grid predictions (animated)
+│   ├── TelemetryAnalyzer.tsx         # Advanced telemetry analysis (animated)
+│   ├── StrategySimulator.tsx         # Race strategy optimization (animated)
+│   └── NotFound.tsx                  # Enhanced 404 page (animated)
 ├── hooks/
 │   ├── useGraphCustomization.ts      # Graph styling state management
 │   └── useTelemetryData.ts           # Telemetry API integration
 └── lib/
     ├── api.ts                        # API integration utilities
     └── telemetry-utils.ts            # Telemetry data processing
+```
+
+## ✨ Animation System
+
+### Custom Animation Components
+
+#### **AnimatedPageWrapper**
+Reusable component for smooth page entrance animations:
+
+```typescript
+<AnimatedPageWrapper delay={300}>
+  <div className="page-content">
+    {/* Page content with fade-in animation */}
+  </div>
+</AnimatedPageWrapper>
+```
+
+**Features:**
+- Configurable delay timing for progressive loading
+- Smooth translate-y and opacity transitions
+- 1-second duration for professional feel
+- Automatic trigger on component mount
+
+#### **StaggeredAnimation**
+Creates sequential animations for lists and grids:
+
+```typescript
+<StaggeredAnimation
+  delay={500}
+  staggerDelay={150}
+  className="grid grid-cols-3 gap-4"
+>
+  {items.map((item, index) => (
+    <Card key={index}>
+      {/* Each card animates with increasing delay */}
+    </Card>
+  ))}
+</StaggeredAnimation>
+```
+
+**Features:**
+- Individual item delays for visual hierarchy
+- Customizable stagger timing between items
+- Support for any grid or list layout
+- Smooth translate-y and opacity effects
+
+### Page-Specific Animations
+
+#### **Animated Backgrounds**
+Each page features unique floating orb animations:
+
+```typescript
+{/* Animated Background Effects */}
+<div className="fixed inset-0 overflow-hidden pointer-events-none">
+  <div className="absolute -top-4 -right-4 w-72 h-72 bg-red-500/10 rounded-full blur-3xl animate-pulse"></div>
+  <div className="absolute top-1/2 -left-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+  <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+</div>
+```
+
+**Color Themes by Page:**
+- **Index**: Red, Blue, Purple orbs for F1 branding
+- **Driver Predictor**: Red, Blue, Green for trophy/performance theme
+- **Race Predictor**: Blue, Purple, Green for race/strategy theme
+- **Telemetry Analyzer**: Green, Blue, Purple for data/analysis theme
+- **Strategy Simulator**: Purple, Yellow, Blue for strategy/optimization theme
+- **NotFound**: Red, Yellow, Orange for warning/alert theme
+
+#### **Progressive Loading**
+Content appears in sequence for better UX:
+
+```typescript
+const [isVisible, setIsVisible] = useState(false);
+
+useEffect(() => {
+  setIsVisible(true);
+}, []);
+
+// Header (100ms delay)
+<AnimatedPageWrapper delay={100}>
+  <header>{/* Header content */}</header>
+</AnimatedPageWrapper>
+
+// Controls (600ms delay)
+<AnimatedPageWrapper delay={600}>
+  <div className="controls">{/* Control panels */}</div>
+</AnimatedPageWrapper>
+
+// Results (800ms delay)
+<AnimatedPageWrapper delay={800}>
+  <div className="results">{/* Results display */}</div>
+</AnimatedPageWrapper>
+```
+
+### Interactive Animations
+
+#### **Hover Effects**
+Enhanced hover states with scaling and shadow effects:
+
+```css
+.hover\\:scale-105:hover {
+  transform: scale(1.05);
+}
+
+.hover\\:shadow-2xl:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.hover\\:shadow-red-500\\/25:hover {
+  box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.25);
+}
+```
+
+#### **Button Animations**
+Professional button interactions with smooth transitions:
+
+```typescript
+<Button className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+  <span className="relative flex items-center">
+    Get Started
+    <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+  </span>
+</Button>
+```
+
+### Performance Optimizations
+
+#### **Animation Performance**
+- **CSS Transforms**: Hardware-accelerated animations using transform and opacity
+- **Reduced Motion**: Respects user preference for reduced motion
+- **Efficient Triggers**: useEffect hooks with proper cleanup
+- **Stagger Optimization**: Calculated delays prevent animation overlap
+
+#### **Memory Management**
+```typescript
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setIsVisible(true);
+  }, delay);
+
+  // Cleanup timer to prevent memory leaks
+  return () => clearTimeout(timer);
+}, [delay]);
 ```
 
 ## 🔌 API Integration
@@ -445,7 +595,14 @@ COPY requirements.txt .
 - ✅ **Customizable graph UI** with 4 chart types and color schemes
 - ✅ **Session type filters** supporting all F1 session formats
 - ✅ **Interactive controls** with zoom, pan, and variable toggles
-- ✅ **Professional aesthetics** with F1-inspired design
+- ✅ **Professional aesthetics** with F1-inspired design and smooth animations
+
+### Professional Animation System
+- ✅ **Custom Animation Components** with AnimatedPageWrapper and StaggeredAnimation
+- ✅ **Page-Specific Themes** with unique color-coded floating background orbs
+- ✅ **Progressive Loading** with carefully timed content appearance
+- ✅ **Interactive Hover Effects** with scaling and shadow animations
+- ✅ **Performance Optimized** using hardware-accelerated CSS transforms
 
 ### Production-Ready Architecture
 - ✅ **FastF1 integration** with real telemetry data from 2024-2025
@@ -455,11 +612,11 @@ COPY requirements.txt .
 - ✅ **Multi-platform deployment** support for Fly.io, Railway, DigitalOcean
 
 ### Data-Driven Intelligence
-- ✅ **700+ race records** from complete 2024-2025 seasons
-- ✅ **Realistic F1 modeling** with 70% car, 30% driver balance
-- ✅ **Advanced weather system** with mixed/changing conditions
-- ✅ **Driver-specific skills** modeling wet weather expertise
-- ✅ **Confidence scoring** with realistic uncertainty ranges
+- ✅ **718+ race records** from complete 2024-2025 seasons with enhanced ML models
+- ✅ **Realistic F1 modeling** with 70% car, 30% driver balance and advanced feature engineering
+- ✅ **Advanced weather system** with mixed/changing conditions and temperature effects
+- ✅ **Driver-specific skills** modeling wet weather expertise and momentum trends
+- ✅ **Enhanced confidence scoring** with ensemble model variance analysis and Optuna optimization
 
 ## 📄 License
 

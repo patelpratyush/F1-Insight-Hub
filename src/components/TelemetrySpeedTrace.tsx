@@ -369,6 +369,9 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
       <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
         <h3 className="text-xl font-bold text-white mb-4">
           Speed Trace with Corner Annotations
+          {corners.length > 0 && (
+            <span className="text-sm text-yellow-400 ml-2">({corners.length} corners detected)</span>
+          )}
         </h3>
         <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
@@ -399,16 +402,53 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 name="Speed"
               />
               
-              {/* Corner reference lines */}
-              {corners.map((corner, index) => (
-                <ReferenceLine 
-                  key={`corner-${index}`}
-                  x={corner.distance}
-                  stroke="#9CA3AF"
-                  strokeDasharray="3 3"
-                  strokeOpacity={0.6}
-                />
-              ))}
+              {/* Corner reference lines - Yellow dashed lines */}
+              {corners.length > 0 ? (
+                corners.map((corner, index) => (
+                  <ReferenceLine 
+                    key={`corner-${index}`}
+                    x={corner.distance}
+                    stroke="#EAB308"
+                    strokeDasharray="5 5"
+                    strokeWidth={2}
+                    strokeOpacity={0.9}
+                    label={{
+                      value: `C${corner.number}${corner.letter || ''}`,
+                      position: "top",
+                      offset: 10,
+                      style: { 
+                        fill: "#EAB308", 
+                        fontSize: "11px", 
+                        fontWeight: "bold",
+                        textAnchor: "middle"
+                      }
+                    }}
+                  />
+                ))
+              ) : (
+                // Fallback: Show some estimated corner positions if no corner data
+                [1000, 2000, 3000, 4000, 5000].map((distance, index) => (
+                  <ReferenceLine 
+                    key={`fallback-corner-${index}`}
+                    x={distance}
+                    stroke="#EAB308"
+                    strokeDasharray="5 5"
+                    strokeWidth={2}
+                    strokeOpacity={0.7}
+                    label={{
+                      value: `C${index + 1}`,
+                      position: "top",
+                      offset: 10,
+                      style: { 
+                        fill: "#EAB308", 
+                        fontSize: "11px", 
+                        fontWeight: "bold",
+                        textAnchor: "middle"
+                      }
+                    }}
+                  />
+                ))
+              )}
               
               <Tooltip 
                 content={({ active, payload, label }) => {
@@ -447,9 +487,9 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
         </div>
         
         {/* Corner legend */}
-        {corners.length > 0 && (
-          <div className="mt-4 p-4 bg-gray-700/30 rounded-lg">
-            <h4 className="text-sm font-bold text-white mb-2">Track Corners</h4>
+        <div className="mt-4 p-4 bg-gray-700/30 rounded-lg">
+          <h4 className="text-sm font-bold text-white mb-2">Track Corners</h4>
+          {corners.length > 0 ? (
             <div className="grid grid-cols-6 md:grid-cols-12 gap-2 text-xs">
               {corners.map((corner, index) => (
                 <div key={index} className="text-center">
@@ -462,11 +502,16 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center text-gray-400 text-sm">
+              <p>Corner data not available for this session.</p>
+              <p className="text-yellow-400 mt-1">Showing estimated corner positions with yellow dashed lines.</p>
+            </div>
+          )}
+        </div>
         
         <div className="mt-4 text-sm text-gray-400">
-          Dotted vertical lines indicate corner locations. Speed typically drops before corners and increases on exit.
+          <span className="text-yellow-400 font-semibold">Yellow dashed lines</span> indicate corner locations. Speed typically drops before corners and increases on exit.
         </div>
       </div>
     </div>

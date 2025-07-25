@@ -1,10 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, Target, Zap, Cloud, Users } from "lucide-react";
+import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
+import StaggeredAnimation from "@/components/StaggeredAnimation";
 
 const DriverPredictor = () => {
   const [selectedDriver, setSelectedDriver] = useState("");
@@ -12,6 +14,11 @@ const DriverPredictor = () => {
   const [weather, setWeather] = useState("");
   const [prediction, setPrediction] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const drivers = [
     { code: "VER", name: "Max Verstappen", team: "Red Bull", number: 1 },
@@ -114,27 +121,43 @@ const DriverPredictor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 overflow-hidden">
+      {/* Animated Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-4 -right-4 w-72 h-72 bg-red-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 -left-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      <div className="container mx-auto max-w-6xl relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-3 bg-red-600 rounded-lg">
-              <Trophy className="h-6 w-6 text-white" />
+        <AnimatedPageWrapper delay={100}>
+          <div className="mb-8">
+            <div className={`flex items-center space-x-3 mb-4 transition-all duration-1000 delay-300 transform ${
+              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
+            }`}>
+              <div className="p-3 bg-red-600 rounded-lg shadow-lg hover:shadow-red-500/25 transition-all duration-300 hover:scale-110">
+                <Trophy className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-white">Driver Performance Predictor</h1>
             </div>
-            <h1 className="text-3xl font-bold text-white">Driver Performance Predictor</h1>
+            <div className={`transition-all duration-1000 delay-500 transform ${
+              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            }`}>
+              <p className="text-gray-400 text-lg">
+                Gradient Boosting Machine Learning model trained on 2024-2025 F1 data that predicts race results based on past performance, qualifying times, and structured F1 data.
+              </p>
+              <div className="mt-2 text-sm text-gray-500">
+                🏎️ 738 race records • 27 drivers • 25 races • Updated for 2025 season transfers
+              </div>
+            </div>
           </div>
-          <p className="text-gray-400 text-lg">
-            Gradient Boosting Machine Learning model trained on 2024-2025 F1 data that predicts race results based on past performance, qualifying times, and structured F1 data.
-          </p>
-          <div className="mt-2 text-sm text-gray-500">
-            🏎️ 738 race records • 27 drivers • 25 races • Updated for 2025 season transfers
-          </div>
-        </div>
+        </AnimatedPageWrapper>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Input Section */}
-          <div className="lg:col-span-1 space-y-6">
+          <AnimatedPageWrapper delay={600} className="lg:col-span-1">
+            <div className="space-y-6">
             <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center space-x-2">
@@ -221,10 +244,11 @@ const DriverPredictor = () => {
                 </Button>
               </CardContent>
             </Card>
-          </div>
+            </div>
+          </AnimatedPageWrapper>
 
           {/* Results Section */}
-          <div className="lg:col-span-2">
+          <AnimatedPageWrapper delay={800} className="lg:col-span-2">
             {prediction ? (
               <div className="space-y-6">
                 <Card className="bg-gray-800/50 border-gray-700">
@@ -238,29 +262,51 @@ const DriverPredictor = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="text-center p-6 bg-gradient-to-br from-blue-600/20 to-blue-800/20 rounded-xl border border-blue-600/20">
-                        <div className="text-3xl font-bold text-blue-400 mb-2">P{prediction.qualifying}</div>
-                        <div className="text-gray-300 font-medium">Qualifying Position</div>
-                        <div className="text-sm text-gray-400 mt-2">
-                          Confidence: {prediction.qualifyingConfidence ? (prediction.qualifyingConfidence * 100).toFixed(0) : 75}%
+                    <StaggeredAnimation
+                      delay={300}
+                      staggerDelay={150}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-6"
+                    >
+                      {[
+                        {
+                          title: "Qualifying Position",
+                          value: `P${prediction.qualifying}`,
+                          confidence: prediction.qualifyingConfidence ? (prediction.qualifyingConfidence * 100).toFixed(0) : 75,
+                          gradient: "from-blue-600/20 to-blue-800/20",
+                          border: "border-blue-600/20",
+                          textColor: "text-blue-400"
+                        },
+                        {
+                          title: "Race Position", 
+                          value: `P${prediction.race}`,
+                          confidence: prediction.raceConfidence ? (prediction.raceConfidence * 100).toFixed(0) : 65,
+                          gradient: "from-green-600/20 to-green-800/20",
+                          border: "border-green-600/20",
+                          textColor: "text-green-400"
+                        },
+                        {
+                          title: "Podium Probability",
+                          value: `${Math.round(prediction.podiumProbability)}%`,
+                          confidence: "Top 3 finish chance",
+                          gradient: "from-purple-600/20 to-purple-800/20", 
+                          border: "border-purple-600/20",
+                          textColor: "text-purple-400"
+                        }
+                      ].map((item, index) => (
+                        <div 
+                          key={index}
+                          className={`text-center p-6 bg-gradient-to-br ${item.gradient} rounded-xl border ${item.border} transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-${item.textColor.split('-')[1]}-500/10`}
+                        >
+                          <div className={`text-3xl font-bold ${item.textColor} mb-2 animate-pulse`}>
+                            {item.value}
+                          </div>
+                          <div className="text-gray-300 font-medium">{item.title}</div>
+                          <div className="text-sm text-gray-400 mt-2">
+                            {item.title === "Podium Probability" ? item.confidence : `Confidence: ${item.confidence}%`}
+                          </div>
                         </div>
-                      </div>
-                      
-                      <div className="text-center p-6 bg-gradient-to-br from-green-600/20 to-green-800/20 rounded-xl border border-green-600/20">
-                        <div className="text-3xl font-bold text-green-400 mb-2">P{prediction.race}</div>
-                        <div className="text-gray-300 font-medium">Race Position</div>
-                        <div className="text-sm text-gray-400 mt-2">
-                          Confidence: {prediction.raceConfidence ? (prediction.raceConfidence * 100).toFixed(0) : 65}%
-                        </div>
-                      </div>
-                      
-                      <div className="text-center p-6 bg-gradient-to-br from-purple-600/20 to-purple-800/20 rounded-xl border border-purple-600/20">
-                        <div className="text-3xl font-bold text-purple-400 mb-2">{Math.round(prediction.podiumProbability)}%</div>
-                        <div className="text-gray-300 font-medium">Podium Probability</div>
-                        <div className="text-sm text-gray-400 mt-2">Top 3 finish chance</div>
-                      </div>
-                    </div>
+                      ))}
+                    </StaggeredAnimation>
 
                     <div className="mt-8 p-4 bg-gray-700/30 rounded-lg">
                       <h4 className="text-white font-medium mb-3 flex items-center">
@@ -308,7 +354,7 @@ const DriverPredictor = () => {
                 </CardContent>
               </Card>
             )}
-          </div>
+          </AnimatedPageWrapper>
         </div>
       </div>
     </div>

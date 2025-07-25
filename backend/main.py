@@ -269,6 +269,10 @@ class TrackMapRequest(BaseModel):
     session: str = "R"
     lap_number: Optional[int] = None
 
+class WeatherContextRequest(BaseModel):
+    race: str
+    session: str = "R"
+
 @app.post("/api/telemetry/analyze")
 async def analyze_session_telemetry(request: TelemetryAnalysisRequest):
     """
@@ -341,6 +345,48 @@ async def get_track_map(request: TrackMapRequest):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Track map data failed: {str(e)}")
+
+@app.post("/api/telemetry/weather-context")
+async def get_weather_context(request: WeatherContextRequest):
+    """
+    Get comprehensive weather context for a racing session
+    Returns temperature, humidity, wind, rainfall, driver ratings, and tire strategy
+    """
+    try:
+        result = telemetry_analyzer.get_weather_context(
+            race_name=request.race,
+            session_type=request.session
+        )
+        
+        # Convert WeatherContext dataclass to dict for JSON response
+        return {
+            'success': True,
+            'race': request.race,
+            'session': request.session,
+            'weather': {
+                'condition': result.condition,
+                'temperature': result.temperature,
+                'humidity': result.humidity,
+                'wind_speed': result.wind_speed,
+                'track_temperature': result.track_temperature,
+                'rainfall': result.rainfall
+            },
+            'impact_analysis': result.weather_impact,
+            'tire_strategy': {
+                'influence': result.tire_strategy_influence,
+                'recommendation': result.weather_impact.get('tire_strategy', 'Unknown')
+            },
+            'driver_ratings': result.driver_weather_rating,
+            'insights': {
+                'grip_level': result.weather_impact.get('grip_level', 'Unknown'),
+                'performance_factors': [
+                    result.weather_impact.get('temperature_effect', 'Unknown'),
+                    result.weather_impact.get('wind_impact', 'Unknown')
+                ]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Weather context analysis failed: {str(e)}")
 
 @app.get("/api/telemetry/available-sessions/{year}")
 async def get_available_sessions(year: int):

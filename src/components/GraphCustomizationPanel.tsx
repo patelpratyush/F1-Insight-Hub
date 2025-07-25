@@ -211,50 +211,57 @@ export const GraphCustomizationPanel: React.FC<GraphCustomizationPanelProps> = (
             </TabsList>
 
             {/* Chart Type & Style Tab */}
-            <TabsContent value="chart" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-gray-300">Chart Type</Label>
-                  <Select value={customization.chartType} onValueChange={(value) => 
-                    updateCustomization({ chartType: value as GraphCustomization['chartType'] })
-                  }>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="line" className="text-white hover:bg-gray-600">
-                        📈 Line Chart
-                      </SelectItem>
-                      <SelectItem value="area" className="text-white hover:bg-gray-600">
-                        📊 Area Chart
-                      </SelectItem>
-                      <SelectItem value="scatter" className="text-white hover:bg-gray-600">
-                        ⚬ Scatter Plot
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <TabsContent value="chart" className="space-y-6">
+              {/* Chart Type Section */}
+              <div className="bg-gray-700/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-blue-400" />
+                  Chart Configuration
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-300 text-sm font-medium">Chart Type</Label>
+                    <Select value={customization.chartType} onValueChange={(value) => 
+                      updateCustomization({ chartType: value as GraphCustomization['chartType'] })
+                    }>
+                      <SelectTrigger className="bg-gray-800/50 border-gray-600 text-white mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-700 border-gray-600">
+                        <SelectItem value="line" className="text-white hover:bg-gray-600">
+                          📈 Line Chart
+                        </SelectItem>
+                        <SelectItem value="area" className="text-white hover:bg-gray-600">
+                          📊 Area Chart
+                        </SelectItem>
+                        <SelectItem value="scatter" className="text-white hover:bg-gray-600">
+                          ⚬ Scatter Plot
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div>
-                  <Label className="text-gray-300">Line Thickness</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider
-                      value={[customization.lineThickness]}
-                      onValueChange={([value]) => updateCustomization({ lineThickness: value })}
-                      max={8}
-                      min={1}
-                      step={0.5}
-                      className="flex-1"
-                    />
-                    <span className="text-gray-300 w-8 text-sm">{customization.lineThickness}px</span>
+                  <div>
+                    <Label className="text-gray-300 text-sm font-medium">Line Thickness</Label>
+                    <div className="flex items-center space-x-3 mt-2">
+                      <Slider
+                        value={[customization.lineThickness]}
+                        onValueChange={([value]) => updateCustomization({ lineThickness: value })}
+                        max={8}
+                        min={1}
+                        step={0.5}
+                        className="flex-1"
+                      />
+                      <div className="bg-blue-600/20 border border-blue-600/40 rounded px-2 py-1 min-w-[50px] text-center">
+                        <span className="text-blue-400 font-medium text-sm">{customization.lineThickness}px</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-gray-300">Opacity</Label>
-                  <div className="flex items-center space-x-2">
+                <div className="mt-4">
+                  <Label className="text-gray-300 text-sm font-medium">Opacity</Label>
+                  <div className="flex items-center space-x-3 mt-2">
                     <Slider
                       value={[customization.opacity]}
                       onValueChange={([value]) => updateCustomization({ opacity: value })}
@@ -263,183 +270,257 @@ export const GraphCustomizationPanel: React.FC<GraphCustomizationPanelProps> = (
                       step={5}
                       className="flex-1"
                     />
-                    <span className="text-gray-300 w-12 text-sm">{customization.opacity}%</span>
+                    <div className="bg-purple-600/20 border border-purple-600/40 rounded px-2 py-1 min-w-[50px] text-center">
+                      <span className="text-purple-400 font-medium text-sm">{customization.opacity}%</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-gray-300">Show Data Points</Label>
-                  <Switch
-                    checked={customization.displaySettings.showDataPoints}
-                    onCheckedChange={(checked) => updateDisplaySettings({ showDataPoints: checked })}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label className="text-gray-300">Smooth Lines</Label>
-                  <Switch
-                    checked={customization.displaySettings.smoothLines}
-                    onCheckedChange={(checked) => updateDisplaySettings({ smoothLines: checked })}
-                  />
-                </div>
+              {/* Display Options Section */}
+              <div className="bg-gray-700/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <Settings className="h-4 w-4 text-green-400" />
+                  Display Options
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                      <Label className="text-gray-300 text-sm font-medium">Show Data Points</Label>
+                      <Switch
+                        checked={customization.displaySettings.showDataPoints}
+                        onCheckedChange={(checked) => updateDisplaySettings({ showDataPoints: checked })}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                      <Label className="text-gray-300 text-sm font-medium">Smooth Lines</Label>
+                      <Switch
+                        checked={customization.displaySettings.smoothLines}
+                        onCheckedChange={(checked) => updateDisplaySettings({ smoothLines: checked })}
+                      />
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label className="text-gray-300">Fill Area</Label>
-                  <Switch
-                    checked={customization.displaySettings.fillArea}
-                    onCheckedChange={(checked) => updateDisplaySettings({ fillArea: checked })}
-                  />
-                </div>
+                    <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                      <Label className="text-gray-300 text-sm font-medium">Fill Area</Label>
+                      <Switch
+                        checked={customization.displaySettings.fillArea}
+                        onCheckedChange={(checked) => updateDisplaySettings({ fillArea: checked })}
+                      />
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-between">
-                  <Label className="text-gray-300">Grid Lines</Label>
-                  <Switch
-                    checked={customization.gridLines}
-                    onCheckedChange={(checked) => updateCustomization({ gridLines: checked })}
-                  />
-                </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                      <Label className="text-gray-300 text-sm font-medium">Grid Lines</Label>
+                      <Switch
+                        checked={customization.gridLines}
+                        onCheckedChange={(checked) => updateCustomization({ gridLines: checked })}
+                      />
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label className="text-gray-300">Show Legend</Label>
-                  <Switch
-                    checked={customization.legend}
-                    onCheckedChange={(checked) => updateCustomization({ legend: checked })}
-                  />
-                </div>
+                    <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                      <Label className="text-gray-300 text-sm font-medium">Show Legend</Label>
+                      <Switch
+                        checked={customization.legend}
+                        onCheckedChange={(checked) => updateCustomization({ legend: checked })}
+                      />
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label className="text-gray-300">Animations</Label>
-                  <Switch
-                    checked={customization.animations}
-                    onCheckedChange={(checked) => updateCustomization({ animations: checked })}
-                  />
+                    <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                      <Label className="text-gray-300 text-sm font-medium">Animations</Label>
+                      <Switch
+                        checked={customization.animations}
+                        onCheckedChange={(checked) => updateCustomization({ animations: checked })}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </TabsContent>
 
             {/* Colors Tab */}
-            <TabsContent value="colors" className="space-y-4">
-              <div>
-                <Label className="text-gray-300">Color Scheme</Label>
-                <Select value={customization.colorScheme} onValueChange={handleColorSchemeChange}>
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-700 border-gray-600">
-                    <SelectItem value="default" className="text-white hover:bg-gray-600">
-                      🎨 Default
-                    </SelectItem>
-                    <SelectItem value="racing" className="text-white hover:bg-gray-600">
-                      🏎️ Racing
-                    </SelectItem>
-                    <SelectItem value="classic" className="text-white hover:bg-gray-600">
-                      📊 Classic
-                    </SelectItem>
-                    <SelectItem value="neon" className="text-white hover:bg-gray-600">
-                      💫 Neon
-                    </SelectItem>
-                    <SelectItem value="custom" className="text-white hover:bg-gray-600">
-                      ✨ Custom
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+            <TabsContent value="colors" className="space-y-6">
+              {/* Color Scheme Section */}
+              <div className="bg-gray-700/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-pink-400" />
+                  Color Scheme
+                </h4>
+                <div>
+                  <Label className="text-gray-300 text-sm font-medium">Select Theme</Label>
+                  <Select value={customization.colorScheme} onValueChange={handleColorSchemeChange}>
+                    <SelectTrigger className="bg-gray-800/50 border-gray-600 text-white mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-700 border-gray-600">
+                      <SelectItem value="default" className="text-white hover:bg-gray-600">
+                        🎨 Default
+                      </SelectItem>
+                      <SelectItem value="racing" className="text-white hover:bg-gray-600">
+                        🏎️ Racing
+                      </SelectItem>
+                      <SelectItem value="classic" className="text-white hover:bg-gray-600">
+                        📊 Classic
+                      </SelectItem>
+                      <SelectItem value="neon" className="text-white hover:bg-gray-600">
+                        💫 Neon
+                      </SelectItem>
+                      <SelectItem value="custom" className="text-white hover:bg-gray-600">
+                        ✨ Custom
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              {customization.colorScheme === 'custom' && (
-                <div className="grid grid-cols-2 gap-3">
+              {/* Color Preview Section */}
+              <div className="bg-gray-700/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-white mb-3">Color Preview</h4>
+                <div className="grid grid-cols-3 gap-3">
                   {Object.entries(customization.customColors).map(([key, color]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <Label className="text-gray-300 capitalize w-16">{key}:</Label>
-                      <Input
-                        type="color"
-                        value={color}
-                        onChange={(e) => updateCustomColors({ [key]: e.target.value } as any)}
-                        className="w-12 h-8 bg-gray-700 border-gray-600"
+                    <div key={key} className="text-center p-3 bg-gray-800/50 rounded border border-gray-600/30">
+                      <div 
+                        className="w-8 h-8 rounded-full mx-auto mb-2 border-2 border-gray-600"
+                        style={{ backgroundColor: color }}
                       />
-                      <span className="text-xs text-gray-400">{color}</span>
+                      <div className="text-xs font-medium text-white capitalize">{key}</div>
+                      <div className="text-xs text-gray-400">{color}</div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Custom Colors Section */}
+              {customization.colorScheme === 'custom' && (
+                <div className="bg-gray-700/30 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                    <Settings className="h-4 w-4 text-purple-400" />
+                    Custom Colors
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(customization.customColors).map(([key, color]) => (
+                      <div key={key} className="bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-gray-300 capitalize text-sm font-medium">{key}</Label>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              type="color"
+                              value={color}
+                              onChange={(e) => updateCustomColors({ [key]: e.target.value } as any)}
+                              className="w-10 h-8 bg-gray-700 border-gray-600 cursor-pointer"
+                            />
+                            <span className="text-xs text-gray-400 font-mono min-w-[60px]">{color}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </TabsContent>
 
             {/* Axes Tab */}
-            <TabsContent value="axes" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-gray-300">X-Axis Label</Label>
-                  <Input
-                    value={customization.axisSettings.xAxisLabel}
-                    onChange={(e) => updateAxisSettings({ xAxisLabel: e.target.value })}
-                    className="bg-gray-700 border-gray-600 text-white"
-                  />
-                </div>
-                <div>
-                  <Label className="text-gray-300">Y-Axis Label</Label>
-                  <Input
-                    value={customization.axisSettings.yAxisLabel}
-                    onChange={(e) => updateAxisSettings({ yAxisLabel: e.target.value })}
-                    className="bg-gray-700 border-gray-600 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label className="text-gray-300">Auto Scale Axes</Label>
-                <Switch
-                  checked={customization.axisSettings.autoScale}
-                  onCheckedChange={(checked) => updateAxisSettings({ autoScale: checked })}
-                />
-              </div>
-
-              {!customization.axisSettings.autoScale && (
+            <TabsContent value="axes" className="space-y-6">
+              {/* Axis Labels Section */}
+              <div className="bg-gray-700/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-orange-400" />
+                  Axis Labels
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-gray-300">X-Axis Range</Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        type="number"
-                        placeholder="Min"
-                        value={customization.axisSettings.xAxisMin || ''}
-                        onChange={(e) => updateAxisSettings({ 
-                          xAxisMin: e.target.value ? Number(e.target.value) : undefined 
-                        })}
-                        className="bg-gray-700 border-gray-600 text-white"
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Max"
-                        value={customization.axisSettings.xAxisMax || ''}
-                        onChange={(e) => updateAxisSettings({ 
-                          xAxisMax: e.target.value ? Number(e.target.value) : undefined 
-                        })}
-                        className="bg-gray-700 border-gray-600 text-white"
-                      />
-                    </div>
+                    <Label className="text-gray-300 text-sm font-medium">X-Axis Label</Label>
+                    <Input
+                      value={customization.axisSettings.xAxisLabel}
+                      onChange={(e) => updateAxisSettings({ xAxisLabel: e.target.value })}
+                      className="bg-gray-800/50 border-gray-600 text-white mt-2"
+                      placeholder="e.g., Distance (m)"
+                    />
                   </div>
                   <div>
-                    <Label className="text-gray-300">Y-Axis Range</Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        type="number"
-                        placeholder="Min"
-                        value={customization.axisSettings.yAxisMin || ''}
-                        onChange={(e) => updateAxisSettings({ 
-                          yAxisMin: e.target.value ? Number(e.target.value) : undefined 
-                        })}
-                        className="bg-gray-700 border-gray-600 text-white"
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Max"
-                        value={customization.axisSettings.yAxisMax || ''}
-                        onChange={(e) => updateAxisSettings({ 
-                          yAxisMax: e.target.value ? Number(e.target.value) : undefined 
-                        })}
-                        className="bg-gray-700 border-gray-600 text-white"
-                      />
+                    <Label className="text-gray-300 text-sm font-medium">Y-Axis Label</Label>
+                    <Input
+                      value={customization.axisSettings.yAxisLabel}
+                      onChange={(e) => updateAxisSettings({ yAxisLabel: e.target.value })}
+                      className="bg-gray-800/50 border-gray-600 text-white mt-2"
+                      placeholder="e.g., Speed (km/h)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Scaling Options Section */}
+              <div className="bg-gray-700/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <Settings className="h-4 w-4 text-blue-400" />
+                  Scaling Options
+                </h4>
+                <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                  <div>
+                    <Label className="text-gray-300 text-sm font-medium">Auto Scale Axes</Label>
+                    <div className="text-xs text-gray-400 mt-1">Automatically adjust axis ranges based on data</div>
+                  </div>
+                  <Switch
+                    checked={customization.axisSettings.autoScale}
+                    onCheckedChange={(checked) => updateAxisSettings({ autoScale: checked })}
+                  />
+                </div>
+              </div>
+
+              {/* Manual Range Section */}
+              {!customization.axisSettings.autoScale && (
+                <div className="bg-gray-700/30 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                    <Settings className="h-4 w-4 text-purple-400" />
+                    Manual Axis Ranges
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                      <Label className="text-gray-300 text-sm font-medium">X-Axis Range</Label>
+                      <div className="flex space-x-2 mt-2">
+                        <Input
+                          type="number"
+                          placeholder="Min"
+                          value={customization.axisSettings.xAxisMin || ''}
+                          onChange={(e) => updateAxisSettings({ 
+                            xAxisMin: e.target.value ? Number(e.target.value) : undefined 
+                          })}
+                          className="bg-gray-700 border-gray-600 text-white text-sm"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Max"
+                          value={customization.axisSettings.xAxisMax || ''}
+                          onChange={(e) => updateAxisSettings({ 
+                            xAxisMax: e.target.value ? Number(e.target.value) : undefined 
+                          })}
+                          className="bg-gray-700 border-gray-600 text-white text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                      <Label className="text-gray-300 text-sm font-medium">Y-Axis Range</Label>
+                      <div className="flex space-x-2 mt-2">
+                        <Input
+                          type="number"
+                          placeholder="Min"
+                          value={customization.axisSettings.yAxisMin || ''}
+                          onChange={(e) => updateAxisSettings({ 
+                            yAxisMin: e.target.value ? Number(e.target.value) : undefined 
+                          })}
+                          className="bg-gray-700 border-gray-600 text-white text-sm"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Max"
+                          value={customization.axisSettings.yAxisMax || ''}
+                          onChange={(e) => updateAxisSettings({ 
+                            yAxisMax: e.target.value ? Number(e.target.value) : undefined 
+                          })}
+                          className="bg-gray-700 border-gray-600 text-white text-sm"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -447,48 +528,81 @@ export const GraphCustomizationPanel: React.FC<GraphCustomizationPanelProps> = (
             </TabsContent>
 
             {/* Presets Tab */}
-            <TabsContent value="presets" className="space-y-4">
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Preset name"
-                  value={presetName}
-                  onChange={(e) => setPresetName(e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white"
-                />
-                <Button onClick={handleSavePreset} className="bg-green-600 hover:bg-green-700">
-                  <Save className="h-4 w-4 mr-1" />
-                  Save
-                </Button>
+            <TabsContent value="presets" className="space-y-6">
+              {/* Save Preset Section */}
+              <div className="bg-gray-700/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <Save className="h-4 w-4 text-green-400" />
+                  Save Current Settings
+                </h4>
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="Enter preset name..."
+                    value={presetName}
+                    onChange={(e) => setPresetName(e.target.value)}
+                    className="bg-gray-800/50 border-gray-600 text-white"
+                  />
+                  <Button 
+                    onClick={handleSavePreset} 
+                    className="bg-green-600 hover:bg-green-700 text-white px-4"
+                    disabled={!presetName.trim()}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                </div>
               </div>
 
+              {/* Load Preset Section */}
               {presetNames.length > 0 && (
-                <div>
-                  <Label className="text-gray-300">Load Preset</Label>
-                  <Select onValueChange={(presetName) => {
-                    // In a real implementation, you'd load the preset data
-                    // onLoadPreset(savedPresets[presetName]);
-                  }}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                      <SelectValue placeholder="Choose preset" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
-                      {presetNames.map((name) => (
-                        <SelectItem key={name} value={name} className="text-white hover:bg-gray-600">
-                          {name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="bg-gray-700/30 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                    <Download className="h-4 w-4 text-blue-400" />
+                    Load Saved Preset
+                  </h4>
+                  <div>
+                    <Label className="text-gray-300 text-sm font-medium">Choose preset to load</Label>
+                    <Select onValueChange={(presetName) => {
+                      // In a real implementation, you'd load the preset data
+                      // onLoadPreset(savedPresets[presetName]);
+                    }}>
+                      <SelectTrigger className="bg-gray-800/50 border-gray-600 text-white mt-2">
+                        <SelectValue placeholder="Select a preset..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-700 border-gray-600">
+                        {presetNames.map((name) => (
+                          <SelectItem key={name} value={name} className="text-white hover:bg-gray-600">
+                            📋 {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
 
-              <Separator className="bg-gray-600" />
-
-              <div className="flex space-x-2">
-                <Button onClick={resetToDefaults} variant="outline" className="text-gray-300 border-gray-600">
-                  <RotateCcw className="h-4 w-4 mr-1" />
-                  Reset to Defaults
-                </Button>
+              {/* Reset Section */}
+              <div className="bg-gray-700/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <RotateCcw className="h-4 w-4 text-orange-400" />
+                  Reset Options
+                </h4>
+                <div className="bg-gray-800/50 p-3 rounded border border-gray-600/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-gray-300 text-sm font-medium">Reset to Default Settings</Label>
+                      <div className="text-xs text-gray-400 mt-1">Restore all customizations to original values</div>
+                    </div>
+                    <Button 
+                      onClick={resetToDefaults} 
+                      variant="outline" 
+                      className="text-orange-400 border-orange-600/40 hover:bg-orange-600/10"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Reset
+                    </Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

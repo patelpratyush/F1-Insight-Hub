@@ -29,6 +29,21 @@ fastf1.Cache.enable_cache(cache_dir)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def clean_nan_values(data):
+    """Clean NaN values from data for JSON serialization"""
+    if isinstance(data, (list, tuple)):
+        return [clean_nan_values(item) for item in data]
+    elif isinstance(data, dict):
+        return {key: clean_nan_values(value) for key, value in data.items()}
+    elif isinstance(data, float) and (np.isnan(data) or np.isinf(data)):
+        return None
+    elif isinstance(data, np.floating) and (np.isnan(data) or np.isinf(data)):
+        return None
+    elif hasattr(data, 'tolist'):  # pandas Series/array
+        return [clean_nan_values(item) for item in data.tolist()]
+    else:
+        return data
+
 @dataclass
 class TelemetryMetrics:
     """Data class for telemetry performance metrics"""
@@ -48,6 +63,19 @@ class DriverComparison:
     speed_advantage: Dict[str, float]
     consistency_metrics: Dict[str, float]
     risk_assessment: Dict[str, float]
+
+@dataclass
+class WeatherContext:
+    """Data class for weather context information"""
+    condition: str
+    temperature: Optional[float]
+    humidity: Optional[float]
+    wind_speed: Optional[float]
+    track_temperature: Optional[float]
+    rainfall: Optional[float]
+    weather_impact: Dict[str, float]
+    tire_strategy_influence: str
+    driver_weather_rating: Dict[str, float]
 
 @dataclass
 class TrackAnalysis:
@@ -694,15 +722,15 @@ class TelemetryAnalyzerService:
                     if brake_data.dtype == bool:
                         brake_processed = [100 if x else 0 for x in brake_data.tolist()]
                     else:
-                        brake_processed = brake_data.tolist()
+                        brake_processed = clean_nan_values(brake_data.tolist())
                     
                     # Get RPM data (engine revolutions per minute)
-                    rpm_data = telemetry['RPM'].tolist() if 'RPM' in telemetry.columns else []
+                    rpm_data = clean_nan_values(telemetry['RPM'].tolist()) if 'RPM' in telemetry.columns else []
                     
                     # Get ERS data (Energy Recovery System)
                     ers_data = {
-                        'deployment': telemetry['Source'].tolist() if 'Source' in telemetry.columns else [],
-                        'harvest': telemetry['Source'].tolist() if 'Source' in telemetry.columns else []  # Placeholder for harvest data
+                        'deployment': clean_nan_values(telemetry['Source'].tolist()) if 'Source' in telemetry.columns else [],
+                        'harvest': clean_nan_values(telemetry['Source'].tolist()) if 'Source' in telemetry.columns else []  # Placeholder for harvest data
                     }
                     
                     # Get team color (you might want to add this mapping)
@@ -736,17 +764,17 @@ class TelemetryAnalyzerService:
                         'sectorTimes': sector_times,
                         'sectorBoundaries': sector_boundaries,
                         'telemetry': {
-                            'distance': telemetry['Distance'].tolist(),
-                            'time': telemetry['Time'].dt.total_seconds().tolist(),
-                            'speed': telemetry['Speed'].tolist(),
-                            'throttle': telemetry['Throttle'].tolist(),
-                            'brake': brake_processed,
-                            'gear': telemetry['nGear'].tolist(),
-                            'drs': telemetry['DRS'].tolist() if 'DRS' in telemetry.columns else [],
-                            'rpm': rpm_data,
-                            'ers': ers_data,
-                            'x_position': telemetry['X'].tolist() if 'X' in telemetry.columns else [],
-                            'y_position': telemetry['Y'].tolist() if 'Y' in telemetry.columns else []
+                            'distance': clean_nan_values(telemetry['Distance'].tolist()),
+                            'time': clean_nan_values(telemetry['Time'].dt.total_seconds().tolist()),
+                            'speed': clean_nan_values(telemetry['Speed'].tolist()),
+                            'throttle': clean_nan_values(telemetry['Throttle'].tolist()),
+                            'brake': clean_nan_values(brake_processed),
+                            'gear': clean_nan_values(telemetry['nGear'].tolist()),
+                            'drs': clean_nan_values(telemetry['DRS'].tolist()) if 'DRS' in telemetry.columns else [],
+                            'rpm': clean_nan_values(rpm_data),
+                            'ers': clean_nan_values(ers_data),
+                            'x_position': clean_nan_values(telemetry['X'].tolist()) if 'X' in telemetry.columns else [],
+                            'y_position': clean_nan_values(telemetry['Y'].tolist()) if 'Y' in telemetry.columns else []
                         },
                         'color': team_colors.get(driver_code, '#9CA3AF')
                     }
@@ -830,9 +858,9 @@ class TelemetryAnalyzerService:
                 # Sample points for track layout (every 10th point for performance)
                 sample_interval = max(1, len(all_telemetry) // 200)  # Max 200 points
                 track_layout = {
-                    'x': all_telemetry['X'][::sample_interval].tolist() if 'X' in all_telemetry.columns else [],
-                    'y': all_telemetry['Y'][::sample_interval].tolist() if 'Y' in all_telemetry.columns else [],
-                    'distance': all_telemetry['Distance'][::sample_interval].tolist()
+                    'x': clean_nan_values(all_telemetry['X'][::sample_interval].tolist()) if 'X' in all_telemetry.columns else [],
+                    'y': clean_nan_values(all_telemetry['Y'][::sample_interval].tolist()) if 'Y' in all_telemetry.columns else [],
+                    'distance': clean_nan_values(all_telemetry['Distance'][::sample_interval].tolist())
                 }
                 
                 # If no coordinates available, create synthetic track layout
@@ -998,10 +1026,10 @@ class TelemetryAnalyzerService:
                 brake_processed = [100 if x else 0 for x in brake_data.tolist()]
             else:
                 # Use numeric brake data as-is
-                brake_processed = brake_data.tolist()
+                brake_processed = clean_nan_values(brake_data.tolist())
 
             # Get RPM data (engine revolutions per minute)
-            rpm_data = telemetry['RPM'].tolist() if 'RPM' in telemetry.columns else []
+            rpm_data = clean_nan_values(telemetry['RPM'].tolist()) if 'RPM' in telemetry.columns else []
 
             # Get circuit/corner information
             corners = []
@@ -1020,7 +1048,7 @@ class TelemetryAnalyzerService:
                 # Fallback: estimate corners based on low speed zones
                 corners = self._estimate_corners_from_telemetry(telemetry)
 
-            # Prepare data for visualization
+            # Prepare data for visualization with NaN handling
             trace_data = {
                 'lap_info': {
                     'driver': driver,
@@ -1029,25 +1057,25 @@ class TelemetryAnalyzerService:
                     'compound': lap.get('Compound', 'Unknown')
                 },
                 'telemetry': {
-                    'distance': telemetry['Distance'].tolist(),
-                    'time': telemetry['Time'].dt.total_seconds().tolist(),
-                    'speed': telemetry['Speed'].tolist(),
-                    'throttle': telemetry['Throttle'].tolist(),
-                    'brake': brake_processed,
-                    'gear': telemetry['nGear'].tolist(),
-                    'rpm': rpm_data,
-                    'drs': telemetry['DRS'].tolist() if 'DRS' in telemetry.columns else []
+                    'distance': clean_nan_values(telemetry['Distance'].tolist()),
+                    'time': clean_nan_values(telemetry['Time'].dt.total_seconds().tolist()),
+                    'speed': clean_nan_values(telemetry['Speed'].tolist()),
+                    'throttle': clean_nan_values(telemetry['Throttle'].tolist()),
+                    'brake': clean_nan_values(brake_processed),
+                    'gear': clean_nan_values(telemetry['nGear'].tolist()),
+                    'rpm': clean_nan_values(rpm_data),
+                    'drs': clean_nan_values(telemetry['DRS'].tolist()) if 'DRS' in telemetry.columns else []
                 },
                 'analysis': {
-                    'max_speed': float(telemetry['Speed'].max()),
-                    'avg_speed': float(telemetry['Speed'].mean()),
+                    'max_speed': clean_nan_values(float(telemetry['Speed'].max())),
+                    'avg_speed': clean_nan_values(float(telemetry['Speed'].mean())),
                     'braking_zones': len(self._identify_brake_zones(telemetry)),
-                    'full_throttle_pct': float((telemetry['Throttle'] == 100).sum() / len(telemetry) * 100)
+                    'full_throttle_pct': clean_nan_values(float((telemetry['Throttle'] == 100).sum() / len(telemetry) * 100))
                 },
                 'corners': corners
             }
             
-            return trace_data
+            return clean_nan_values(trace_data)
             
         except Exception as e:
             logger.error(f"Error getting speed trace: {e}")
@@ -1207,13 +1235,39 @@ class TelemetryAnalyzerService:
             weather_data = session_data.weather_data if hasattr(session_data, 'weather_data') else None
             
             if weather_data is not None and not weather_data.empty:
+                # Get average conditions
+                avg_temp = weather_data.get('AirTemp', pd.Series([20])).mean()
+                avg_humidity = weather_data.get('Humidity', pd.Series([50])).mean()
+                avg_pressure = weather_data.get('Pressure', pd.Series([1013])).mean()
+                avg_wind_speed = weather_data.get('WindSpeed', pd.Series([0])).mean()
+                has_rain = weather_data.get('Rainfall', pd.Series([False])).any()
+                track_temp = weather_data.get('TrackTemp', pd.Series([30])).mean()
+                
+                # Determine weather condition
+                if has_rain:
+                    condition = 'Wet' if avg_humidity > 80 else 'Light Rain'
+                elif avg_temp < 15:
+                    condition = 'Cold'
+                elif avg_temp > 35:
+                    condition = 'Hot'
+                else:
+                    condition = 'Dry'
+                
                 return {
-                    'temperature_effect': 'Stable',
-                    'wind_impact': 'Minimal',
-                    'track_conditions': 'Dry' if not weather_data.get('Rainfall', False).any() else 'Wet'
+                    'condition': condition,
+                    'air_temperature': float(avg_temp),
+                    'track_temperature': float(track_temp),
+                    'humidity': float(avg_humidity),
+                    'pressure': float(avg_pressure),
+                    'wind_speed': float(avg_wind_speed),
+                    'rainfall': bool(has_rain),
+                    'temperature_effect': self._assess_temperature_impact(avg_temp),
+                    'wind_impact': self._assess_wind_impact(avg_wind_speed),
+                    'track_conditions': condition
                 }
             
             return {
+                'condition': 'Unknown',
                 'temperature_effect': 'Unknown',
                 'wind_impact': 'Unknown', 
                 'track_conditions': 'Unknown'
@@ -1221,6 +1275,181 @@ class TelemetryAnalyzerService:
         except Exception as e:
             logger.error(f"Error analyzing weather impact: {e}")
             return {}
+    
+    def _assess_temperature_impact(self, temp: float) -> str:
+        """Assess temperature impact on performance"""
+        if temp < 10:
+            return 'Very Cold - Tire warm-up issues'
+        elif temp < 15:
+            return 'Cold - Slower tire warm-up'
+        elif temp < 25:
+            return 'Optimal - Good tire performance'
+        elif temp < 35:
+            return 'Warm - Good grip, higher tire wear'
+        else:
+            return 'Hot - Overheating risk, high degradation'
+    
+    def _assess_wind_impact(self, wind_speed: float) -> str:
+        """Assess wind impact on performance"""
+        if wind_speed < 5:
+            return 'Minimal - Stable aerodynamics'
+        elif wind_speed < 15:
+            return 'Moderate - Some aerodynamic effect'
+        elif wind_speed < 25:
+            return 'Significant - Notable handling changes'
+        else:
+            return 'High - Major aerodynamic disruption'
+    
+    def get_weather_context(self, race_name: str, session_type: str) -> WeatherContext:
+        """Get comprehensive weather context for a session"""
+        try:
+            # Use 2024 as default year, could be parameterized
+            year = 2024
+            
+            # Normalize race name for FastF1 (remove " Grand Prix" suffix)
+            normalized_race = self._normalize_race_name(race_name)
+            
+            # Try to load session data
+            session_data = fastf1.get_session(year, normalized_race, session_type)
+            session_data.load()
+            
+            weather_impact = self._analyze_weather_impact(session_data)
+            
+            # Calculate driver weather ratings (simplified)
+            driver_ratings = self._calculate_driver_weather_ratings(weather_impact.get('condition', 'Unknown'))
+            
+            return WeatherContext(
+                condition=weather_impact.get('condition', 'Unknown'),
+                temperature=weather_impact.get('air_temperature'),
+                humidity=weather_impact.get('humidity'),
+                wind_speed=weather_impact.get('wind_speed'),
+                track_temperature=weather_impact.get('track_temperature'),
+                rainfall=weather_impact.get('rainfall'),
+                weather_impact={
+                    'temperature_effect': weather_impact.get('temperature_effect', 'Unknown'),
+                    'wind_impact': weather_impact.get('wind_impact', 'Unknown'),
+                    'grip_level': self._assess_grip_level(weather_impact),
+                    'tire_strategy': self._suggest_tire_strategy(weather_impact)
+                },
+                tire_strategy_influence=self._get_tire_strategy_influence(weather_impact),
+                driver_weather_rating=driver_ratings
+            )
+            
+        except Exception as e:
+            logger.error(f"Error getting weather context for {race_name} {session_type}: {e}")
+            return self._default_weather_context()
+    
+    def _normalize_race_name(self, race_name: str) -> str:
+        """Normalize race name for FastF1 API"""
+        # FastF1 race name mapping (similar to prediction service)
+        race_mapping = {
+            'Bahrain Grand Prix': 'Bahrain',
+            'Saudi Arabian Grand Prix': 'Saudi Arabia',
+            'Australian Grand Prix': 'Australia',
+            'Japanese Grand Prix': 'Japan',
+            'Chinese Grand Prix': 'China',
+            'Miami Grand Prix': 'Miami',
+            'Emilia Romagna Grand Prix': 'Emilia Romagna',
+            'Monaco Grand Prix': 'Monaco',
+            'Canadian Grand Prix': 'Canada',
+            'Spanish Grand Prix': 'Spain',
+            'Austrian Grand Prix': 'Austria',
+            'British Grand Prix': 'Great Britain',
+            'Hungarian Grand Prix': 'Hungary',
+            'Belgian Grand Prix': 'Belgium',
+            'Dutch Grand Prix': 'Netherlands',
+            'Italian Grand Prix': 'Italy',
+            'Azerbaijan Grand Prix': 'Azerbaijan',
+            'Singapore Grand Prix': 'Singapore',
+            'United States Grand Prix': 'United States',
+            'Mexico City Grand Prix': 'Mexico',
+            'São Paulo Grand Prix': 'Brazil',
+            'Las Vegas Grand Prix': 'Las Vegas',
+            'Qatar Grand Prix': 'Qatar',
+            'Abu Dhabi Grand Prix': 'Abu Dhabi'
+        }
+        
+        return race_mapping.get(race_name, race_name)
+    
+    def _default_weather_context(self) -> WeatherContext:
+        """Return default weather context when data unavailable"""
+        return WeatherContext(
+            condition='Unknown',
+            temperature=None,
+            humidity=None,
+            wind_speed=None,
+            track_temperature=None,
+            rainfall=None,
+            weather_impact={
+                'temperature_effect': 'Unknown',
+                'wind_impact': 'Unknown',
+                'grip_level': 'Unknown',
+                'tire_strategy': 'Unknown'
+            },
+            tire_strategy_influence='Unknown',
+            driver_weather_rating={}
+        )
+    
+    def _calculate_driver_weather_ratings(self, condition: str) -> Dict[str, float]:
+        """Calculate driver weather performance ratings"""
+        # Wet weather specialists (simplified ratings)
+        wet_specialists = {
+            'HAM': 9.5,  # Hamilton - exceptional in wet
+            'VER': 9.2,  # Verstappen - very strong in wet
+            'RUS': 8.5,  # Russell - good wet weather driver
+            'ALO': 8.8,  # Alonso - experienced wet driver
+            'NOR': 7.8,  # Norris - decent in wet
+            'LEC': 8.2,  # Leclerc - good adaptability
+            'PIA': 7.5,  # Piastri - learning but talented
+            'GAS': 8.0,  # Gasly - solid wet performance
+            'ALB': 7.6,  # Albon - improving
+            'SAI': 7.4   # Sainz - consistent
+        }
+        
+        # Adjust ratings based on conditions
+        if condition in ['Wet', 'Light Rain']:
+            return wet_specialists
+        elif condition in ['Hot']:
+            # Hot weather - different skill set
+            return {driver: max(6.0, rating - 1.0) for driver, rating in wet_specialists.items()}
+        else:
+            # Normal conditions - baseline ratings
+            return {driver: 8.0 for driver in wet_specialists.keys()}
+    
+    def _assess_grip_level(self, weather_data: Dict) -> str:
+        """Assess track grip level based on weather"""
+        if weather_data.get('rainfall'):
+            return 'Low - Wet track surface'
+        elif weather_data.get('track_temperature', 30) > 50:
+            return 'Medium - Hot track, possible blistering'
+        elif weather_data.get('track_temperature', 30) < 20:
+            return 'Medium - Cold track, slow warm-up'
+        else:
+            return 'High - Optimal grip conditions'
+    
+    def _suggest_tire_strategy(self, weather_data: Dict) -> str:
+        """Suggest tire strategy based on weather"""
+        if weather_data.get('rainfall'):
+            return 'Intermediates or Wets required'
+        elif weather_data.get('air_temperature', 20) > 30:
+            return 'Harder compounds to manage degradation'
+        elif weather_data.get('air_temperature', 20) < 15:
+            return 'Softer compounds for better warm-up'
+        else:
+            return 'Standard strategy with medium compounds'
+    
+    def _get_tire_strategy_influence(self, weather_data: Dict) -> str:
+        """Get tire strategy influence description"""
+        condition = weather_data.get('condition', 'Unknown')
+        
+        if condition == 'Wet':
+            return 'Critical - Weather determines tire choice completely'
+        elif condition == 'Light Rain':
+            return 'High - Timing of tire changes crucial'
+        elif condition in ['Hot', 'Cold']:
+            return 'Moderate - Affects compound selection'
+        else:
+            return 'Low - Standard strategy considerations apply'
 
     def _analyze_traffic_effects(self, session_data, drivers) -> Dict[str, Any]:
         """Analyze traffic effects on lap times"""

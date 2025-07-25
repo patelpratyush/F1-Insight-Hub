@@ -1,11 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Zap, Clock, Gauge, Target, Timer, TrendingUp } from "lucide-react";
+import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
+import StaggeredAnimation from "@/components/StaggeredAnimation";
 
 const StrategySimulator = () => {
   const [selectedDriver, setSelectedDriver] = useState("");
@@ -14,6 +16,11 @@ const StrategySimulator = () => {
   const [safetyCarProbability, setSafetyCarProbability] = useState([30]);
   const [weather, setWeather] = useState("");
   const [simulation, setSimulation] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const drivers = ["VER", "LEC", "HAM", "RUS", "PER", "SAI", "NOR", "PIA"];
   const tracks = ["Monaco", "Silverstone", "Monza", "Spa-Francorchamps", "Suzuka"];
@@ -52,24 +59,42 @@ const StrategySimulator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
-      <div className="container mx-auto max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 overflow-hidden">
+      {/* Animated Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-4 -right-4 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 -left-8 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      <div className="container mx-auto max-w-7xl relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-3 bg-purple-600 rounded-lg">
-              <Zap className="h-6 w-6 text-white" />
+        <AnimatedPageWrapper delay={100}>
+          <div className="mb-8">
+            <div className={`flex items-center space-x-3 mb-4 transition-all duration-1000 delay-300 transform ${
+              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
+            }`}>
+              <div className="p-3 bg-purple-600 rounded-lg shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-110">
+                <Zap className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-white">Race Strategy Simulator</h1>
             </div>
-            <h1 className="text-3xl font-bold text-white">Race Strategy Simulator</h1>
+            <div className={`transition-all duration-1000 delay-500 transform ${
+              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            }`}>
+              <p className="text-gray-400 text-lg">
+                Simulate different pit stop strategies and compare outcomes using advanced race modeling algorithms.
+              </p>
+              <div className="mt-2 text-sm text-gray-500">
+                ⚡ Strategy optimization • 🏁 Pit stop timing • 🛞 Tire degradation modeling
+              </div>
+            </div>
           </div>
-          <p className="text-gray-400 text-lg">
-            Simulate different pit stop strategies and compare outcomes using advanced race modeling algorithms.
-          </p>
-        </div>
+        </AnimatedPageWrapper>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Strategy Configuration */}
-          <div className="lg:col-span-1 space-y-6">
+          <AnimatedPageWrapper delay={600} className="lg:col-span-1 space-y-6">
             <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center space-x-2">
@@ -168,46 +193,52 @@ const StrategySimulator = () => {
                 </Button>
               </CardContent>
             </Card>
-          </div>
+          </AnimatedPageWrapper>
 
           {/* Simulation Results */}
-          <div className="lg:col-span-3">
+          <AnimatedPageWrapper delay={800} className="lg:col-span-3">
             {simulation ? (
               <div className="space-y-6">
                 {/* Overview Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Card className="bg-gray-800/50 border-gray-700">
+                <StaggeredAnimation
+                  delay={300}
+                  staggerDelay={150}
+                  className="grid grid-cols-1 md:grid-cols-4 gap-4"
+                >
+                  {[
+                  <Card key="time" className="bg-gray-800/50 border-gray-700">
                     <CardContent className="p-4 text-center">
                       <Clock className="h-6 w-6 text-blue-400 mx-auto mb-2" />
                       <div className="text-lg font-bold text-blue-400">{simulation.totalTime}</div>
                       <div className="text-sm text-gray-300">Total Race Time</div>
                     </CardContent>
-                  </Card>
+                  </Card>,
                   
-                  <Card className="bg-gray-800/50 border-gray-700">
+                  <Card key="position" className="bg-gray-800/50 border-gray-700">
                     <CardContent className="p-4 text-center">
                       <Target className="h-6 w-6 text-green-400 mx-auto mb-2" />
                       <div className="text-lg font-bold text-green-400">P{simulation.position}</div>
                       <div className="text-sm text-gray-300">Predicted Position</div>
                     </CardContent>
-                  </Card>
+                  </Card>,
                   
-                  <Card className="bg-gray-800/50 border-gray-700">
+                  <Card key="efficiency" className="bg-gray-800/50 border-gray-700">
                     <CardContent className="p-4 text-center">
                       <TrendingUp className="h-6 w-6 text-purple-400 mx-auto mb-2" />
                       <div className="text-lg font-bold text-purple-400">{simulation.efficiency}%</div>
                       <div className="text-sm text-gray-300">Strategy Efficiency</div>
                     </CardContent>
-                  </Card>
+                  </Card>,
                   
-                  <Card className="bg-gray-800/50 border-gray-700">
+                  <Card key="pitstops" className="bg-gray-800/50 border-gray-700">
                     <CardContent className="p-4 text-center">
                       <Gauge className="h-6 w-6 text-yellow-400 mx-auto mb-2" />
                       <div className="text-lg font-bold text-yellow-400">3</div>
                       <div className="text-sm text-gray-300">Pit Stops</div>
                     </CardContent>
                   </Card>
-                </div>
+                  ]}
+                </StaggeredAnimation>
 
                 {/* Stint Breakdown */}
                 <Card className="bg-gray-800/50 border-gray-700">
@@ -286,7 +317,7 @@ const StrategySimulator = () => {
                 </CardContent>
               </Card>
             )}
-          </div>
+          </AnimatedPageWrapper>
         </div>
       </div>
     </div>
