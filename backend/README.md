@@ -1,68 +1,126 @@
-# F1 Enhanced AI Prediction API
+# F1 Insight Hub - Backend API
 
-Advanced FastAPI backend that predicts F1 race results using ensemble machine learning models with data-driven performance ratings and comprehensive weather modeling.
+FastAPI backend providing F1 race predictions, telemetry analysis, and comprehensive race data through machine learning models and real-time telemetry processing.
 
-## Features
+## 🏎️ Features
 
-### 🤖 **Advanced ML Models**
+### **🤖 Machine Learning Predictions**
+- **Ensemble Models**: XGBoost + Random Forest + Neural Networks (optional)
+- **Basic Prediction Service**: Lightweight scikit-learn models for deployment
+- **Data-Driven Ratings**: Performance calculated from 700+ historical race records
+- **Weather Modeling**: 9 weather conditions with driver-specific wet weather skills
 
-- **Enhanced Ensemble Models**: XGBoost + Random Forest + Neural Networks
-- **Data-Driven Ratings**: Car and driver performance calculated from 718 historical records
-- **Weather Modeling**: 9 weather conditions including mixed/changing conditions
-- **Strategy Impact**: Tire strategy and pit stop decision modeling
+### **📊 Telemetry Analysis**
+- **FastF1 Integration**: Real telemetry data from 2024-2025 seasons
+- **Multi-Variable Analysis**: Speed, throttle, brake, gear, RPM, DRS traces
+- **Session Support**: Practice (FP2, FP3), Qualifying (Q, SQ), Sprint (S), Race (R)
+- **Google Drive Cache**: Pre-cached telemetry for faster loading
 
-### 🏎️ **Realistic F1 Simulation**
-
+### **🏁 Race Predictions**
+- **Individual Driver Predictions**: Position and confidence scoring
+- **Full Grid Predictions**: Complete 20-driver race results
 - **Car Performance Priority**: 70% car, 30% driver (realistic F1 balance)
-- **Dynamic Weather Effects**: Different drivers/cars perform better in wet conditions
-- **Reliability Modeling**: DNF probability based on historical data
-- **Race Craft**: Driver ability to gain positions during race
+- **Strategy & Reliability**: Pit stop strategy and DNF probability modeling
 
-### 📊 **Comprehensive Data**
+## 🚀 Quick Start
 
-- **718 Race Records**: Complete 2024-2025 season data
-- **20 Drivers**: Full 2025 F1 grid with accurate team transfers
-- **24 Grand Prix**: All official F1 circuits
-- **FastF1 Integration**: Real telemetry and timing data
-
-## Quick Start
-
-### 1. Install Dependencies
+### Local Development
 
 ```bash
-pip3 install -r requirements.txt
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Download F1 data (uses Google Drive cache)
+python download_current_data.py
+
+# 3. Run the server
+python main.py
+# Server starts at http://localhost:8000
 ```
 
-### 2. Download the data using `download_current_data.py`
+### Production Deployment
+
+#### Option 1: Fly.io (Recommended - 10GB image support)
 
 ```bash
-python3 download_current_data.py
+# Install Fly CLI
+curl -L https://fly.io/install.sh | sh
+
+# Deploy
+cd backend
+fly launch --name your-f1-backend
+fly deploy --remote-only
 ```
 
-### 3. Run Server
+#### Option 2: Railway (4GB limit)
 
 ```bash
-python3 main.py
+# Connect to Railway
+railway login
+railway init
+
+# Deploy
+railway up
 ```
 
-Server starts on `http://localhost:8000`
+#### Option 3: DigitalOcean App Platform
 
-### 3. Test APIs
+```bash
+# Use the optimized Dockerfile
+# Image size: ~500MB (basic) or ~4GB (enhanced ML)
+```
 
-**Individual Driver Prediction:**
+## 📦 Deployment Configurations
+
+### Basic Deployment (Lightweight - ~500MB)
+
+Uses `requirements-base.txt` - includes essential prediction models without TensorFlow/PyTorch:
+
+```bash
+# Dockerfile uses requirements-base.txt
+# Excludes enhanced ML models for smaller image size
+```
+
+**Features Available:**
+- ✅ Race predictions (XGBoost + Random Forest)
+- ✅ Telemetry analysis 
+- ✅ All API endpoints
+- ✅ Google Drive cache integration
+
+### Enhanced Deployment (Full ML - ~4GB)
+
+Uses `requirements.txt` - includes all ML models with TensorFlow/PyTorch:
+
+```bash
+# Dockerfile uses full requirements.txt
+# Includes enhanced ensemble models
+```
+
+**Additional Features:**
+- ✅ Neural Network models
+- ✅ Enhanced ensemble predictions
+- ✅ Advanced hyperparameter optimization
+
+## 🔌 API Endpoints
+
+### Core Prediction APIs
+
+#### `POST /api/predict/driver`
+Individual driver performance prediction:
 
 ```bash
 curl -X POST "http://localhost:8000/api/predict/driver" \
   -H "Content-Type: application/json" \
   -d '{
     "driver": "VER",
-    "track": "Monaco Grand Prix",
+    "track": "Monaco Grand Prix", 
     "weather": "Dry",
     "team": "Red Bull"
   }'
 ```
 
-**Full Race Grid Prediction:**
+#### `POST /api/predict/race`
+Full race grid prediction:
 
 ```bash
 curl -X POST "http://localhost:8000/api/predict/race" \
@@ -77,248 +135,227 @@ curl -X POST "http://localhost:8000/api/predict/race" \
   }'
 ```
 
-## API Endpoints
+### Telemetry Analysis APIs
 
-### `POST /api/predict/driver`
-
-Predicts individual driver performance for a specific race.
-
-**Request:**
-
-```json
-{
-  "driver": "VER",
-  "track": "Monaco Grand Prix", 
-  "weather": "Dry",
-  "team": "Red Bull"
-}
-```
-
-**Response:**
-
-```json
-{
-  "predicted_qualifying_position": 3,
-  "predicted_race_position": 2,
-  "qualifying_confidence": 85.2,
-  "race_confidence": 78.4
-}
-```
-
-### `POST /api/predict/race` ⭐ **NEW**
-
-Predicts full race grid results with weather conditions and confidence scoring.
-
-**Request:**
-
-```json
-{
-  "race_name": "Austrian Grand Prix",
-  "weather": "Dry to Light Rain",
-  "temperature": 20.0,
-  "qualifying_results": {
-    "VER": 1, "NOR": 2, "LEC": 3
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "race_name": "Austrian Grand Prix",
-  "weather_conditions": "Dry to Light Rain",
-  "predictions": [
-    {
-      "driver_code": "VER",
-      "driver_name": "Max Verstappen",
-      "team": "Red Bull Racing Honda RBPT",
-      "predicted_position": 1,
-      "confidence": 92.3,
-      "gap_to_winner": "Winner",
-      "weather_impact": -0.2
-    }
-  ],
-  "statistics": {
-    "average_confidence": 78.5,
-    "weather_impact": true,
-    "total_predictions": 20
-  }
-}
-```
-
-### `GET /health`
-
-Returns server health status.
-
-## How It Works
-
-### 1. Data-Driven Performance Ratings
-
-**Car Performance (70% weight):**
-
-- **Dry/Wet Pace**: Average race positions in different conditions
-- **Strategy Rating**: Qualifying → Race position improvement
-- **Reliability**: Finish rate and DNF probability
-
-**Driver Performance (30% weight):**
-
-- **Overall Skill**: Historical race performance
-- **Wet Weather Skill**: Separate wet condition performance
-- **Race Craft**: Ability to gain positions during race
-- **Strategy Execution**: How well they execute team decisions
-
-### 2. Enhanced Machine Learning
-
-**Ensemble Models:**
-
-- **XGBoost**: Gradient boosting with hyperparameter optimization
-- **Random Forest**: Multiple decision trees for robustness
-- **Neural Networks**: Deep learning for complex patterns
-
-**Advanced Weather Modeling:**
-
-- **9 Weather Conditions**: Dry, Light Rain, Heavy Rain, Wet, Mixed, Variable, Changing conditions
-- **Driver-Specific Effects**: Some drivers excel in wet (Hamilton, Verstappen)
-- **Car-Specific Effects**: Some cars handle weather changes better
-- **Strategy Impact**: Weather changes affect tire strategy decisions
-
-### 3. Realistic F1 Simulation
-
-**Performance Calculation:**
-
-```python
-combined_performance = (car_pace * 0.7) + (driver_skill * 0.3)
-position_change = performance_advantage * -12  # Better = higher up grid
-race_craft_bonus = (driver_race_craft - 0.7) * 2
-reliability_factor = random() > car_reliability  # DNF chance
-```
-
-**Weather Effects:**
-
-```python
-wet_competency = (car_wet_pace * 0.7) + (driver_wet_skill * 0.3)
-strategy_impact = (car_strategy * 0.6) + (driver_strategy * 0.4)
-```
-
-### 4. Prediction Process
-
-1. **Load Historical Data**: 718 race records from F1 database
-2. **Calculate Ratings**: Data-driven car and driver performance
-3. **Base Prediction**: Combine car (70%) + driver (30%) ratings
-4. **Weather Effects**: Apply condition-specific impacts
-5. **Reliability Factor**: Account for potential DNFs
-6. **Ensemble Enhancement**: Blend with ML model predictions (60/40)
-7. **Confidence Scoring**: Based on data quality and conditions
-
-## File Structure
+#### `GET /api/telemetry/sessions`
+Available sessions for analysis:
 
 ```bash
+curl "http://localhost:8000/api/telemetry/sessions?race=Austrian%20Grand%20Prix"
+```
+
+#### `POST /api/telemetry/speed-trace`
+Driver speed and telemetry traces:
+
+```bash
+curl -X POST "http://localhost:8000/api/telemetry/speed-trace" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "race": "Austrian Grand Prix",
+    "session": "Q",
+    "drivers": ["VER", "NOR"],
+    "lap_numbers": [1, 2]
+  }'
+```
+
+#### `POST /api/telemetry/session-analysis`
+Comprehensive session telemetry analysis:
+
+```bash
+curl -X POST "http://localhost:8000/api/telemetry/session-analysis" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "race": "Austrian Grand Prix",
+    "session": "Q",
+    "drivers": ["VER", "NOR"]
+  }'
+```
+
+### Health & Status
+
+#### `GET /health`
+Server health and feature availability:
+
+```bash
+curl "http://localhost:8000/health"
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "enhanced_ml": true,
+  "telemetry_available": true
+}
+```
+
+## 🏗️ Architecture
+
+### File Structure
+
+```
 backend/
-├── main.py                          # FastAPI server with race prediction API
-├── f1_data.csv                      # 718 historical race records
-├── enhanced_ml_model.py             # Enhanced ensemble model training
-├── requirements.txt                 # Dependencies
+├── main.py                              # FastAPI server with all endpoints
+├── f1_data.csv                          # Historical race data (700+ records)
+├── download_current_data.py             # Google Drive data loader
+├── google_drive_data_loader.py          # Google Drive cache utilities
+├── requirements.txt                     # Full dependencies (with ML)
+├── requirements-base.txt                # Basic dependencies (lightweight)
+├── Dockerfile                           # Optimized for cloud deployment
+├── fly.toml                            # Fly.io configuration
 ├── services/
-│   ├── enhanced_ensemble_service.py     # Ensemble ML models
-│   ├── race_prediction_service.py       # Full race grid predictions
-│   ├── enhanced_prediction_service.py   # Individual driver predictions
-│   └── data_service.py                  # Data handling utilities
-├── models/                          # Original XGBoost models
+│   ├── prediction_service.py               # Basic ML predictions
+│   ├── enhanced_ensemble_service.py        # Advanced ensemble models
+│   ├── enhanced_prediction_service.py      # Enhanced individual predictions
+│   ├── race_prediction_service.py          # Full race grid predictions
+│   ├── telemetry_analyzer_service.py       # Telemetry processing
+│   └── data_service.py                     # Data utilities
+├── models/                              # Basic prediction models
 │   ├── f1_qualifying_gbm_model.pkl
 │   ├── f1_race_gbm_model.pkl
-│   └── *.pkl                        # Scalers and encoders
-├── enhanced_models/                 # New ensemble models
-│   ├── qualifying_ensemble.pkl      # XGBoost + RF + NN for qualifying
-│   ├── race_ensemble.pkl            # XGBoost + RF + NN for race
-│   └── *.pkl                        # Enhanced scalers and features
-└── cache/                           # FastF1 telemetry cache (2024-2025)
-    ├── 2024/                        # Complete 2024 season data
-    ├── 2025/                        # 2025 season data (through British GP)
-    └── fastf1_http_cache.sqlite     # FastF1 HTTP cache
+│   └── *.pkl                            # Scalers and encoders
+├── enhanced_models/                     # Enhanced ensemble models
+│   ├── qualifying_ensemble.pkl
+│   ├── race_ensemble.pkl
+│   └── *.pkl                            # Enhanced features
+└── cache/                               # FastF1 telemetry cache
+    ├── 2024/                            # Complete 2024 season
+    ├── 2025/                            # 2025 season data
+    └── fastf1_http_cache.sqlite         # HTTP cache database
+```
+
+### Service Architecture
+
+```mermaid
+graph TD
+    A[FastAPI Main] --> B[Prediction Service]
+    A --> C[Telemetry Service]
+    A --> D[Race Prediction Service]
+    
+    B --> E[Enhanced Ensemble]
+    B --> F[Basic Models]
+    
+    C --> G[FastF1 Cache]
+    C --> H[Google Drive Cache]
+    
+    D --> I[Data-Driven Ratings]
+    D --> J[Weather Modeling]
 ```
 
 ## 🌤️ Weather Conditions
 
-### **Basic Conditions:**
-
+### Basic Conditions
 - **Dry**: Normal racing conditions
-- **Light Rain**: Slight wet conditions favoring skilled wet drivers
-- **Heavy Rain**: Challenging conditions with high uncertainty
-- **Wet**: Full wet racing with intermediates/wets
+- **Light Rain**: Slight wet conditions
+- **Heavy Rain**: Challenging wet conditions  
+- **Wet**: Full wet racing
 
-### **Mixed/Changing Conditions:** ⭐ **NEW**
-
+### Mixed/Changing Conditions
 - **Mixed**: Variable conditions throughout race
-- **Dry → Light Rain**: Race starts dry, rain develops (strategy critical)
-- **Light Rain → Dry**: Race starts wet, track dries (tire timing crucial)
-- **Dry → Heavy Rain**: Sudden heavy rain during race (chaos factor)
-- **Variable**: Highly unpredictable changing conditions (maximum uncertainty)
+- **Dry → Light Rain**: Strategy critical
+- **Light Rain → Dry**: Tire timing crucial
+- **Dry → Heavy Rain**: High uncertainty
+- **Variable**: Maximum unpredictability
 
-## 🏎️ 2025 F1 Grid (20 Drivers)
+## 🏎️ 2025 F1 Grid Support
 
-**Current Teams & Drivers:**
+**All 20 Drivers & Teams:**
+- Red Bull, McLaren, Ferrari, Mercedes
+- Aston Martin, Alpine, RB, Williams
+- Haas, Kick Sauber
+- Includes accurate 2025 transfers (Hamilton → Ferrari, etc.)
 
-- **Red Bull**: VER, (Teammate TBD)
-- **McLaren**: NOR, PIA  
-- **Ferrari**: HAM, LEC (Hamilton transfer!)
-- **Mercedes**: RUS, ANT (Antonelli promoted)
-- **Aston Martin**: ALO, STR
-- **Alpine**: GAS, OCO
-- **RB**: TSU, LAW
-- **Williams**: SAI, ALB, COL (Sainz transfer)
-- **Haas**: HUL, BEA (Bearman full-time)
-- **Kick Sauber**: BOR, HAD (New rookies)
-
-## 🏁 All 24 F1 Circuits
-
-Bahrain, Saudi Arabian, Australian, Japanese, Chinese, Miami, Emilia Romagna, Monaco, Canadian, Spanish, Austrian, British, Hungarian, Belgian, Dutch, Italian, Azerbaijan, Singapore, United States, Mexico City, São Paulo, Las Vegas, Qatar, Abu Dhabi
+**All 24 Circuits:**
+- Complete 2025 F1 calendar support
+- Track-specific performance modeling
 
 ## 📈 Model Performance
 
-### **Enhanced Ensemble Models:**
-
+### Prediction Accuracy
 - **Qualifying MAE**: 0.359 positions (excellent)
 - **Race MAE**: 1.638 positions (very good)
-- **Confidence Range**: 60-98% (weather-dependent)
-- **Training Data**: 718 race records, 28 drivers, 2024-2025 seasons
+- **Training Data**: 700+ race records from 2024-2025
 
-### **Data-Driven Ratings Accuracy:**
+### Telemetry Performance
+- **Session Types**: 6 supported (FP2, FP3, SQ, Q, S, R)
+- **Cache Size**: ~4GB telemetry data
+- **Response Time**: <200ms with cache
 
-- **Car Performance**: Based on average race positions and reliability
-- **Driver Skill**: Calculated from historical race craft and consistency
-- **Weather Performance**: Separate wet/dry performance calculations
-- **Strategy Ratings**: Based on qualifying → race position improvements
+### Weather Impact Modeling
+- **Dry Conditions**: 80-95% confidence
+- **Mixed Conditions**: 60-80% confidence (realistic uncertainty)
+- **Driver-Specific**: Hamilton/Verstappen excel in wet
 
-### **Performance by Weather:**
+## 🔧 Configuration
 
-- **Dry Conditions**: Highest confidence (80-95%)
-- **Light Rain**: Moderate confidence (70-85%)
-- **Mixed Conditions**: Lower confidence (60-80%) - realistic uncertainty
-- **Variable Weather**: Lowest confidence (60-75%) - reflects F1 reality
+### Environment Variables
 
-## 🚀 Key Improvements
+```bash
+# Google Drive Cache (recommended)
+GOOGLE_DRIVE_CACHE_FILE_ID=your_drive_file_id
 
-### **Data-Driven Approach:**
+# Optional: API Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
+```
 
-- ✅ **No more manual ratings** - all performance calculated from real data
-- ✅ **Car dominance modeled** - 70% car, 30% driver (realistic F1 balance)
-- ✅ **Weather expertise** - drivers like Hamilton/Verstappen excel in wet
-- ✅ **Strategy modeling** - teams like Red Bull/McLaren better at strategy calls
-- ✅ **Reliability factors** - some cars more prone to DNFs
+### Google Drive Setup
 
-### **Advanced Features:**
+1. Upload FastF1 cache to Google Drive
+2. Make the file publicly shareable
+3. Extract file ID from share URL
+4. Set `GOOGLE_DRIVE_CACHE_FILE_ID` environment variable
 
-- ✅ **Full race predictions** - predict entire 20-driver grid
-- ✅ **Mixed weather conditions** - changing conditions during race
-- ✅ **Confidence scoring** - realistic uncertainty modeling
-- ✅ **Gap time predictions** - estimated time gaps between drivers
-- ✅ **Weather impact tracking** - see how conditions affect each driver
+### Docker Configuration
 
-### **Production Ready:**
+```dockerfile
+# Lightweight deployment (500MB)
+COPY requirements-base.txt .
 
-- ✅ **FastF1 integration** - real F1 telemetry data
-- ✅ **Cache-only operation** - no internet required for predictions
-- ✅ **Enhanced API** - individual driver + full race grid endpoints
-- ✅ **2025 season ready** - accurate team transfers and rookies
+# Full ML deployment (4GB)  
+COPY requirements.txt .
+```
+
+## 🛠️ Development
+
+### Adding New Features
+
+1. **New Prediction Model**: Add to `services/`
+2. **New Telemetry Analysis**: Extend `telemetry_analyzer_service.py`
+3. **New API Endpoint**: Add to `main.py`
+
+### Testing
+
+```bash
+# Test basic predictions
+python -c "from services.prediction_service import PredictionService; print(PredictionService().predict_race_position('VER', 'Monaco Grand Prix', 'Dry', 'Red Bull'))"
+
+# Test telemetry
+python -c "from services.telemetry_analyzer_service import TelemetryAnalyzerService; print(TelemetryAnalyzerService().get_available_sessions())"
+```
+
+### Performance Optimization
+
+- **Cache Strategy**: Google Drive for telemetry, local for predictions
+- **Model Loading**: Lazy loading for enhanced models
+- **API Response**: Async endpoints for better concurrency
+
+## 🚀 Production Tips
+
+### Scaling
+
+- **Horizontal**: Deploy multiple instances behind load balancer
+- **Vertical**: Increase memory for enhanced ML models (recommend 2GB+)
+- **Caching**: Use Redis for frequent prediction requests
+
+### Monitoring
+
+- **Health Checks**: `/health` endpoint for container orchestration
+- **Logging**: Structured logging for telemetry requests
+- **Metrics**: Track prediction accuracy and response times
+
+### Security
+
+- **CORS**: Configured for frontend integration
+- **Environment Variables**: Never commit API keys
+- **Input Validation**: Pydantic models for all requests
