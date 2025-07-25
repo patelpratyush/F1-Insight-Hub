@@ -21,6 +21,9 @@ warnings.filterwarnings('ignore')
 
 # Use the existing cache directory
 cache_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'cache')
+if not os.path.exists(cache_dir):
+    os.makedirs(cache_dir)
+
 fastf1.Cache.enable_cache(cache_dir)
 
 logging.basicConfig(level=logging.INFO)
