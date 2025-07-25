@@ -9,6 +9,7 @@ import fastf1
 import pandas as pd
 import os
 import sys
+import argparse
 from datetime import datetime
 import logging
 from typing import List, Dict, Optional
@@ -163,18 +164,53 @@ class F1DataDownloader:
         ]
         
         # Sessions to download for telemetry analysis - comprehensive set
-        self.sessions_to_download = ['FP2', 'FP3', 'Q', 'S', 'R']  # Added FP1 and Sprint
+        self.sessions_to_download = ['FP2', 'FP3', 'SQ', 'Q', 'S', 'R']  # Added Sprint Qualifying
         self.session_names = {
             'FP2': 'Practice 2',
-            'FP3': 'Practice 3', 
+            'FP3': 'Practice 3',
+            'SQ': 'Sprint Qualifying',
             'Q': 'Qualifying',
             'S': 'Sprint',
             'R': 'Race'
         }
     
+    def is_session_cached(self, season: int, race_name: str, session_type: str) -> bool:
+        """Check if session data is already cached"""
+        try:
+            session = fastf1.get_session(season, race_name, session_type)
+            # Check if session info is cached
+            cache_key = f"{season}_{race_name}_{session_type}"
+            
+            # Try to load session with minimal data to check cache
+            session.load(laps=False, telemetry=False, weather=False, messages=False)
+            
+            # If we get here without exception, basic session data exists
+            # Now check if telemetry data is cached by trying to load a quick sample
+            try:
+                session.load(laps=True, telemetry=True, weather=False, messages=False)
+                if not session.laps.empty and session.drivers:
+                    # Try to get telemetry for first driver's first lap as cache test
+                    first_driver = session.drivers[0]
+                    driver_laps = session.laps.pick_drivers(first_driver)
+                    if not driver_laps.empty:
+                        test_lap = driver_laps.iloc[0]
+                        test_telemetry = test_lap.get_telemetry()
+                        return len(test_telemetry) > 0
+            except:
+                return False
+            
+            return False
+        except Exception:
+            return False
+    
     def download_session_telemetry(self, season: int, race_name: str, session_type: str) -> bool:
         """Download and cache telemetry data for a specific session"""
         try:
+            # Check if session is already cached
+            if self.is_session_cached(season, race_name, session_type):
+                logger.info(f"✓ {self.session_names.get(session_type, session_type)} for {race_name} - Already cached, skipping")
+                return True
+            
             logger.info(f"Downloading {self.session_names.get(session_type, session_type)} telemetry for {season} {race_name}...")
             
             # Get session - handle sprint sessions that may not exist
@@ -235,7 +271,7 @@ class F1DataDownloader:
             for session_type in self.sessions_to_download:
                 if self.download_session_telemetry(season, race_name, session_type):
                     sessions_downloaded += 1
-                time.sleep(2)  # Longer pause to be respectful to FastF1 API
+                # time.sleep(2)  # Removed delay
             
             # Get race and qualifying sessions for results data
             race_weekend = fastf1.get_session(season, race_name, 'R')
@@ -317,9 +353,43 @@ class F1DataDownloader:
             logger.error(f"Error processing {season} {race_name}: {str(e)}")
             return None
     
+    def check_cache_status(self, season: int) -> None:
+        """Check and report cache status for a season"""
+        race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar_2025
+        logger.info(f"\n📊 Cache Status for {season} Season:")
+        logger.info("-" * 50)
+        
+        total_sessions = 0
+        cached_sessions = 0
+        
+        for race_name in race_calendar:
+            race_cached = []
+            race_missing = []
+            
+            for session_type in self.sessions_to_download:
+                total_sessions += 1
+                if self.is_session_cached(season, race_name, session_type):
+                    cached_sessions += 1
+                    race_cached.append(session_type)
+                else:
+                    race_missing.append(session_type)
+            
+            # Show race status
+            if race_missing:
+                logger.info(f"📥 {race_name}: Missing {', '.join(race_missing)} | Cached {', '.join(race_cached)}")
+            else:
+                logger.info(f"✅ {race_name}: All sessions cached")
+        
+        cache_percentage = (cached_sessions / total_sessions * 100) if total_sessions > 0 else 0
+        logger.info(f"\n📈 Overall: {cached_sessions}/{total_sessions} sessions cached ({cache_percentage:.1f}%)")
+        logger.info("-" * 50)
+
     def download_season_data(self, season: int) -> List[Dict]:
         """Download all race data for a specific season"""
         logger.info(f"Starting download for {season} season...")
+        
+        # Check cache status first
+        self.check_cache_status(season)
         
         race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar_2025
         all_season_data = []
@@ -329,7 +399,7 @@ class F1DataDownloader:
                 logger.info(f"Progress: {i+1}/{len(race_calendar)} races for {season} season")
                 
                 # Add delay to avoid overwhelming the API
-                time.sleep(3)
+                # time.sleep(3)
                 
                 race_data = self.get_session_data(season, race_name)
                 if race_data:
@@ -409,6 +479,14 @@ class F1DataDownloader:
 
 def main():
     """Main function to run F1 data download or skip if cache is ready"""
+    parser = argparse.ArgumentParser(description='F1 Comprehensive Data Downloader')
+    parser.add_argument('seasons', nargs='*', type=int, default=[2024, 2025], 
+                       help='Seasons to download (default: 2024 2025)')
+    parser.add_argument('--races', nargs='+', 
+                       help='Specific races to download (e.g. "Las Vegas Grand Prix" "Qatar Grand Prix")')
+    
+    args = parser.parse_args()
+    
     print("🏎️  F1 COMPREHENSIVE DATA DOWNLOADER - 2024-2025 SEASONS")
     print("="*60)
     print("This script will download or use cached data for:")
@@ -417,16 +495,18 @@ def main():
     print("• Automatically uses Google Drive cache if available")
     print("="*60)
 
-    # Parse command line seasons
-    seasons = [2024, 2025]
-    if len(sys.argv) > 1:
-        try:
-            seasons = [int(year) for year in sys.argv[1:]]
-        except ValueError:
-            print("❌ Invalid season format. Use: python download_current_data.py 2024 2025")
-            sys.exit(1)
+    seasons = args.seasons
 
     downloader = F1DataDownloader()
+    
+    # Override race calendars if specific races are requested
+    if args.races:
+        print(f"\n🎯 Downloading specific races: {', '.join(args.races)}")
+        for season in seasons:
+            if season == 2024:
+                downloader.race_calendar_2024 = args.races
+            elif season == 2025:
+                downloader.race_calendar_2025 = args.races
 
     if downloader.cache_ready:
         print("\n✅ Google Drive cache detected.")

@@ -31,7 +31,7 @@ import {
 const TelemetryAnalyzer = () => {
   const [selectedSeason, setSelectedSeason] = useState("2024");
   const [selectedGP, setSelectedGP] = useState("");
-  const [selectedSession, setSelectedSession] = useState("R");
+  const [selectedSession, setSelectedSession] = useState("Qualifying"); // Start with Qualifying as most representative
   const [selectedDriver, setSelectedDriver] = useState("");
   const [selectedDriver2, setSelectedDriver2] = useState("");
   const [viewMode, setViewMode] = useState("distance"); // "distance" or "time"
@@ -48,10 +48,12 @@ const TelemetryAnalyzer = () => {
 
   const seasons = ["2024", "2025"];
   const sessionMap = {
-    "Practice 2": "FP2",     // Most representative practice session
-    "Practice 3": "FP3",     // Final setup confirmation
-    "Qualifying": "Q",       // Peak performance
-    "Race": "R"             // Real competition
+    "Practice 2": "FP2",           // Most representative practice session
+    "Practice 3": "FP3",           // Final setup confirmation  
+    "Sprint Qualifying": "SQ",     // Sprint pole position battle
+    "Qualifying": "Q",             // Peak performance for race
+    "Sprint": "S",                 // Short race format
+    "Race": "R"                    // Full race distance
   };
   
   // Current F1 drivers for 2024-2025
@@ -347,6 +349,21 @@ const TelemetryAnalyzer = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {/* Session Type Indicator */}
+                  {selectedSession && (
+                    <div className="mt-2 p-2 bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-600/20 rounded-lg">
+                      <div className="text-xs text-gray-400">Selected Session</div>
+                      <div className="text-sm font-medium text-white">{selectedSession}</div>
+                      <div className="text-xs text-blue-400">
+                        {selectedSession === 'Practice 2' ? '🏁 Long runs & tire testing' :
+                         selectedSession === 'Practice 3' ? '⚙️ Final setup tuning' :
+                         selectedSession === 'Sprint Qualifying' ? '🏆 Sprint pole battle' :
+                         selectedSession === 'Qualifying' ? '🚀 Pure speed focus' :
+                         selectedSession === 'Sprint' ? '⚡ Short format race' :
+                         '🏁 Full race distance'}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -729,9 +746,13 @@ const TelemetryAnalyzer = () => {
                                       'Practice 2 - Representative pace & tire testing' :
                                       selectedSession === 'Practice 3' ? 
                                         'Practice 3 - Final setup confirmation' :
+                                        selectedSession === 'Sprint Qualifying' ?
+                                          'Sprint Qualifying - Short format pole position' :
                                         selectedSession === 'Qualifying' ? 
-                                          'Qualifying - Peak performance focus' :
-                                          'Race - Real competition & strategy'
+                                          'Qualifying - Peak performance for race grid' :
+                                          selectedSession === 'Sprint' ?
+                                            'Sprint - Short race with points' :
+                                            'Race - Full distance competition & strategy'
                                     }
                                   </span>
                                 </div>
