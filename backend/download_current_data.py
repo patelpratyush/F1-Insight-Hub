@@ -484,6 +484,8 @@ def main():
                        help='Seasons to download (default: 2024 2025)')
     parser.add_argument('--races', nargs='+', 
                        help='Specific races to download (e.g. "Las Vegas Grand Prix" "Qatar Grand Prix")')
+    parser.add_argument('--force-download', action='store_true',
+                       help='Force download even if Google Drive cache is available')
     
     args = parser.parse_args()
     
@@ -508,10 +510,14 @@ def main():
             elif season == 2025:
                 downloader.race_calendar_2025 = args.races
 
-    if downloader.cache_ready:
+    if downloader.cache_ready and not args.force_download:
         print("\n✅ Google Drive cache detected.")
         print("🚀 Skipping full download — ready to use data for analysis or app.")
+        print("💡 Use --force-download to download fresh data anyway.")
         return
+    
+    if args.force_download and downloader.cache_ready:
+        print("\n🔄 Force download enabled - downloading fresh data despite cache availability.")
 
     try:
         start_time = datetime.now()
