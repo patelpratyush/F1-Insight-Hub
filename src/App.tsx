@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 import DriverPredictor from "./pages/DriverPredictor";
 import RacePredictor from "./pages/RacePredictor";
 import TelemetryAnalyzer from "./pages/TelemetryAnalyzer";
@@ -23,6 +24,7 @@ const App = () => (
         <Layout>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/predictor" element={<DriverPredictor />} />
             <Route path="/race-predictor" element={<RacePredictor />} />
             <Route path="/telemetry" element={<TelemetryAnalyzer />} />

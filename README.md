@@ -403,16 +403,18 @@ Visualize up to 6 telemetry variables simultaneously:
 
 **Complete 2025 season support with accurate transfers:**
 
-- **Red Bull Racing**: Max Verstappen (VER), Sergio Pérez (PER)
-- **McLaren**: Lando Norris (NOR), Oscar Piastri (PIA)
-- **Ferrari**: Lewis Hamilton (HAM) ⭐, Charles Leclerc (LEC)
-- **Mercedes**: George Russell (RUS), Kimi Antonelli (ANT) ⭐
-- **Aston Martin**: Fernando Alonso (ALO), Lance Stroll (STR)
-- **Alpine**: Pierre Gasly (GAS), Esteban Ocon (OCO)
-- **RB**: Yuki Tsunoda (TSU), Liam Lawson (LAW)
-- **Williams**: Carlos Sainz (SAI) ⭐, Alexander Albon (ALB)
-- **Haas**: Nico Hülkenberg (HUL), Oliver Bearman (BEA) ⭐
-- **Kick Sauber**: Gabriel Bortoleto (BOR) ⭐, Isack Hadjar (HAD) ⭐
+- **Red Bull Racing**: Max Verstappen (VER) #1, Sergio Pérez (PER) #11
+- **Ferrari**: Lewis Hamilton (HAM) #44 ⭐, Charles Leclerc (LEC) #16
+- **Mercedes**: George Russell (RUS) #63, Kimi Antonelli (ANT) #12 ⭐
+- **McLaren**: Lando Norris (NOR) #4, Oscar Piastri (PIA) #81
+- **Aston Martin**: Fernando Alonso (ALO) #14, Lance Stroll (STR) #18
+- **Alpine**: Pierre Gasly (GAS) #10, Esteban Ocon (OCO) #31
+- **RB**: Yuki Tsunoda (TSU) #22, Liam Lawson (LAW) #30 ⭐
+- **Williams**: Carlos Sainz (SAI) #55 ⭐, Alexander Albon (ALB) #23
+- **Haas**: Nico Hülkenberg (HUL) #27, Oliver Bearman (BEA) #38 ⭐
+- **Kick Sauber**: Gabriel Bortoleto (BOR) #5 ⭐, Isack Hadjar (HAD) #6 ⭐
+
+⭐ = New for 2025 season
 
 ## 🏁 All 24 F1 Circuits
 

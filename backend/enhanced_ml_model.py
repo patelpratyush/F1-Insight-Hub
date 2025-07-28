@@ -144,20 +144,27 @@ class EnhancedF1MLModel:
             lambda x: x.expanding().mean().shift(1)
         )
         
-        # NEW: Enhanced momentum features with safe polyfit
+        # NEW: Enhanced momentum features with robust calculation
         def safe_momentum(y):
+            """Calculate momentum using simple slope without polyfit"""
             try:
                 if len(y) < 2:
                     return 0.0
-                return -np.polyfit(range(len(y)), y, 1)[0]
-            except (np.linalg.LinAlgError, ValueError):
+                # Use simple linear trend instead of polyfit
+                x_vals = np.arange(len(y))
+                if len(set(y)) == 1:  # All values are the same
+                    return 0.0
+                # Simple slope calculation: (y_end - y_start) / (x_end - x_start)
+                return -(y.iloc[-1] - y.iloc[0]) / (len(y) - 1)
+            except (Exception):
                 return 0.0
         
+        # Use expanding window for more stable calculation
         df['driver_momentum_3'] = df.groupby('driver')['race_position'].transform(
-            lambda x: x.rolling(window=3, min_periods=2).apply(safe_momentum).shift(1)
+            lambda x: x.rolling(window=3, min_periods=2).apply(safe_momentum, raw=False).shift(1)
         )
         df['driver_momentum_5'] = df.groupby('driver')['race_position'].transform(
-            lambda x: x.rolling(window=5, min_periods=3).apply(safe_momentum).shift(1)
+            lambda x: x.rolling(window=5, min_periods=3).apply(safe_momentum, raw=False).shift(1)
         )
         
         # NEW: Championship position pressure
@@ -172,22 +179,24 @@ class EnhancedF1MLModel:
             lambda x: x - x.mean() if len(x) > 1 else 0
         )
         
-        # NEW: Track-specific performance
-        df['driver_track_advantage'] = df.groupby(['driver', 'race'])['race_position'].transform(
-            lambda x: df.groupby('race')['race_position'].transform('mean') - x.expanding().mean().shift(1)
+        # NEW: Track-specific performance (simplified to avoid complex transforms)
+        track_avg = df.groupby('race')['race_position'].transform('mean')
+        driver_track_avg = df.groupby(['driver', 'race'])['race_position'].transform(
+            lambda x: x.expanding().mean().shift(1).fillna(x.mean())
         )
+        df['driver_track_advantage'] = track_avg - driver_track_avg
         
         # NEW: Weather impact features
         df['weather_impact'] = df.apply(self._calculate_weather_impact, axis=1)
         
-        # NEW: Form streaks
-        df['podium_streak'] = df.groupby('driver').apply(
-            lambda x: (x['race_position'] <= 3).rolling(window=5, min_periods=1).sum().shift(1)
-        ).reset_index(level=0, drop=True)
+        # NEW: Form streaks (using transform for better performance)
+        df['podium_streak'] = df.groupby('driver')['race_position'].transform(
+            lambda x: (x <= 3).rolling(window=5, min_periods=1).sum().shift(1).fillna(0)
+        )
         
-        df['dnf_streak'] = df.groupby('driver').apply(
-            lambda x: (x['status'] != 'Finished').rolling(window=5, min_periods=1).sum().shift(1)
-        ).reset_index(level=0, drop=True)
+        df['dnf_streak'] = df.groupby('driver')['status'].transform(
+            lambda x: (x != 'Finished').rolling(window=5, min_periods=1).sum().shift(1).fillna(0)
+        )
         
         # Recent form (last 3 races)
         df['driver_recent_quali_avg'] = df.groupby('driver')['qualifying_position'].transform(
@@ -315,10 +324,13 @@ class EnhancedF1MLModel:
         self.scaler = StandardScaler()
         self.robust_scaler = RobustScaler()
         
+        # Handle any remaining NaN or infinite values
+        X_clean = X.replace([np.inf, -np.inf], np.nan).fillna(0)
+        
         X_scaled = pd.DataFrame(
-            self.scaler.fit_transform(X),
-            columns=X.columns,
-            index=X.index
+            self.scaler.fit_transform(X_clean),
+            columns=X_clean.columns,
+            index=X_clean.index
         )
         
         logger.info(f"Prepared {len(feature_columns)} enhanced features for training")
@@ -353,7 +365,7 @@ class EnhancedF1MLModel:
             return -scores.mean()
         
         study = optuna.create_study(direction='minimize')
-        study.optimize(objective, n_trials=15, show_progress_bar=False)  # Reduced for faster training
+        study.optimize(objective, n_trials=10, show_progress_bar=False)  # Further reduced for stability
         
         logger.info(f"Best {model_type} parameters: {study.best_params}")
         return study.best_params
@@ -385,15 +397,26 @@ class EnhancedF1MLModel:
             models['random_forest'] = RandomForestRegressor(**rf_params)
             models['random_forest'].fit(X_train, y_train[target])
             
-            # 3. Neural Network
+            # 3. Neural Network with more robust settings
             models['neural_network'] = MLPRegressor(
-                hidden_layer_sizes=(100, 50, 25),
-                max_iter=1000,
+                hidden_layer_sizes=(50, 25),  # Reduced complexity
+                max_iter=500,  # Reduced iterations
                 random_state=42,
                 early_stopping=True,
-                validation_fraction=0.2
+                validation_fraction=0.2,
+                alpha=0.01,  # L2 regularization
+                learning_rate_init=0.001,  # Lower learning rate
+                solver='adam'  # Explicit solver
             )
-            models['neural_network'].fit(X_train, y_train[target])
+            # Store scaling parameters for neural network
+            nn_mean = y_train[target].mean()
+            nn_std = y_train[target].std()
+            models[f'neural_network_mean_{target}'] = nn_mean
+            models[f'neural_network_std_{target}'] = nn_std
+            
+            # Scale target for neural network stability
+            y_scaled = (y_train[target] - nn_mean) / nn_std
+            models['neural_network'].fit(X_train, y_scaled)
             
             # Store models
             if target == 'qualifying':
@@ -404,7 +427,18 @@ class EnhancedF1MLModel:
             # Evaluate ensemble
             predictions = {}
             for name, model in models.items():
-                pred = model.predict(X_test)
+                if name.startswith('neural_network') and not name == 'neural_network':
+                    continue  # Skip scaling parameters
+                
+                if name == 'neural_network':
+                    # Unscale neural network predictions for evaluation
+                    nn_pred = model.predict(X_test)
+                    nn_mean = models[f'neural_network_mean_{target}']
+                    nn_std = models[f'neural_network_std_{target}']
+                    pred = (nn_pred * nn_std) + nn_mean
+                else:
+                    pred = model.predict(X_test)
+                
                 predictions[name] = pred
                 
                 mae = mean_absolute_error(y_test[target], pred)
@@ -458,14 +492,32 @@ class EnhancedF1MLModel:
         # Qualifying predictions
         quali_predictions = {}
         for name, model in self.qualifying_models.items():
-            quali_predictions[name] = model.predict(X_scaled)
+            if name.startswith('neural_network') and not name.endswith('_qualifying'):
+                continue  # Skip scaling parameters
+            if name == 'neural_network':
+                # Unscale neural network predictions
+                nn_pred = model.predict(X_scaled)
+                nn_mean = self.qualifying_models['neural_network_mean_qualifying']
+                nn_std = self.qualifying_models['neural_network_std_qualifying']
+                quali_predictions[name] = (nn_pred * nn_std) + nn_mean
+            else:
+                quali_predictions[name] = model.predict(X_scaled)
         
         qualifying_pred = sum(weights[name] * quali_predictions[name] for name in weights.keys())
         
         # Race predictions
         race_predictions = {}
         for name, model in self.race_models.items():
-            race_predictions[name] = model.predict(X_scaled)
+            if name.startswith('neural_network') and not name.endswith('_race'):
+                continue  # Skip scaling parameters
+            if name == 'neural_network':
+                # Unscale neural network predictions
+                nn_pred = model.predict(X_scaled)
+                nn_mean = self.race_models['neural_network_mean_race']
+                nn_std = self.race_models['neural_network_std_race']
+                race_predictions[name] = (nn_pred * nn_std) + nn_mean
+            else:
+                race_predictions[name] = model.predict(X_scaled)
         
         race_pred = sum(weights[name] * race_predictions[name] for name in weights.keys())
         
@@ -541,11 +593,35 @@ class EnhancedF1MLModel:
             # Save models
             self.save_ensemble_models()
             
-            # Log results
+            # Log results and compare with baseline
             logger.info("Enhanced Training Results:")
-            for target in ['qualifying', 'race']:
-                logger.info(f"{target.title()} Ensemble - MAE: {results[target]['ensemble_mae']:.3f}, RMSE: {results[target]['ensemble_rmse']:.3f}, R²: {results[target]['ensemble_r2']:.3f}")
+            baseline_race_mae = 1.638  # Current baseline from your data
+            baseline_qualifying_mae = 0.359  # Current baseline
             
+            for target in ['qualifying', 'race']:
+                ensemble_mae = results[target]['ensemble_mae']
+                baseline_mae = baseline_qualifying_mae if target == 'qualifying' else baseline_race_mae
+                improvement = ((baseline_mae - ensemble_mae) / baseline_mae) * 100
+                
+                logger.info(f"{target.title()} Ensemble - MAE: {ensemble_mae:.3f}, RMSE: {results[target]['ensemble_rmse']:.3f}, R²: {results[target]['ensemble_r2']:.3f}")
+                logger.info(f"{target.title()} vs Baseline: {improvement:+.1f}% ({'IMPROVED' if improvement > 0 else 'WORSE'})")
+            
+            # Save performance comparison
+            performance_summary = {
+                'enhanced_qualifying_mae': results['qualifying']['ensemble_mae'],
+                'enhanced_race_mae': results['race']['ensemble_mae'],
+                'baseline_qualifying_mae': baseline_qualifying_mae,
+                'baseline_race_mae': baseline_race_mae,
+                'qualifying_improvement_pct': ((baseline_qualifying_mae - results['qualifying']['ensemble_mae']) / baseline_qualifying_mae) * 100,
+                'race_improvement_pct': ((baseline_race_mae - results['race']['ensemble_mae']) / baseline_race_mae) * 100
+            }
+            
+            # Save summary to file
+            import json
+            with open(os.path.join(self.models_dir, 'performance_comparison.json'), 'w') as f:
+                json.dump(performance_summary, f, indent=2)
+            
+            results['performance_summary'] = performance_summary
             return results
             
         except Exception as e:

@@ -14,6 +14,7 @@ from datetime import datetime
 import logging
 from typing import List, Dict, Optional
 import time
+import sys
 
 # Load environment variables from .env file
 try:
@@ -317,8 +318,10 @@ class F1DataDownloader:
                 try:
                     driver_laps = race_weekend.laps.pick_drivers(driver_result['Abbreviation'])
                     avg_lap_time = driver_laps['LapTime'].mean().total_seconds() if not driver_laps.empty else 90.0
+                    pit_stops = driver_laps['PitInTime'].notna().sum()
                 except:
                     avg_lap_time = 90.0
+                    pit_stops = 0
                 
                 # Calculate gap to winner
                 gap_to_winner = 0.0
@@ -328,8 +331,19 @@ class F1DataDownloader:
                 except:
                     gap_to_winner = 0.0
                 
-                # Weather conditions (simplified)
-                weather_condition = 'Dry'  # Default - can be enhanced with actual weather data
+                # Weather data extraction
+                try:
+                    weather_df = race_weekend.weather_data
+                    mean_temp = weather_df['AirTemp'].mean()
+                    mean_humidity = weather_df['Humidity'].mean()
+                    mean_rainfall = weather_df['Rainfall'].mean()
+                    weather_condition = 'Wet' if mean_rainfall > 0 else 'Dry'
+                except:
+                    mean_temp = None
+                    mean_humidity = None
+                    mean_rainfall = None
+                    weather_condition = 'Unknown'
+                    
                 
                 session_data.append({
                     'season': season,
@@ -341,6 +355,9 @@ class F1DataDownloader:
                     'avg_lap_time': avg_lap_time,
                     'gap_to_winner': gap_to_winner,
                     'weather': weather_condition,
+                    'mean_air_temp': round(mean_temp, 1) if mean_temp else None,
+                    'mean_humidity': round(mean_humidity, 1) if mean_humidity else None,
+                    'pit_stops': pit_stops,
                     'points': int(driver_result['Points']) if pd.notna(driver_result['Points']) else 0,
                     'grid_position': int(driver_result['GridPosition']) if pd.notna(driver_result['GridPosition']) else qualifying_position,
                     'status': str(driver_result['Status']) if pd.notna(driver_result['Status']) else 'Finished'
@@ -540,3 +557,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    import sys
+    sys.exit(0)

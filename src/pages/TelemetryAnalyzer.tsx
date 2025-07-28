@@ -14,6 +14,7 @@ import TelemetryOverlapGraphs from "@/components/TelemetryOverlapGraphs";
 import WeatherContextPanel from "@/components/WeatherContextPanel";
 import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
 import StaggeredAnimation from "@/components/StaggeredAnimation";
+import { drivers2025, driverCodes } from "@/data/drivers2025";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   LineChart,
@@ -64,33 +65,8 @@ const TelemetryAnalyzer = () => {
     "Race": "R"                    // Full race distance
   };
   
-  // Current F1 drivers for 2024-2025
-  const drivers = [
-    "VER", // Max Verstappen - Red Bull
-    "PER", // Sergio Perez - Red Bull
-    "LEC", // Charles Leclerc - Ferrari
-    "SAI", // Carlos Sainz - Ferrari (2024)
-    "HAM", // Lewis Hamilton - Mercedes (2024) / Ferrari (2025)
-    "RUS", // George Russell - Mercedes
-    "NOR", // Lando Norris - McLaren
-    "PIA", // Oscar Piastri - McLaren
-    "ALO", // Fernando Alonso - Aston Martin
-    "STR", // Lance Stroll - Aston Martin
-    "GAS", // Pierre Gasly - Alpine
-    "OCO", // Esteban Ocon - Alpine (2024)
-    "TSU", // Yuki Tsunoda - RB
-    "RIC", // Daniel Ricciardo - RB (2024)
-    "ALB", // Alexander Albon - Williams
-    "SAR", // Logan Sargeant - Williams (2024)
-    "MAG", // Kevin Magnussen - Haas
-    "HUL", // Nico Hulkenberg - Haas
-    "BOT", // Valtteri Bottas - Kick Sauber
-    "ZHO", // Guanyu Zhou - Kick Sauber
-    // 2025 new drivers
-    "BEA", // Oliver Bearman - Haas (2025)
-    "COL", // Franco Colapinto - Williams (2025) 
-    "ANT"  // Andrea Kimi Antonelli - Mercedes (2025)
-  ].sort();
+  // Use centralized driver codes
+  const drivers = driverCodes;
 
   // Fetch available races for selected season
   const { data: availableRaces, isLoading: racesLoading } = useQuery({
@@ -396,11 +372,22 @@ const TelemetryAnalyzer = () => {
                       <SelectValue placeholder="Select driver" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
-                      {drivers.map((driver) => (
-                        <SelectItem key={driver} value={driver} className="text-white hover:bg-gray-600">
-                          {driver}
-                        </SelectItem>
-                      ))}
+                      {drivers.map((driverCode) => {
+                        const driverInfo = drivers2025.find(d => d.id === driverCode);
+                        return (
+                          <SelectItem key={driverCode} value={driverCode} className="text-white hover:bg-gray-600">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">{driverCode}</span>
+                              {driverInfo && (
+                                <>
+                                  <span className="text-gray-400">- {driverInfo.name}</span>
+                                  <span className="text-xs text-gray-500">#{driverInfo.number} - {driverInfo.team}</span>
+                                </>
+                              )}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1153,11 +1140,22 @@ const TelemetryAnalyzer = () => {
                                   <SelectValue placeholder="Select first driver" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-gray-700 border-gray-600">
-                                  {drivers.map((driver) => (
-                                    <SelectItem key={driver} value={driver} className="text-white hover:bg-gray-600">
-                                      {driver}
-                                    </SelectItem>
-                                  ))}
+                                  {drivers.map((driverCode) => {
+                                    const driverInfo = drivers2025.find(d => d.id === driverCode);
+                                    return (
+                                      <SelectItem key={driverCode} value={driverCode} className="text-white hover:bg-gray-600">
+                                        <div className="flex items-center space-x-2">
+                                          <span className="font-medium">{driverCode}</span>
+                                          {driverInfo && (
+                                            <>
+                                              <span className="text-gray-400">- {driverInfo.name}</span>
+                                              <span className="text-xs text-gray-500">#{driverInfo.number} - {driverInfo.team}</span>
+                                            </>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    );
+                                  })}
                                 </SelectContent>
                               </Select>
                             </div>
@@ -1168,11 +1166,22 @@ const TelemetryAnalyzer = () => {
                                   <SelectValue placeholder="Select second driver" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-gray-700 border-gray-600">
-                                  {drivers.filter(d => d !== selectedDriver).map((driver) => (
-                                    <SelectItem key={driver} value={driver} className="text-white hover:bg-gray-600">
-                                      {driver}
-                                    </SelectItem>
-                                  ))}
+                                  {drivers.filter(d => d !== selectedDriver).map((driverCode) => {
+                                    const driverInfo = drivers2025.find(d => d.id === driverCode);
+                                    return (
+                                      <SelectItem key={driverCode} value={driverCode} className="text-white hover:bg-gray-600">
+                                        <div className="flex items-center space-x-2">
+                                          <span className="font-medium">{driverCode}</span>
+                                          {driverInfo && (
+                                            <>
+                                              <span className="text-gray-400">- {driverInfo.name}</span>
+                                              <span className="text-xs text-gray-500">#{driverInfo.number} - {driverInfo.team}</span>
+                                            </>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    );
+                                  })}
                                 </SelectContent>
                               </Select>
                             </div>

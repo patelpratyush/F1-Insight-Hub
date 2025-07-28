@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, Target, Zap, Cloud, Users } from "lucide-react";
 import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
 import StaggeredAnimation from "@/components/StaggeredAnimation";
+import { drivers2025 } from "@/data/drivers2025";
 
 const DriverPredictor = () => {
   const [selectedDriver, setSelectedDriver] = useState("");
@@ -20,28 +21,8 @@ const DriverPredictor = () => {
     setIsVisible(true);
   }, []);
 
-  const drivers = [
-    { code: "VER", name: "Max Verstappen", team: "Red Bull", number: 1 },
-    { code: "NOR", name: "Lando Norris", team: "McLaren", number: 4 },
-    { code: "BOR", name: "Gabriel Bortoleto", team: "Kick Sauber", number: 5 },
-    { code: "HAD", name: "Isack Hadjar", team: "Kick Sauber", number: 6 },
-    { code: "GAS", name: "Pierre Gasly", team: "Alpine", number: 10 },
-    { code: "ANT", name: "Kimi Antonelli", team: "Mercedes", number: 12 },
-    { code: "ALO", name: "Fernando Alonso", team: "Aston Martin", number: 14 },
-    { code: "LEC", name: "Charles Leclerc", team: "Ferrari", number: 16 },
-    { code: "STR", name: "Lance Stroll", team: "Aston Martin", number: 18 },
-    { code: "TSU", name: "Yuki Tsunoda", team: "AlphaTauri", number: 22 },
-    { code: "ALB", name: "Alexander Albon", team: "Williams", number: 23 },
-    { code: "HUL", name: "Nico Hulkenberg", team: "Haas", number: 27 },
-    { code: "LAW", name: "Liam Lawson", team: "AlphaTauri", number: 30 },
-    { code: "OCO", name: "Esteban Ocon", team: "Alpine", number: 31 },
-    { code: "COL", name: "Franco Colapinto", team: "Williams", number: 43 },
-    { code: "HAM", name: "Lewis Hamilton", team: "Ferrari", number: 44 },
-    { code: "SAI", name: "Carlos Sainz", team: "Williams", number: 55 },
-    { code: "RUS", name: "George Russell", team: "Mercedes", number: 63 },
-    { code: "PIA", name: "Oscar Piastri", team: "McLaren", number: 81 },
-    { code: "BEA", name: "Oliver Bearman", team: "Haas", number: 87 },
-  ];
+  // Use centralized driver data
+  const drivers = drivers2025;
 
   const tracks = [
     "Bahrain Grand Prix",
@@ -177,10 +158,11 @@ const DriverPredictor = () => {
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
                       {drivers.map((driver) => (
-                        <SelectItem key={driver.code} value={driver.code} className="text-white hover:bg-gray-600">
+                        <SelectItem key={driver.id} value={driver.id} className="text-white hover:bg-gray-600">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">{driver.code}</span>
+                            <span className="font-medium">{driver.id}</span>
                             <span className="text-gray-400">- {driver.name}</span>
+                            <span className="text-xs text-gray-500">#{driver.number} - {driver.team}</span>
                           </div>
                         </SelectItem>
                       ))}

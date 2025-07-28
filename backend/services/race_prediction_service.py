@@ -25,26 +25,45 @@ class RacePredictionService:
         
         # Driver roster for 2025 season
         self.drivers_2025 = {
+            # Red Bull Racing - Max + Yuki (Pérez replaced by Tsunoda)
             'VER': {'name': 'Max Verstappen', 'team': 'Red Bull Racing Honda RBPT', 'number': 1},
-            'NOR': {'name': 'Lando Norris', 'team': 'McLaren Mercedes', 'number': 4},
-            'BOR': {'name': 'Gabriel Bortoleto', 'team': 'Kick Sauber F1 Team', 'number': 5},
-            'HAD': {'name': 'Isack Hadjar', 'team': 'Kick Sauber F1 Team', 'number': 6},
-            'GAS': {'name': 'Pierre Gasly', 'team': 'BWT Alpine F1 Team', 'number': 10},
-            'ANT': {'name': 'Kimi Antonelli', 'team': 'Mercedes', 'number': 12},
-            'ALO': {'name': 'Fernando Alonso', 'team': 'Aston Martin Aramco Mercedes', 'number': 14},
-            'LEC': {'name': 'Charles Leclerc', 'team': 'Scuderia Ferrari', 'number': 16},
-            'STR': {'name': 'Lance Stroll', 'team': 'Aston Martin Aramco Mercedes', 'number': 18},
-            'TSU': {'name': 'Yuki Tsunoda', 'team': 'Visa Cash App RB F1 Team', 'number': 22},
-            'ALB': {'name': 'Alexander Albon', 'team': 'Williams Mercedes', 'number': 23},
-            'HUL': {'name': 'Nico Hulkenberg', 'team': 'MoneyGram Haas F1 Team', 'number': 27},
-            'LAW': {'name': 'Liam Lawson', 'team': 'Visa Cash App RB F1 Team', 'number': 30},
-            'OCO': {'name': 'Esteban Ocon', 'team': 'BWT Alpine F1 Team', 'number': 31},
-            'COL': {'name': 'Franco Colapinto', 'team': 'Williams Mercedes', 'number': 43},
+            'TSU': {'name': 'Yuki Tsunoda', 'team': 'Red Bull Racing Honda RBPT', 'number': 22},
+            
+            # Ferrari - Lewis Hamilton joins Ferrari!
             'HAM': {'name': 'Lewis Hamilton', 'team': 'Scuderia Ferrari', 'number': 44},
-            'SAI': {'name': 'Carlos Sainz', 'team': 'Williams Mercedes', 'number': 55},
+            'LEC': {'name': 'Charles Leclerc', 'team': 'Scuderia Ferrari', 'number': 16},
+            
+            # Mercedes - Kimi Antonelli debuts
             'RUS': {'name': 'George Russell', 'team': 'Mercedes', 'number': 63},
+            'ANT': {'name': 'Kimi Antonelli', 'team': 'Mercedes', 'number': 12},
+            
+            # McLaren
+            'NOR': {'name': 'Lando Norris', 'team': 'McLaren Mercedes', 'number': 4},
             'PIA': {'name': 'Oscar Piastri', 'team': 'McLaren Mercedes', 'number': 81},
-            'BEA': {'name': 'Oliver Bearman', 'team': 'MoneyGram Haas F1 Team', 'number': 87}
+            
+            # Aston Martin
+            'ALO': {'name': 'Fernando Alonso', 'team': 'Aston Martin Aramco Mercedes', 'number': 14},
+            'STR': {'name': 'Lance Stroll', 'team': 'Aston Martin Aramco Mercedes', 'number': 18},
+            
+            # Alpine - Pierre + Franco (Ocon moved to Haas)
+            'GAS': {'name': 'Pierre Gasly', 'team': 'BWT Alpine F1 Team', 'number': 10},
+            'COL': {'name': 'Franco Colapinto', 'team': 'BWT Alpine F1 Team', 'number': 43},
+            
+            # Racing Bulls (formerly RB) - Liam + Isack
+            'LAW': {'name': 'Liam Lawson', 'team': 'Racing Bulls F1 Team', 'number': 30},
+            'HAD': {'name': 'Isack Hadjar', 'team': 'Racing Bulls F1 Team', 'number': 6},
+            
+            # Williams - Carlos Sainz joins
+            'SAI': {'name': 'Carlos Sainz', 'team': 'Williams Mercedes', 'number': 55},
+            'ALB': {'name': 'Alexander Albon', 'team': 'Williams Mercedes', 'number': 23},
+            
+            # Haas - Esteban + Oliver (Ocon joins, Hülkenberg to Kick Sauber)
+            'OCO': {'name': 'Esteban Ocon', 'team': 'MoneyGram Haas F1 Team', 'number': 31},
+            'BEA': {'name': 'Oliver Bearman', 'team': 'MoneyGram Haas F1 Team', 'number': 38},
+            
+            # Kick Sauber - Nico + Gabriel (Hülkenberg joins)
+            'HUL': {'name': 'Nico Hülkenberg', 'team': 'Kick Sauber F1 Team', 'number': 27},
+            'BOR': {'name': 'Gabriel Bortoleto', 'team': 'Kick Sauber F1 Team', 'number': 5}
         }
         
         # Weather impact factors for different conditions

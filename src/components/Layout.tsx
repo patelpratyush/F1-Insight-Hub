@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Trophy, TrendingUp, Activity, Zap, Home } from "lucide-react";
+import { Menu, X, Trophy, TrendingUp, Activity, Zap, Home, BarChart3 } from "lucide-react";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,6 +10,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
+    { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
     { name: "Driver Predictor", href: "/predictor", icon: Trophy },
     { name: "Race Predictor", href: "/race-predictor", icon: TrendingUp },
     { name: "Telemetry", href: "/telemetry", icon: Activity },

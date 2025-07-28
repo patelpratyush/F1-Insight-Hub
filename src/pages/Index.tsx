@@ -15,7 +15,7 @@ const Index = () => {
   }, []);
 
   const handleGetStarted = () => {
-    navigate('/telemetry');
+    navigate('/dashboard');
   };
 
   const modules = [

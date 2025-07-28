@@ -10,6 +10,8 @@ from services.enhanced_ensemble_service import enhanced_ensemble_service
 from services.enhanced_prediction_service import EnhancedPredictionService
 from services.race_prediction_service import race_prediction_service
 from services.telemetry_analyzer_service import TelemetryAnalyzerService
+from services.strategy_simulation_service import strategy_simulator
+from api.fastf1_routes import router as fastf1_router
 
 app = FastAPI(
     title="F1 Enhanced Prediction API", 
@@ -24,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include FastF1 routes
+app.include_router(fastf1_router)
 
 # Use enhanced prediction service for individual driver predictions
 enhanced_prediction_service = EnhancedPredictionService()
@@ -238,6 +243,192 @@ async def predict_race_grid(request: RacePredictionRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+# Strategy Simulation Endpoints
+
+class StrategySimulationRequest(BaseModel):
+    driver: str
+    track: str
+    weather: str = "Dry"
+    tire_strategy: str
+    safety_car_probability: float = 30.0
+    qualifying_position: int = 10
+    team: str = "Red Bull Racing"
+    temperature: float = 25.0
+
+class StrategyComparisonRequest(BaseModel):
+    driver: str
+    track: str
+    weather: str = "Dry"
+    strategies: List[str]
+    safety_car_probability: float = 30.0
+    qualifying_position: int = 10
+
+class StrategyOptimizationRequest(BaseModel):
+    driver: str
+    track: str
+    weather: str = "Dry"
+    constraints: Optional[Dict] = None
+
+@app.post("/api/strategy/simulate")
+async def simulate_race_strategy(request: StrategySimulationRequest):
+    """
+    Simulate a complete F1 race strategy using Monte Carlo methods
+    Returns detailed strategy analysis with pit stops, tire performance, and race timeline
+    """
+    try:
+        result = strategy_simulator.simulate_race_strategy(
+            driver=request.driver,
+            track=request.track,
+            weather=request.weather,
+            tire_strategy=request.tire_strategy,
+            safety_car_probability=request.safety_car_probability,
+            qualifying_position=request.qualifying_position,
+            team=request.team,
+            temperature=request.temperature
+        )
+        
+        # Convert dataclass to dict for JSON response
+        from dataclasses import asdict
+        response_data = asdict(result)
+        response_data['success'] = True
+        
+        return response_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Strategy simulation failed: {str(e)}")
+
+@app.post("/api/strategy/compare")
+async def compare_strategies(request: StrategyComparisonRequest):
+    """
+    Compare multiple tire strategies for the same race conditions
+    Returns comparative analysis of different strategic approaches
+    """
+    try:
+        results = strategy_simulator.compare_strategies(
+            driver=request.driver,
+            track=request.track,
+            weather=request.weather,
+            strategies=request.strategies,
+            safety_car_probability=request.safety_car_probability,
+            qualifying_position=request.qualifying_position
+        )
+        
+        # Convert results to JSON-serializable format
+        from dataclasses import asdict
+        comparison_data = {}
+        for strategy, result in results.items():
+            comparison_data[strategy] = asdict(result)
+        
+        return {
+            'success': True,
+            'driver': request.driver,
+            'track': request.track,
+            'weather': request.weather,
+            'strategies_compared': len(request.strategies),
+            'results': comparison_data
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Strategy comparison failed: {str(e)}")
+
+@app.post("/api/strategy/optimize")
+async def optimize_strategy(request: StrategyOptimizationRequest):
+    """
+    Find the optimal tire strategy for given race conditions
+    Uses advanced algorithms to determine the best strategic approach
+    """
+    try:
+        optimal_strategy, result = strategy_simulator.optimize_strategy(
+            driver=request.driver,
+            track=request.track,
+            weather=request.weather,
+            constraints=request.constraints
+        )
+        
+        if not optimal_strategy or not result:
+            raise HTTPException(status_code=404, detail="No viable strategy found")
+        
+        # Convert result to JSON-serializable format
+        from dataclasses import asdict
+        response_data = asdict(result)
+        response_data['success'] = True
+        response_data['optimal_strategy'] = optimal_strategy
+        
+        return response_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Strategy optimization failed: {str(e)}")
+
+@app.get("/api/strategy/tire-compounds/{track}")
+async def get_tire_compounds(track: str):
+    """
+    Get available tire compounds and their characteristics for a specific track
+    """
+    try:
+        # Get tire compound data from strategy simulator
+        tire_data = strategy_simulator.tire_compounds
+        track_data = strategy_simulator.track_characteristics.get(track)
+        
+        if not track_data:
+            available_tracks = list(strategy_simulator.track_characteristics.keys())
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Track '{track}' not found. Available tracks: {available_tracks}"
+            )
+        
+        # Format tire compound information
+        compounds = {}
+        for name, compound in tire_data.items():
+            from dataclasses import asdict
+            compounds[name] = asdict(compound)
+        
+        return {
+            'success': True,
+            'track': track,
+            'track_characteristics': track_data,
+            'tire_compounds': compounds,
+            'common_strategies': [
+                "Soft-Medium-Hard",
+                "Medium-Hard-Hard", 
+                "Soft-Soft-Medium",
+                "Medium-Medium-Hard",
+                "Hard-Hard-Medium"
+            ]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get tire compounds: {str(e)}")
+
+@app.get("/api/strategy/available-tracks")
+async def get_available_tracks():
+    """
+    Get list of tracks available for strategy simulation
+    """
+    try:
+        tracks = list(strategy_simulator.track_characteristics.keys())
+        track_details = []
+        
+        for track_name in tracks:
+            track_data = strategy_simulator.track_characteristics[track_name]
+            track_details.append({
+                'name': track_name,
+                'lap_distance': track_data['lap_distance'],
+                'total_laps': track_data['total_laps'],
+                'pit_loss': track_data['pit_loss'],
+                'safety_car_probability': track_data['safety_car_probability']
+            })
+        
+        return {
+            'success': True,
+            'total_tracks': len(tracks),
+            'tracks': track_details
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get available tracks: {str(e)}")
 
 # Telemetry Analysis Endpoints
 
