@@ -5,100 +5,81 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, Target, Zap, Cloud, Users } from "lucide-react";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import ErrorDisplay from "@/components/ui/error-display";
+import DataWrapper from "@/components/ui/data-wrapper";
+import useApiCall from "@/hooks/useApiCall";
 import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
 import StaggeredAnimation from "@/components/StaggeredAnimation";
 import { drivers2025 } from "@/data/drivers2025";
+import { trackNames } from "@/data/tracks2025";
 
 const DriverPredictor = () => {
   const [selectedDriver, setSelectedDriver] = useState("");
   const [selectedTrack, setSelectedTrack] = useState("");
   const [weather, setWeather] = useState("");
-  const [prediction, setPrediction] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [inputError, setInputError] = useState("");
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  // Use centralized driver data
+  // Use centralized data
   const drivers = drivers2025;
+  const tracks = trackNames; // All 2025 F1 tracks
 
-  const tracks = [
-    "Bahrain Grand Prix",
-    "Saudi Arabian Grand Prix",
-    "Australian Grand Prix", 
-    "Japanese Grand Prix",
-    "Chinese Grand Prix",
-    "Miami Grand Prix",
-    "Emilia Romagna Grand Prix",
-    "Monaco Grand Prix",
-    "Canadian Grand Prix",
-    "Spanish Grand Prix",
-    "Austrian Grand Prix",
-    "British Grand Prix",
-    "Hungarian Grand Prix",
-    "Belgian Grand Prix",
-    "Dutch Grand Prix",
-    "Italian Grand Prix",
-    "Azerbaijan Grand Prix",
-    "Singapore Grand Prix",
-    "United States Grand Prix",
-    "Mexico City Grand Prix",
-    "São Paulo Grand Prix",
-    "Las Vegas Grand Prix",
-    "Qatar Grand Prix",
-    "Abu Dhabi Grand Prix"
-  ];
+  // API call for driver prediction with error handling
+  const predictionApi = useApiCall(async () => {
+    const selectedDriverData = drivers.find(d => d.code === selectedDriver);
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    
+    const response = await fetch(`${apiUrl}/api/predict/driver`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        driver: selectedDriver,
+        track: selectedTrack,
+        weather: weather.toLowerCase(),
+        team: selectedDriverData?.team || "Unknown"
+      })
+    });
 
-  const handlePredict = async () => {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: Failed to generate prediction`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.success && data.message) {
+      throw new Error(data.message);
+    }
+    
+    // Calculate podium probability based on race position prediction
+    const podiumProbability = data.predicted_race_position <= 3 ? 
+      Math.min(95, data.race_confidence * 100 + (4 - data.predicted_race_position) * 10) : 
+      Math.max(5, (21 - data.predicted_race_position) * 3);
+    
+    return {
+      qualifying: data.predicted_qualifying_position,
+      race: data.predicted_race_position,
+      podiumProbability: podiumProbability,
+      qualifyingConfidence: data.qualifying_confidence,
+      raceConfidence: data.race_confidence
+    };
+  }, { maxRetries: 2, retryDelay: 1500 });
+
+  const handlePredict = () => {
+    // Input validation
     if (!selectedDriver || !selectedTrack || !weather) {
-      alert("Please select driver, track, and weather conditions");
+      setInputError("Please select driver, track, and weather conditions");
       return;
     }
-
-    const selectedDriverData = drivers.find(d => d.code === selectedDriver);
-    setIsLoading(true);
     
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/api/predict/driver`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          driver: selectedDriver,
-          track: selectedTrack,
-          weather: weather.toLowerCase(),
-          team: selectedDriverData?.team || "Unknown"
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Prediction failed');
-      }
-
-      const data = await response.json();
-      
-      // Calculate podium probability based on race position prediction
-      const podiumProbability = data.predicted_race_position <= 3 ? 
-        Math.min(95, data.race_confidence * 100 + (4 - data.predicted_race_position) * 10) : 
-        Math.max(5, (21 - data.predicted_race_position) * 3);
-      
-      setPrediction({
-        qualifying: data.predicted_qualifying_position,
-        race: data.predicted_race_position,
-        podiumProbability: podiumProbability,
-        qualifyingConfidence: data.qualifying_confidence,
-        raceConfidence: data.race_confidence
-      });
-    } catch (error) {
-      console.error('Error making prediction:', error);
-      alert('Failed to get prediction. Make sure the backend server is running.');
-    } finally {
-      setIsLoading(false);
-    }
+    setInputError("");
+    predictionApi.execute();
   };
 
   return (
@@ -154,15 +135,20 @@ const DriverPredictor = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">Driver</label>
                   <Select value={selectedDriver} onValueChange={setSelectedDriver}>
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                      <SelectValue placeholder="Select a driver" />
+                      <SelectValue placeholder="Select a driver">
+                        {selectedDriver && (
+                          <span>
+                            {drivers.find(d => d.id === selectedDriver)?.name || selectedDriver}
+                          </span>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
                       {drivers.map((driver) => (
                         <SelectItem key={driver.id} value={driver.id} className="text-white hover:bg-gray-600">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">{driver.id}</span>
-                            <span className="text-gray-400">- {driver.name}</span>
-                            <span className="text-xs text-gray-500">#{driver.number} - {driver.team}</span>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{driver.name}</span>
+                            <span className="text-xs text-gray-400">#{driver.number} - {driver.team}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -190,39 +176,91 @@ const DriverPredictor = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">Weather Conditions</label>
                   <Select value={weather} onValueChange={setWeather}>
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                      <SelectValue placeholder="Select weather" />
+                      <SelectValue placeholder="Select weather">
+                        {weather && (
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-2 h-2 rounded-full ${
+                              weather === 'clear' ? 'bg-yellow-500' :
+                              weather === 'overcast' ? 'bg-gray-400' :
+                              weather === 'light_rain' ? 'bg-blue-400' :
+                              weather === 'heavy_rain' ? 'bg-blue-600' :
+                              weather === 'mixed' ? 'bg-purple-500' : 'bg-gray-500'
+                            } flex-shrink-0`}></div>
+                            <span>
+                              {weather === 'clear' ? 'Clear' :
+                               weather === 'overcast' ? 'Overcast' :
+                               weather === 'light_rain' ? 'Light Rain' :
+                               weather === 'heavy_rain' ? 'Heavy Rain' :
+                               weather === 'mixed' ? 'Mixed Conditions' : weather}
+                            </span>
+                          </div>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="dry" className="text-white hover:bg-gray-600">
+                    <SelectContent className="bg-gray-700 border-gray-600 min-w-[280px] max-h-[300px] z-50">
+                      <SelectItem value="clear" className="text-white hover:bg-gray-600 py-3">
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                          <span>Dry</span>
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">Clear</span>
+                            <span className="text-xs text-gray-400">Normal dry race, fastest pace</span>
+                          </div>
                         </div>
                       </SelectItem>
-                      <SelectItem value="wet" className="text-white hover:bg-gray-600">
+                      <SelectItem value="overcast" className="text-white hover:bg-gray-600 py-3">
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>Wet</span>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0"></div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">Overcast</span>
+                            <span className="text-xs text-gray-400">Cooler track, moderate grip</span>
+                          </div>
                         </div>
                       </SelectItem>
-                      <SelectItem value="mixed" className="text-white hover:bg-gray-600">
+                      <SelectItem value="light_rain" className="text-white hover:bg-gray-600 py-3">
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                          <span>Mixed</span>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">Light Rain</span>
+                            <span className="text-xs text-gray-400">Intermediate tires, variable grip</span>
+                          </div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="heavy_rain" className="text-white hover:bg-gray-600 py-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">Heavy Rain</span>
+                            <span className="text-xs text-gray-400">Full wets, slow pace, higher risk</span>
+                          </div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="mixed" className="text-white hover:bg-gray-600 py-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">Mixed Conditions</span>
+                            <span className="text-xs text-gray-400">Switching between dry and wet</span>
+                          </div>
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
+                {inputError && (
+                  <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+                    <p className="text-red-400 text-sm">{inputError}</p>
+                  </div>
+                )}
+                
                 <Button 
                   onClick={handlePredict}
-                  disabled={!selectedDriver || !selectedTrack || !weather || isLoading}
+                  disabled={!selectedDriver || !selectedTrack || !weather || predictionApi.loading}
                   className="w-full bg-red-600 hover:bg-red-700 text-white mt-6"
                   size="lg"
                 >
-                  <Zap className="mr-2 h-4 w-4" />
-                  {isLoading ? 'Generating...' : 'Generate Prediction'}
+                  <Zap className={`mr-2 h-4 w-4 ${predictionApi.loading ? 'animate-spin' : ''}`} />
+                  {predictionApi.loading ? 'Generating...' : 'Generate Prediction'}
                 </Button>
               </CardContent>
             </Card>
@@ -231,7 +269,29 @@ const DriverPredictor = () => {
 
           {/* Results Section */}
           <AnimatedPageWrapper delay={800} className="lg:col-span-2">
-            {prediction ? (
+            <DataWrapper
+              loading={predictionApi.loading}
+              error={predictionApi.error}
+              data={predictionApi.data}
+              onRetry={predictionApi.retry}
+              isRetrying={predictionApi.isRetrying}
+              loadingMessage="Generating AI prediction..."
+              errorTitle="Prediction Failed"
+              errorVariant="card"
+              minHeight="min-h-96"
+              fallbackContent={
+                <Card className="bg-gray-800/50 border-gray-700 h-96 flex items-center justify-center">
+                  <CardContent className="text-center">
+                    <Trophy className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+                    <CardTitle className="text-gray-400 mb-2">No Prediction Generated</CardTitle>
+                    <CardDescription className="text-gray-500">
+                      Select a driver, track, and weather conditions to generate a performance prediction.
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              }
+            >
+            {predictionApi.data ? (
               <div className="space-y-6">
                 <Card className="bg-gray-800/50 border-gray-700">
                   <CardHeader>
@@ -252,42 +312,48 @@ const DriverPredictor = () => {
                       {[
                         {
                           title: "Qualifying Position",
-                          value: `P${prediction.qualifying}`,
-                          confidence: prediction.qualifyingConfidence ? (prediction.qualifyingConfidence * 100).toFixed(0) : 75,
                           gradient: "from-blue-600/20 to-blue-800/20",
                           border: "border-blue-600/20",
                           textColor: "text-blue-400"
                         },
                         {
-                          title: "Race Position", 
-                          value: `P${prediction.race}`,
-                          confidence: prediction.raceConfidence ? (prediction.raceConfidence * 100).toFixed(0) : 65,
+                          title: "Race Position",
                           gradient: "from-green-600/20 to-green-800/20",
                           border: "border-green-600/20",
                           textColor: "text-green-400"
                         },
                         {
                           title: "Podium Probability",
-                          value: `${Math.round(prediction.podiumProbability)}%`,
-                          confidence: "Top 3 finish chance",
                           gradient: "from-purple-600/20 to-purple-800/20", 
                           border: "border-purple-600/20",
                           textColor: "text-purple-400"
                         }
-                      ].map((item, index) => (
-                        <div 
-                          key={index}
-                          className={`text-center p-6 bg-gradient-to-br ${item.gradient} rounded-xl border ${item.border} transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-${item.textColor.split('-')[1]}-500/10`}
-                        >
-                          <div className={`text-3xl font-bold ${item.textColor} mb-2 animate-pulse`}>
-                            {item.value}
+                      ].map((item, index) => {
+                        const prediction = predictionApi.data;
+                        const actualItem = {
+                          ...item,
+                          value: item.title === "Qualifying Position" ? `P${prediction.qualifying}` :
+                                 item.title === "Race Position" ? `P${prediction.race}` :
+                                 `${Math.round(prediction.podiumProbability)}%`,
+                          confidence: item.title === "Qualifying Position" ? (prediction.qualifyingConfidence ? (prediction.qualifyingConfidence * 100).toFixed(0) : 75) :
+                                     item.title === "Race Position" ? (prediction.raceConfidence ? (prediction.raceConfidence * 100).toFixed(0) : 65) :
+                                     "Top 3 finish chance"
+                        };
+                        return (
+                          <div 
+                            key={index}
+                            className={`text-center p-6 bg-gradient-to-br ${actualItem.gradient} rounded-xl border ${actualItem.border} transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-${actualItem.textColor.split('-')[1]}-500/10`}
+                          >
+                            <div className={`text-3xl font-bold ${actualItem.textColor} mb-2 animate-pulse`}>
+                              {actualItem.value}
+                            </div>
+                            <div className="text-gray-300 font-medium">{actualItem.title}</div>
+                            <div className="text-sm text-gray-400 mt-2">
+                              {actualItem.title === "Podium Probability" ? actualItem.confidence : `Confidence: ${actualItem.confidence}%`}
+                            </div>
                           </div>
-                          <div className="text-gray-300 font-medium">{item.title}</div>
-                          <div className="text-sm text-gray-400 mt-2">
-                            {item.title === "Podium Probability" ? item.confidence : `Confidence: ${item.confidence}%`}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </StaggeredAnimation>
 
                     <div className="mt-8 p-4 bg-gray-700/30 rounded-lg">
@@ -310,14 +376,14 @@ const DriverPredictor = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <span>Qualifying vs Race</span>
-                          <Badge variant="outline" className={`${prediction.race <= prediction.qualifying ? 'text-green-400 border-green-400' : 'text-red-400 border-red-400'}`}>
-                            {prediction.race <= prediction.qualifying ? 'Gains positions' : 'Loses positions'}
+                          <Badge variant="outline" className={`${predictionApi.data.race <= predictionApi.data.qualifying ? 'text-green-400 border-green-400' : 'text-red-400 border-red-400'}`}>
+                            {predictionApi.data.race <= predictionApi.data.qualifying ? 'Gains positions' : 'Loses positions'}
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>Overall Confidence</span>
                           <Badge variant="outline" className="text-blue-400 border-blue-400">
-                            {Math.round((prediction.qualifyingConfidence + prediction.raceConfidence) / 2 * 100)}%
+                            {Math.round(((predictionApi.data.qualifyingConfidence || 0.75) + (predictionApi.data.raceConfidence || 0.65)) / 2 * 100)}%
                           </Badge>
                         </div>
                       </div>
@@ -325,17 +391,8 @@ const DriverPredictor = () => {
                   </CardContent>
                 </Card>
               </div>
-            ) : (
-              <Card className="bg-gray-800/50 border-gray-700 h-96 flex items-center justify-center">
-                <CardContent className="text-center">
-                  <Trophy className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                  <CardTitle className="text-gray-400 mb-2">No Prediction Generated</CardTitle>
-                  <CardDescription className="text-gray-500">
-                    Select a driver, track, and weather conditions to generate a performance prediction.
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            )}
+            ) : null}
+            </DataWrapper>
           </AnimatedPageWrapper>
         </div>
       </div>

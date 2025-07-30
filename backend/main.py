@@ -5,6 +5,11 @@ import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import pandas as pd
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from services.enhanced_ensemble_service import enhanced_ensemble_service
 from services.enhanced_prediction_service import EnhancedPredictionService
@@ -268,6 +273,13 @@ class StrategyOptimizationRequest(BaseModel):
     driver: str
     track: str
     weather: str = "Dry"
+    target_metric: str = "position"  # "position", "time", "points"
+    risk_tolerance: float = 0.5  # 0.0-1.0
+    prioritize_consistency: bool = True
+    safety_car_probability: float = 30.0
+    qualifying_position: int = 10
+    team: str = "Red Bull Racing"  # Default team, will be overridden by actual driver's team
+    temperature: float = 25.0
     constraints: Optional[Dict] = None
 
 @app.post("/api/strategy/simulate")
@@ -335,27 +347,72 @@ async def compare_strategies(request: StrategyComparisonRequest):
 @app.post("/api/strategy/optimize")
 async def optimize_strategy(request: StrategyOptimizationRequest):
     """
-    Find the optimal tire strategy for given race conditions
-    Uses advanced algorithms to determine the best strategic approach
+    Find the optimal tire strategy using Gemini AI
+    Uses Google's Gemini API for intelligent race strategy recommendations
     """
     try:
-        optimal_strategy, result = strategy_simulator.optimize_strategy(
-            driver=request.driver,
-            track=request.track,
-            weather=request.weather,
-            constraints=request.constraints
-        )
+        # Initialize Gemini optimizer (with fallback to traditional optimization)
+        try:
+            from services.gemini_optimizer_service import GeminiF1StrategyOptimizer
+            gemini_optimizer = GeminiF1StrategyOptimizer()
+            use_gemini = True
+        except Exception as e:
+            logger.warning(f"Gemini optimizer unavailable, using fallback: {e}")
+            use_gemini = False
         
-        if not optimal_strategy or not result:
-            raise HTTPException(status_code=404, detail="No viable strategy found")
-        
-        # Convert result to JSON-serializable format
-        from dataclasses import asdict
-        response_data = asdict(result)
-        response_data['success'] = True
-        response_data['optimal_strategy'] = optimal_strategy
-        
-        return response_data
+        if use_gemini:
+            # Use Gemini AI optimization
+            optimization_result = gemini_optimizer.optimize_strategy(
+                driver=request.driver,
+                track=request.track,
+                weather=request.weather,
+                target_metric=request.target_metric,
+                risk_tolerance=request.risk_tolerance,
+                prioritize_consistency=request.prioritize_consistency,
+                qualifying_position=request.qualifying_position,
+                safety_car_probability=request.safety_car_probability,
+                team=request.team,
+                temperature=request.temperature
+            )
+            
+            # Convert to API response format
+            from dataclasses import asdict
+            response_data = asdict(optimization_result.strategy_result)
+            response_data['success'] = True
+            response_data['optimal_strategy'] = optimization_result.optimal_strategy
+            response_data['ai_reasoning'] = optimization_result.ai_reasoning
+            response_data['alternative_strategies'] = optimization_result.alternative_strategies
+            response_data['confidence_score'] = optimization_result.confidence_score
+            response_data['risk_assessment'] = optimization_result.risk_assessment
+            response_data['insights'] = optimization_result.contextual_insights
+            response_data['weather_advice'] = optimization_result.weather_specific_advice
+            response_data['ai_powered'] = True
+            
+            return response_data
+        else:
+            # Fallback to traditional optimization
+            optimal_strategy, result = strategy_simulator.optimize_strategy(
+                driver=request.driver,
+                track=request.track,
+                weather=request.weather,
+                constraints=request.constraints
+            )
+            
+            if not optimal_strategy or not result:
+                raise HTTPException(status_code=404, detail="No viable strategy found")
+            
+            # Convert result to JSON-serializable format
+            from dataclasses import asdict
+            response_data = asdict(result)
+            response_data['success'] = True
+            response_data['optimal_strategy'] = optimal_strategy
+            response_data['ai_powered'] = False
+            response_data['insights'] = [
+                "Traditional optimization method used",
+                "Gemini AI unavailable - using simulation-based optimization"
+            ]
+            
+            return response_data
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Strategy optimization failed: {str(e)}")

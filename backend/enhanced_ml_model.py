@@ -15,6 +15,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import joblib
 import logging
 import os
+import pickle
 from typing import Dict, Tuple, List, Optional
 import warnings
 import optuna
@@ -33,9 +34,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class EnhancedF1MLModel:
-    def __init__(self, data_file: str = 'f1_data.csv'):
+    def __init__(self, use_fastf1_cache: bool = True):
         """Initialize the enhanced F1 ML model with ensemble methods"""
-        self.data_file = os.path.join(os.path.dirname(__file__), data_file)
+        self.use_fastf1_cache = use_fastf1_cache
+        self.cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
         self.models_dir = os.path.join(os.path.dirname(__file__), 'enhanced_models')
         os.makedirs(self.models_dir, exist_ok=True)
         
@@ -94,10 +96,15 @@ class EnhancedF1MLModel:
         """Load and prepare the F1 data with enhanced feature engineering"""
         logger.info("Loading F1 data...")
         
-        if not os.path.exists(self.data_file):
-            raise FileNotFoundError(f"Data file not found: {self.data_file}")
+        if self.use_fastf1_cache:
+            df = self._load_from_fastf1_cache()
+        else:
+            # Fallback to CSV (if it exists)
+            csv_file = os.path.join(os.path.dirname(__file__), 'f1_data.csv')
+            if not os.path.exists(csv_file):
+                raise FileNotFoundError(f"Data file not found: {csv_file}")
+            df = pd.read_csv(csv_file)
         
-        df = pd.read_csv(self.data_file)
         logger.info(f"Loaded {len(df)} records from {len(df['season'].unique())} seasons")
         
         # Data cleaning
@@ -105,11 +112,264 @@ class EnhancedF1MLModel:
         df['avg_lap_time'] = df['avg_lap_time'].fillna(df['avg_lap_time'].mean())
         df['gap_to_winner'] = df['gap_to_winner'].fillna(0)
         
+        # Add missing columns expected by enhanced features
+        df['grid_position'] = df['qualifying_position']  # Grid position same as qualifying position (simplified)
+        
         # Enhanced feature engineering
         df = self._engineer_enhanced_features(df)
         
         logger.info(f"Data prepared with {len(df)} records and {len(df.columns)} features")
         return df
+    
+    def _load_from_fastf1_cache(self) -> pd.DataFrame:
+        """Load data from FastF1 cache and convert to training format"""
+        import pickle
+        
+        all_data = []
+        seasons = ['2024', '2025']
+        
+        for season in seasons:
+            season_dir = os.path.join(self.cache_dir, season)
+            if not os.path.exists(season_dir):
+                logger.warning(f"Season {season} directory not found")
+                continue
+            
+            races_processed = 0
+            
+            # Process each race in the season
+            for race_folder in sorted(os.listdir(season_dir)):
+                race_path = os.path.join(season_dir, race_folder)
+                if not os.path.isdir(race_path):
+                    continue
+                
+                # Extract race info
+                race_name = race_folder.replace(f'{season}-', '').replace('_', ' ')
+                
+                # Process race sessions to get qualifying and race data
+                race_data = self._process_race_sessions_for_ml(race_path, season, race_name)
+                if race_data:
+                    all_data.extend(race_data)
+                    races_processed += 1
+            
+            logger.info(f"   Processed {races_processed} races from {season}")
+        
+        if not all_data:
+            raise ValueError("No data loaded from FastF1 cache")
+            
+        return pd.DataFrame(all_data)
+    
+    def _process_race_sessions_for_ml(self, race_path: str, season: str, race_name: str) -> List[Dict]:
+        """Process race sessions to extract ML training data"""
+        import pickle
+        
+        # 2025 season driver mapping
+        drivers_2025 = {
+            '1': {'code': 'VER', 'name': 'Max Verstappen', 'team': 'Red Bull Racing Honda RBPT'},
+            '22': {'code': 'TSU', 'name': 'Yuki Tsunoda', 'team': 'Red Bull Racing Honda RBPT'},
+            '44': {'code': 'HAM', 'name': 'Lewis Hamilton', 'team': 'Scuderia Ferrari'},
+            '16': {'code': 'LEC', 'name': 'Charles Leclerc', 'team': 'Scuderia Ferrari'},
+            '63': {'code': 'RUS', 'name': 'George Russell', 'team': 'Mercedes'},
+            '12': {'code': 'ANT', 'name': 'Kimi Antonelli', 'team': 'Mercedes'},
+            '4': {'code': 'NOR', 'name': 'Lando Norris', 'team': 'McLaren Mercedes'},
+            '81': {'code': 'PIA', 'name': 'Oscar Piastri', 'team': 'McLaren Mercedes'},
+            '14': {'code': 'ALO', 'name': 'Fernando Alonso', 'team': 'Aston Martin Aramco Mercedes'},
+            '18': {'code': 'STR', 'name': 'Lance Stroll', 'team': 'Aston Martin Aramco Mercedes'},
+            '10': {'code': 'GAS', 'name': 'Pierre Gasly', 'team': 'BWT Alpine F1 Team'},
+            '43': {'code': 'COL', 'name': 'Franco Colapinto', 'team': 'BWT Alpine F1 Team'},
+            '30': {'code': 'LAW', 'name': 'Liam Lawson', 'team': 'Racing Bulls F1 Team'},
+            '6': {'code': 'HAD', 'name': 'Isack Hadjar', 'team': 'Racing Bulls F1 Team'},
+            '55': {'code': 'SAI', 'name': 'Carlos Sainz', 'team': 'Williams Mercedes'},
+            '23': {'code': 'ALB', 'name': 'Alexander Albon', 'team': 'Williams Mercedes'},
+            '31': {'code': 'OCO', 'name': 'Esteban Ocon', 'team': 'MoneyGram Haas F1 Team'},
+            '38': {'code': 'BEA', 'name': 'Oliver Bearman', 'team': 'MoneyGram Haas F1 Team'},
+            '27': {'code': 'HUL', 'name': 'Nico Hülkenberg', 'team': 'Kick Sauber F1 Team'},
+            '5': {'code': 'BOR', 'name': 'Gabriel Bortoleto', 'team': 'Kick Sauber F1 Team'}
+        }
+        
+        race_data = []
+        qualifying_data = {}
+        race_results = {}
+        
+        try:
+            # Process each session in the race
+            for session_folder in os.listdir(race_path):
+                session_path = os.path.join(race_path, session_folder)
+                if not os.path.isdir(session_path):
+                    continue
+                
+                # Load timing data for this session
+                timing_file = os.path.join(session_path, 'timing_app_data.ff1pkl')
+                if not os.path.exists(timing_file):
+                    continue
+                
+                # Load weather data if available
+                weather_file = os.path.join(session_path, 'weather_data.ff1pkl')
+                weather_data = self._load_weather_data(weather_file)
+                
+                try:
+                    with open(timing_file, 'rb') as f:
+                        cache_data = pickle.load(f)
+                    
+                    if 'data' not in cache_data:
+                        continue
+                    
+                    timing_data = cache_data['data']
+                    if not hasattr(timing_data, 'iterrows'):
+                        continue
+                    
+                    # Determine session type and process
+                    if 'Qualifying' in session_folder:
+                        qualifying_data = self._extract_qualifying_results(timing_data, drivers_2025)
+                    elif 'Race' in session_folder:
+                        race_results = self._extract_race_results(timing_data, drivers_2025)
+                        
+                except Exception as e:
+                    logger.warning(f"Error processing session {session_folder}: {e}")
+                    continue
+            
+            # Combine qualifying and race data
+            if qualifying_data and race_results:
+                for driver_num, quali_data in qualifying_data.items():
+                    if driver_num in race_results:
+                        race_result = race_results[driver_num]
+                        
+                        # Create training record
+                        record = {
+                            'season': int(season),
+                            'race': race_name,
+                            'driver': quali_data['code'],
+                            'team': quali_data['team'],
+                            'qualifying_position': quali_data['position'],
+                            'race_position': race_result['position'],
+                            'avg_lap_time': race_result['avg_lap_time'],
+                            'best_lap_time': min(quali_data['best_lap'], race_result['best_lap']),
+                            'points': max(0, 25 - race_result['position'] + 1) if race_result['position'] <= 10 else 0,  # Simplified points
+                            'gap_to_winner': race_result['gap_to_winner'],
+                            'weather': weather_data['weather'],
+                            'temperature': weather_data['temperature'],
+                            'status': 'Finished'  # Default status - can be enhanced later
+                        }
+                        race_data.append(record)
+                        
+        except Exception as e:
+            logger.warning(f"Error processing race {race_name}: {e}")
+        
+        return race_data
+    
+    def _extract_qualifying_results(self, timing_data, drivers_2025) -> Dict:
+        """Extract qualifying positions from timing data"""
+        driver_best_times = {}
+        
+        for _, row in timing_data.iterrows():
+            driver_num = str(row.get('Driver', ''))
+            if not driver_num or driver_num == 'nan':
+                continue
+            
+            lap_time = row.get('LapTime')
+            if pd.notna(lap_time):
+                if driver_num not in driver_best_times:
+                    driver_best_times[driver_num] = {'best_lap': lap_time, 'laps': []}
+                
+                driver_best_times[driver_num]['laps'].append(lap_time)
+                if lap_time < driver_best_times[driver_num]['best_lap']:
+                    driver_best_times[driver_num]['best_lap'] = lap_time
+        
+        # Sort by best lap time and assign positions
+        sorted_drivers = sorted(driver_best_times.items(), 
+                              key=lambda x: x[1]['best_lap'])
+        
+        qualifying_results = {}
+        for position, (driver_num, data) in enumerate(sorted_drivers, 1):
+            driver_info = drivers_2025.get(driver_num, {
+                'code': f'D{driver_num}', 'name': f'Driver {driver_num}', 'team': 'Unknown Team'
+            })
+            
+            qualifying_results[driver_num] = {
+                'position': position,
+                'best_lap': data['best_lap'].total_seconds(),
+                'code': driver_info['code'],
+                'team': driver_info['team']
+            }
+        
+        return qualifying_results
+    
+    def _extract_race_results(self, timing_data, drivers_2025) -> Dict:
+        """Extract race positions from timing data"""
+        driver_lap_times = {}
+        
+        for _, row in timing_data.iterrows():
+            driver_num = str(row.get('Driver', ''))
+            if not driver_num or driver_num == 'nan':
+                continue
+            
+            lap_time = row.get('LapTime')
+            if pd.notna(lap_time):
+                if driver_num not in driver_lap_times:
+                    driver_lap_times[driver_num] = []
+                driver_lap_times[driver_num].append(lap_time)
+        
+        # Calculate average lap times and sort
+        driver_avg_times = {}
+        for driver_num, lap_times in driver_lap_times.items():
+            if lap_times:
+                avg_time = sum(lap_times, pd.Timedelta(0)) / len(lap_times)
+                best_time = min(lap_times)
+                driver_avg_times[driver_num] = {
+                    'avg_lap_time': avg_time.total_seconds(),
+                    'best_lap': best_time.total_seconds(),
+                    'total_laps': len(lap_times)
+                }
+        
+        # Sort by average lap time and assign positions
+        sorted_drivers = sorted(driver_avg_times.items(), 
+                              key=lambda x: x[1]['avg_lap_time'])
+        
+        race_results = {}
+        winner_time = sorted_drivers[0][1]['avg_lap_time'] if sorted_drivers else 0
+        
+        for position, (driver_num, data) in enumerate(sorted_drivers, 1):
+            race_results[driver_num] = {
+                'position': position,
+                'avg_lap_time': data['avg_lap_time'],
+                'best_lap': data['best_lap'],
+                'gap_to_winner': data['avg_lap_time'] - winner_time
+            }
+        
+        return race_results
+    
+    def _load_weather_data(self, weather_file: str) -> Dict:
+        """Load weather data from FastF1 cache file"""
+        if not os.path.exists(weather_file):
+            return {'weather': 'Dry', 'temperature': 25.0, 'humidity': 50.0, 'rainfall': False}
+        
+        try:
+            with open(weather_file, 'rb') as f:
+                weather_cache = pickle.load(f)
+            
+            if 'data' not in weather_cache:
+                return {'weather': 'Dry', 'temperature': 25.0, 'humidity': 50.0, 'rainfall': False}
+            
+            weather_data = weather_cache['data']
+            
+            # Extract weather metrics (average over session)
+            if hasattr(weather_data, 'mean'):
+                avg_temp = weather_data.get('AirTemp', pd.Series([25.0])).mean()
+                avg_humidity = weather_data.get('Humidity', pd.Series([50.0])).mean()
+                has_rain = weather_data.get('Rainfall', pd.Series([False])).any()
+                
+                weather_condition = 'Wet' if has_rain else 'Dry'
+                
+                return {
+                    'weather': weather_condition,
+                    'temperature': float(avg_temp) if pd.notna(avg_temp) else 25.0,
+                    'humidity': float(avg_humidity) if pd.notna(avg_humidity) else 50.0,
+                    'rainfall': bool(has_rain)
+                }
+            
+        except Exception as e:
+            logger.warning(f"Error loading weather data: {e}")
+        
+        return {'weather': 'Dry', 'temperature': 25.0, 'humidity': 50.0, 'rainfall': False}
     
     def _engineer_enhanced_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Create comprehensive features including rivalries and team dynamics"""
@@ -118,9 +378,16 @@ class EnhancedF1MLModel:
         # Sort by season and race for time-series features
         df = df.sort_values(['season', 'race', 'qualifying_position'])
         
-        # Enhanced track characteristics
+        # Enhanced track characteristics - convert to numeric values
+        track_char_mapping = {
+            'low': 1, 'medium': 2, 'high': 3,
+            'street': 1, 'permanent': 2, 'hybrid': 3,
+            'easy': 1, 'hard': 3
+        }
+        
         for char in ['type', 'difficulty', 'speed', 'overtaking', 'elevation_change', 'tire_deg']:
-            df[f'track_{char}'] = df['race'].map(lambda x: self.track_characteristics.get(x, {}).get(char, 'medium'))
+            track_values = df['race'].map(lambda x: self.track_characteristics.get(x, {}).get(char, 'medium'))
+            df[f'track_{char}'] = track_values.map(lambda x: track_char_mapping.get(x, 2))
         
         # Historical performance features (existing)
         df['driver_historical_quali_avg'] = df.groupby('driver')['qualifying_position'].transform(

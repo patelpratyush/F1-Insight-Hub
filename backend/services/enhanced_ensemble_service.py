@@ -275,7 +275,15 @@ class EnhancedEnsembleF1PredictionService:
             # Qualifying predictions
             quali_predictions = {}
             for name, model in self.qualifying_models.items():
-                quali_predictions[name] = model.predict(features_scaled)[0]
+                # Skip non-model entries
+                if not hasattr(model, 'predict'):
+                    continue
+                    
+                prediction = model.predict(features_scaled)
+                if isinstance(prediction, (list, np.ndarray)) and len(prediction) > 0:
+                    quali_predictions[name] = prediction[0]
+                else:
+                    quali_predictions[name] = prediction
             
             # Calculate weighted average for qualifying
             if len(quali_predictions) > 1:
@@ -287,7 +295,15 @@ class EnhancedEnsembleF1PredictionService:
             # Race predictions
             race_predictions = {}
             for name, model in self.race_models.items():
-                race_predictions[name] = model.predict(features_scaled)[0]
+                # Skip non-model entries
+                if not hasattr(model, 'predict'):
+                    continue
+                    
+                prediction = model.predict(features_scaled)
+                if isinstance(prediction, (list, np.ndarray)) and len(prediction) > 0:
+                    race_predictions[name] = prediction[0]
+                else:
+                    race_predictions[name] = prediction
             
             # Calculate weighted average for race
             if len(race_predictions) > 1:

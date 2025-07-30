@@ -1,8 +1,8 @@
 {
-  "enhanced_qualifying_mae": 0.25738694070258517,
-  "enhanced_race_mae": 1.119913735595404,
+  "enhanced_qualifying_mae": 0.223132705352416,
+  "enhanced_race_mae": 0.371421631501591,
   "baseline_qualifying_mae": 0.359,
   "baseline_race_mae": 1.638,
-  "qualifying_improvement_pct": 28.30447334189828,
-  "race_improvement_pct": 31.629198071098646
+  "qualifying_improvement_pct": 37.84604307732145,
+  "race_improvement_pct": 77.3246867215146
 }

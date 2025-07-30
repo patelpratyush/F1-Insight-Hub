@@ -15,6 +15,7 @@ import WeatherContextPanel from "@/components/WeatherContextPanel";
 import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
 import StaggeredAnimation from "@/components/StaggeredAnimation";
 import { drivers2025, driverCodes } from "@/data/drivers2025";
+import { trackNames } from "@/data/tracks2025";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   LineChart,
@@ -33,7 +34,7 @@ import {
 } from 'recharts';
 
 const TelemetryAnalyzer = () => {
-  const [selectedSeason, setSelectedSeason] = useState("2024");
+  const [selectedSeason, setSelectedSeason] = useState("2025");
   const [selectedGP, setSelectedGP] = useState("");
   const [selectedSession, setSelectedSession] = useState("Qualifying"); // Start with Qualifying as most representative
   const [selectedDriver, setSelectedDriver] = useState("");
@@ -242,7 +243,13 @@ const TelemetryAnalyzer = () => {
   };
 
   // Get race options from API data
-  const raceOptions = availableRaces?.available_races || [];
+  // Hybrid approach: Filter API races against standard 2025 track list for consistency
+  const apiRaces = availableRaces?.available_races || [];
+  const raceOptions = apiRaces.filter(race => 
+    trackNames.some(trackName => 
+      race.race_name === trackName || race.race_name.includes(trackName.replace(' Grand Prix', ''))
+    )
+  );
 
   // Helper function to format lap time
   const formatLapTime = (seconds) => {
@@ -369,21 +376,22 @@ const TelemetryAnalyzer = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">Driver</label>
                   <Select value={selectedDriver} onValueChange={setSelectedDriver}>
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                      <SelectValue placeholder="Select driver" />
+                      <SelectValue placeholder="Select driver">
+                        {selectedDriver && (
+                          <span>
+                            {drivers2025.find(d => d.id === selectedDriver)?.name || selectedDriver}
+                          </span>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
                       {drivers.map((driverCode) => {
                         const driverInfo = drivers2025.find(d => d.id === driverCode);
                         return (
                           <SelectItem key={driverCode} value={driverCode} className="text-white hover:bg-gray-600">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-medium">{driverCode}</span>
-                              {driverInfo && (
-                                <>
-                                  <span className="text-gray-400">- {driverInfo.name}</span>
-                                  <span className="text-xs text-gray-500">#{driverInfo.number} - {driverInfo.team}</span>
-                                </>
-                              )}
+                            <div className="flex flex-col">
+                              <span className="font-medium">{driverInfo?.name || driverCode}</span>
+                              <span className="text-xs text-gray-400">#{driverInfo?.number} - {driverInfo?.team}</span>
                             </div>
                           </SelectItem>
                         );
@@ -1137,21 +1145,22 @@ const TelemetryAnalyzer = () => {
                               <label className="block text-sm font-medium text-gray-300 mb-2">Driver 1</label>
                               <Select value={selectedDriver} onValueChange={setSelectedDriver}>
                                 <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                                  <SelectValue placeholder="Select first driver" />
+                                  <SelectValue placeholder="Select first driver">
+                                    {selectedDriver && (
+                                      <span>
+                                        {drivers2025.find(d => d.id === selectedDriver)?.name || selectedDriver}
+                                      </span>
+                                    )}
+                                  </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="bg-gray-700 border-gray-600">
                                   {drivers.map((driverCode) => {
                                     const driverInfo = drivers2025.find(d => d.id === driverCode);
                                     return (
                                       <SelectItem key={driverCode} value={driverCode} className="text-white hover:bg-gray-600">
-                                        <div className="flex items-center space-x-2">
-                                          <span className="font-medium">{driverCode}</span>
-                                          {driverInfo && (
-                                            <>
-                                              <span className="text-gray-400">- {driverInfo.name}</span>
-                                              <span className="text-xs text-gray-500">#{driverInfo.number} - {driverInfo.team}</span>
-                                            </>
-                                          )}
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{driverInfo?.name || driverCode}</span>
+                                          <span className="text-xs text-gray-400">#{driverInfo?.number} - {driverInfo?.team}</span>
                                         </div>
                                       </SelectItem>
                                     );
@@ -1163,21 +1172,22 @@ const TelemetryAnalyzer = () => {
                               <label className="block text-sm font-medium text-gray-300 mb-2">Driver 2</label>
                               <Select value={selectedDriver2} onValueChange={setSelectedDriver2}>
                                 <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                                  <SelectValue placeholder="Select second driver" />
+                                  <SelectValue placeholder="Select second driver">
+                                    {selectedDriver2 && (
+                                      <span>
+                                        {drivers2025.find(d => d.id === selectedDriver2)?.name || selectedDriver2}
+                                      </span>
+                                    )}
+                                  </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="bg-gray-700 border-gray-600">
                                   {drivers.filter(d => d !== selectedDriver).map((driverCode) => {
                                     const driverInfo = drivers2025.find(d => d.id === driverCode);
                                     return (
                                       <SelectItem key={driverCode} value={driverCode} className="text-white hover:bg-gray-600">
-                                        <div className="flex items-center space-x-2">
-                                          <span className="font-medium">{driverCode}</span>
-                                          {driverInfo && (
-                                            <>
-                                              <span className="text-gray-400">- {driverInfo.name}</span>
-                                              <span className="text-xs text-gray-500">#{driverInfo.number} - {driverInfo.team}</span>
-                                            </>
-                                          )}
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{driverInfo?.name || driverCode}</span>
+                                          <span className="text-xs text-gray-400">#{driverInfo?.number} - {driverInfo?.team}</span>
                                         </div>
                                       </SelectItem>
                                     );

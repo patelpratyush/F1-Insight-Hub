@@ -2,6 +2,7 @@
 """
 F1 Race Strategy Simulation Service
 Advanced Monte Carlo simulation engine for F1 race strategy optimization
+Enhanced with ML ensemble predictions for improved accuracy
 """
 
 import uuid
@@ -14,6 +15,8 @@ from datetime import datetime
 import logging
 import os
 import json
+
+from .enhanced_ensemble_service import EnhancedEnsembleF1PredictionService
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +81,29 @@ class F1StrategySimulator:
         self.driver_ratings = self._load_driver_ratings()
         self.team_pit_stop_times = self._initialize_pit_stop_data()
         
+        # Initialize enhanced ML ensemble service
+        try:
+            self.ml_service = EnhancedEnsembleF1PredictionService()
+            self.ml_prediction_cache = {}  # Cache ML predictions to avoid repeated calls
+            logger.info("Enhanced ML ensemble service initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize ML service: {e}")
+            self.ml_service = None
+            self.ml_prediction_cache = {}
+            
+        # Weather value mapping for backwards compatibility
+        self.weather_mapping = {
+            "clear": "dry",
+            "overcast": "dry", 
+            "light_rain": "light_rain",
+            "heavy_rain": "wet",
+            "mixed": "mixed"
+        }
+    
+    def _normalize_weather(self, weather: str) -> str:
+        """Normalize weather values to internal format"""
+        return self.weather_mapping.get(weather.lower(), weather.lower())
+        
     def _initialize_tire_compounds(self) -> Dict[str, TireCompound]:
         """Initialize tire compound characteristics"""
         return {
@@ -127,6 +153,7 @@ class F1StrategySimulator:
         """Initialize track-specific characteristics"""
         return {
             "Monaco": {
+                "name": "Monaco Grand Prix",
                 "lap_distance": 3.337,
                 "total_laps": 78,
                 "pit_loss": 23.5,
@@ -136,6 +163,7 @@ class F1StrategySimulator:
                 "drs_zones": 1
             },
             "Silverstone": {
+                "name": "British Grand Prix",
                 "lap_distance": 5.891,
                 "total_laps": 52,
                 "pit_loss": 18.2,
@@ -145,6 +173,7 @@ class F1StrategySimulator:
                 "drs_zones": 3
             },
             "Monza": {
+                "name": "Italian Grand Prix",
                 "lap_distance": 5.793,
                 "total_laps": 53,
                 "pit_loss": 19.8,
@@ -154,6 +183,7 @@ class F1StrategySimulator:
                 "drs_zones": 3
             },
             "Spa-Francorchamps": {
+                "name": "Belgian Grand Prix",
                 "lap_distance": 7.004,
                 "total_laps": 44,
                 "pit_loss": 22.1,
@@ -163,6 +193,7 @@ class F1StrategySimulator:
                 "drs_zones": 2
             },
             "Suzuka": {
+                "name": "Japanese Grand Prix",
                 "lap_distance": 5.807,
                 "total_laps": 53,
                 "pit_loss": 20.5,
@@ -242,7 +273,7 @@ class F1StrategySimulator:
         qualifying_position: int = 10,
         team: str = "Red Bull Racing",
         temperature: float = 25.0,
-        monte_carlo_iterations: int = 500
+        monte_carlo_iterations: int = 100
     ) -> StrategyResult:
         """
         Simulate a complete race strategy using Monte Carlo methods
@@ -263,6 +294,9 @@ class F1StrategySimulator:
         """
         logger.info(f"Simulating race strategy for {driver} at {track}")
         
+        # Normalize weather value
+        normalized_weather = self._normalize_weather(weather)
+        
         # Get track and tire data
         track_data = self.track_characteristics.get(track, self.track_characteristics["Monaco"])
         tire_sequence = tire_strategy.split("-")
@@ -273,7 +307,7 @@ class F1StrategySimulator:
         simulation_results = []
         for _ in range(monte_carlo_iterations):
             result = self._simulate_single_race(
-                driver, track_data, tire_sequence, weather, safety_car_probability,
+                driver, track_data, tire_sequence, normalized_weather, safety_car_probability,
                 qualifying_position, driver_rating, team_pit_data, temperature
             )
             simulation_results.append(result)
@@ -305,7 +339,7 @@ class F1StrategySimulator:
             pit_stops=pit_stops,
             timeline=timeline,
             optimization_metrics=self._calculate_optimization_metrics(simulation_results),
-            risk_analysis=self._calculate_risk_analysis(simulation_results, weather, safety_car_probability)
+            risk_analysis=self._calculate_risk_analysis(simulation_results, normalized_weather, safety_car_probability)
         )
         
         logger.info(f"Strategy simulation completed: {strategy_result.predicted_position} position, {strategy_result.efficiency_score:.1f}% efficiency")
@@ -367,11 +401,11 @@ class F1StrategySimulator:
                 stint_start = lap + 1
                 stint_number += 1
             
-            # Simulate lap time
+            # Simulate lap time with enhanced ML predictions
             base_lap_time = 90.0  # Base lap time in seconds
             lap_time = self._calculate_lap_time(
                 base_lap_time, current_tire, lap - stint_start + 1, weather, 
-                driver_rating, temperature, track_data
+                driver_rating, temperature, track_data, driver
             )
             
             # Safety car check
@@ -392,9 +426,26 @@ class F1StrategySimulator:
                 'avg_lap_time': np.mean(lap_times[stint_start-1:]) if lap_times else 90.0
             })
         
-        # Calculate final position (simplified)
-        time_penalty = (start_pos - 1) * 0.3  # Starting position penalty/advantage
-        final_position = max(1, min(20, start_pos + random.randint(-3, 3) + int(time_penalty)))
+        # Calculate final position with cached ML enhancement
+        cache_key = f"{driver}_{track_data.get('name')}_{weather}"
+        if cache_key in self.ml_prediction_cache and self.ml_prediction_cache[cache_key]:
+            ml_prediction = self.ml_prediction_cache[cache_key]
+            
+            # Use ML prediction as base with some variability
+            predicted_race_pos = ml_prediction.get('predicted_race_position', start_pos)
+            race_confidence = ml_prediction.get('race_confidence', 0.5)
+            
+            # Blend ML prediction with traditional calculation
+            time_penalty = (start_pos - 1) * 0.3
+            traditional_pos = max(1, min(20, start_pos + random.randint(-3, 3) + int(time_penalty)))
+            
+            # Weighted average based on ML confidence
+            final_position = int(race_confidence * predicted_race_pos + (1 - race_confidence) * traditional_pos)
+            final_position = max(1, min(20, final_position))
+        else:
+            # Traditional position calculation
+            time_penalty = (start_pos - 1) * 0.3
+            final_position = max(1, min(20, start_pos + random.randint(-3, 3) + int(time_penalty)))
         
         return {
             'total_seconds': total_time,
@@ -444,11 +495,59 @@ class F1StrategySimulator:
     
     def _calculate_lap_time(
         self, base_time: float, tire: str, tire_age: int, weather: str,
-        driver_rating: Dict, temperature: float, track_data: Dict
+        driver_rating: Dict, temperature: float, track_data: Dict, driver: str = None
     ) -> float:
-        """Calculate realistic lap time based on multiple factors"""
+        """Calculate realistic lap time with enhanced ML predictions"""
         
         tire_data = self.tire_compounds[tire]
+        
+        # Use cached ML-enhanced prediction if available
+        cache_key = f"{driver}_{track_data.get('name')}_{weather}"
+        if self.ml_service and driver and cache_key not in self.ml_prediction_cache:
+            try:
+                ml_prediction = self.ml_service.predict_driver_performance(
+                    driver, track_data.get('name', 'Monaco Grand Prix'), weather
+                )
+                self.ml_prediction_cache[cache_key] = ml_prediction
+                logger.debug(f"Cached ML prediction for {cache_key}")
+                
+            except Exception as e:
+                logger.warning(f"ML prediction failed, using traditional method: {e}")
+                self.ml_prediction_cache[cache_key] = None
+        
+        # Apply ML enhancement or traditional calculation
+        if cache_key in self.ml_prediction_cache and self.ml_prediction_cache[cache_key]:
+            ml_prediction = self.ml_prediction_cache[cache_key]
+            
+            # Extract useful performance factors (simplified for lap time)
+            race_confidence = ml_prediction.get('race_confidence', 0.5)
+            
+            # Use a simple performance modifier based on ML prediction
+            performance_modifier = 1.0 - (race_confidence - 0.5) * 0.1  # Modest adjustment
+            
+            # Enhanced base calculation with ML insights
+            lap_time = base_time + tire_data.base_lap_time
+            lap_time *= performance_modifier
+            
+            # Traditional tire degradation and weather
+            degradation = tire_data.degradation_rate * tire_age
+            lap_time += degradation * (2.0 - driver_rating.get('tire_management', 0.85))
+            
+            weather_mult = tire_data.weather_multiplier.get(weather, 1.0)
+            lap_time *= weather_mult
+        else:
+            # Traditional calculation
+            lap_time = self._traditional_lap_time_calculation(
+                base_time, tire_data, tire_age, weather, driver_rating, temperature
+            )
+        
+        return max(lap_time, base_time * 0.8)  # Sanity check - minimum lap time
+    
+    def _traditional_lap_time_calculation(
+        self, base_time: float, tire_data, tire_age: int, weather: str,
+        driver_rating: Dict, temperature: float
+    ) -> float:
+        """Traditional lap time calculation method"""
         
         # Base tire performance
         lap_time = base_time + tire_data.base_lap_time

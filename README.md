@@ -8,25 +8,34 @@ F1 Insight Hub delivers the most comprehensive F1 analysis system available, fea
 
 ## ✨ Features
 
+### 🏆 **Enhanced F1 Dashboard**
+- **Real-time 2025 F1 Championship**: Live standings with Oscar Piastri leading McLaren's title charge
+- **Performance Trends Analysis**: Toggle between last 5 races or full season data with driver selection
+- **Latest Race Results**: Belgium Grand Prix 2025 podium (Piastri, Norris, Leclerc)
+- **Weather Impact Analysis**: Driver performance comparison across different weather conditions
+- **Championship Pressure Visualization**: Advanced pressure metrics with mathematical championship possibilities
+- **Responsive Card Layout**: Perfectly balanced dashboard with consistent card sizing
+
 ### 🤖 **Enhanced Race Predictions**
 - **Full Race Grid Predictions**: Predict all 20 drivers' positions with confidence scoring
 - **Individual Driver Analysis**: Detailed qualifying and race forecasts with weather impact
-- **Data-Driven Performance**: Ratings calculated from 700+ historical race records
+- **Data-Driven Performance**: Ratings calculated from 718+ historical race records (2024-2025)
 - **Realistic F1 Modeling**: 70% car performance, 30% driver skill (authentic F1 balance)
 - **Advanced Weather System**: 9 weather conditions including mixed/changing conditions
+- **Enhanced Ensemble Models**: XGBoost + Random Forest + Neural Networks with Optuna optimization
 
 ### 📊 **Advanced Telemetry Analysis**
 - **Multi-Variable Overlap Graphs**: Compare 6 telemetry variables simultaneously
 - **Session Type Support**: Practice (FP2, FP3), Qualifying (Q, SQ), Sprint (S), Race (R)
 - **Customizable Graph UI**: 4 chart types, 4 color schemes, multi-axis configuration
 - **Speed Trace Analysis**: Detailed lap-by-lap telemetry visualization
-- **FastF1 Integration**: Real telemetry data from 2024-2025 seasons
+- **FastF1 Integration**: Real telemetry data from 2024-2025 seasons with caching
 
 ### 🎨 **Professional Animated Interface**
 - **Smooth Page Transitions**: Elegant fade-in animations with staggered timing
 - **Interactive Visualizations**: Real-time graph customization with animated transitions
 - **Animated Background Elements**: Dynamic floating orbs with F1-themed color schemes
-- **Driver Comparison Mode**: Side-by-side telemetry analysis with smooth animations
+- **Enhanced Error Handling**: Loading spinners, error displays, and retry mechanisms
 - **Responsive Design**: Seamless desktop and mobile experience with consistent animations
 - **Modern UI Components**: Built with shadcn/ui and Tailwind CSS with custom animation system
 - **Authentic F1 Styling**: Racing-inspired design with professional aesthetics and motion
@@ -78,18 +87,17 @@ npm run dev
 # 1. Navigate to backend
 cd backend
 
-# 2. Install dependencies (lightweight option)
-pip install -r requirements-base.txt
-
-# OR install full ML suite (includes TensorFlow/PyTorch)
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Download F1 data (uses Google Drive cache)
-python download_current_data.py
+# 3. Create environment file (optional)
+cp .env.example .env
+# Edit .env with your Google Drive cache file ID if available
 
 # 4. Start API server
 python main.py
 # Backend runs on http://localhost:8000
+# FastF1 cache will be automatically initialized on first run
 ```
 
 ## 🏗️ Application Architecture
@@ -97,9 +105,12 @@ python main.py
 ### Frontend Pages & Features
 
 #### **📈 Dashboard (`/`)**
-- Upcoming race predictions and quick analysis
-- Recent telemetry session summaries
-- Performance trend visualizations
+- **Real-time Championship Standings**: 2025 F1 season with Piastri leading at 266 points
+- **Performance Trends Chart**: Interactive line chart with Last 5/All Races toggle and driver selection
+- **Latest Race Results**: Belgium GP 2025 podium results with lap times and statistics
+- **Weather Impact Analysis**: Bar chart showing driver performance across different weather conditions
+- **Championship Pressure Visualization**: Advanced pressure metrics for top 6 championship contenders
+- **Responsive Card Layout**: Perfectly sized cards with consistent spacing and professional styling
 
 #### **🎯 Driver Predictor (`/predictor`)**
 - Individual driver performance predictions
@@ -128,9 +139,13 @@ python main.py
 src/
 ├── components/
 │   ├── ui/                           # shadcn/ui premium components
+│   │   ├── loading-spinner.tsx       # Reusable loading spinner component
+│   │   ├── error-display.tsx         # Enhanced error display with retry functionality
+│   │   └── data-wrapper.tsx          # Wrapper component for loading states and error handling
 │   ├── Layout.tsx                    # Main app layout with navigation
 │   ├── AnimatedPageWrapper.tsx       # Reusable page transition animations
 │   ├── StaggeredAnimation.tsx        # List/grid item staggered animations
+│   ├── ChampionshipPressureChart.tsx # Advanced championship pressure visualization
 │   ├── TelemetryOverlapGraphs.tsx    # Multi-variable telemetry visualization
 │   ├── TelemetrySpeedTrace.tsx       # Speed trace analysis component
 │   ├── GraphCustomizationPanel.tsx   # Graph styling and configuration
@@ -145,6 +160,7 @@ src/
 │   ├── StrategySimulator.tsx         # Race strategy optimization (animated)
 │   └── NotFound.tsx                  # Enhanced 404 page (animated)
 ├── hooks/
+│   ├── useApiCall.ts                 # Enhanced API call hook with loading states, error handling, and retry logic
 │   ├── useGraphCustomization.ts      # Graph styling state management
 │   └── useTelemetryData.ts           # Telemetry API integration
 └── lib/
@@ -592,6 +608,14 @@ COPY requirements.txt .
 
 ## 🏆 Key Achievements
 
+### Enhanced F1 Dashboard
+- ✅ **Real-time 2025 F1 Championship** with live standings showing Piastri's McLaren title lead
+- ✅ **Interactive Performance Trends** with Last 5/All Races toggle and multi-driver selection
+- ✅ **Weather Impact Analysis** with driver performance comparison across weather conditions
+- ✅ **Championship Pressure Visualization** showing mathematical championship possibilities
+- ✅ **Responsive Card Layout** with perfectly balanced sizing and professional aesthetics
+- ✅ **Enhanced Error Handling** with loading states, error displays, and retry mechanisms
+
 ### Advanced Telemetry Visualization
 - ✅ **Multi-variable overlap graphs** with 6 telemetry variables
 - ✅ **Customizable graph UI** with 4 chart types and color schemes
@@ -608,15 +632,15 @@ COPY requirements.txt .
 
 ### Production-Ready Architecture
 - ✅ **FastF1 integration** with real telemetry data from 2024-2025
-- ✅ **Google Drive caching** for faster data loading
+- ✅ **FastF1 cache optimization** with automatic initialization and error handling
 - ✅ **Ensemble ML models** with XGBoost + Random Forest + Neural Networks
-- ✅ **Docker optimization** with lightweight and full deployment options
-- ✅ **Multi-platform deployment** support for Fly.io, Railway, DigitalOcean
+- ✅ **Enhanced API architecture** with comprehensive FastF1 championship service
+- ✅ **Multi-platform deployment** support for various cloud providers
 
 ### Data-Driven Intelligence
 - ✅ **718+ race records** from complete 2024-2025 seasons with enhanced ML models
 - ✅ **Realistic F1 modeling** with 70% car, 30% driver balance and advanced feature engineering
-- ✅ **Advanced weather system** with mixed/changing conditions and temperature effects
+- ✅ **Advanced weather system** with realistic driver-specific weather performance data
 - ✅ **Driver-specific skills** modeling wet weather expertise and momentum trends
 - ✅ **Enhanced confidence scoring** with ensemble model variance analysis and Optuna optimization
 

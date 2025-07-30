@@ -12,14 +12,15 @@ FastAPI backend providing F1 race predictions, telemetry analysis, and comprehen
 - **Weather Modeling**: 9 weather conditions with driver-specific wet weather performance
 - **Time-Series Features**: 3-lap and 5-lap momentum indicators for form analysis
 
-### **📊 Telemetry Analysis**
+### **📊 Real-time F1 Dashboard & Analysis**
+- **2025 F1 Championship Service**: Live championship standings with comprehensive race results
+- **Weather Impact Analysis**: Driver-specific performance modeling across different weather conditions  
+- **Performance Trends**: Last 5 races vs full season analysis with points breakdown
+- **Championship Pressure Metrics**: Advanced pressure calculations for mathematical championship possibilities
 - **FastF1 Integration**: Real telemetry data from 2024-2025 seasons with comprehensive corner annotations
 - **Multi-Variable Analysis**: Speed, throttle, brake, gear, RPM, DRS, tire data with overlap visualization
 - **Session Support**: Practice (FP2, FP3), Qualifying (Q, SQ), Sprint (S), Race (R) with session-specific insights
-- **Interactive Track Maps**: Speed-colored racing lines with real-time playback
-- **Driver Comparisons**: Side-by-side telemetry analysis with gap calculations
-- **Weather Context**: Integration with session weather conditions and track temperature
-- **Google Drive Cache**: Pre-cached telemetry for sub-200ms response times
+- **FastF1 Cache Optimization**: Automatic cache initialization with error handling and fallback data
 
 ### **🏁 Race Predictions**
 - **Individual Driver Predictions**: Position and confidence scoring with enhanced feature engineering
@@ -112,6 +113,43 @@ Uses `requirements.txt` - includes all ML models with TensorFlow/PyTorch:
 - ✅ Advanced hyperparameter optimization
 
 ## 🔌 API Endpoints
+
+### F1 Dashboard APIs
+
+#### `GET /api/f1/dashboard/{year}`
+Complete dashboard data with championship standings, performance trends, and weather analysis:
+
+```bash
+curl "http://localhost:8000/api/f1/dashboard/2025"
+```
+
+#### `GET /api/f1/standings/{year}`
+Real-time championship standings:
+
+```bash
+curl "http://localhost:8000/api/f1/standings/2025"
+```
+
+#### `GET /api/f1/dashboard-trends/{year}?all_races=true`
+Performance trends with toggle for last 5 races or all races:
+
+```bash
+curl "http://localhost:8000/api/f1/dashboard-trends/2025?all_races=true"
+```
+
+#### `GET /api/f1/weather-analysis/{year}`
+Driver performance analysis by weather conditions:
+
+```bash
+curl "http://localhost:8000/api/f1/weather-analysis/2025"
+```
+
+#### `GET /api/f1/latest-race/{year}`
+Most recent race results and podium:
+
+```bash
+curl "http://localhost:8000/api/f1/latest-race/2025"
+```
 
 ### Core Prediction APIs
 
@@ -254,6 +292,8 @@ backend/
 │   ├── enhanced_ensemble_service.py        # Advanced ensemble models
 │   ├── enhanced_prediction_service.py      # Enhanced individual predictions
 │   ├── race_prediction_service.py          # Full race grid predictions
+│   ├── fastf1_service.py                   # FastF1 data integration and weather analysis
+│   ├── fastf1_championship_service.py      # 2025 F1 championship standings and race results
 │   ├── telemetry_analyzer_service.py       # Telemetry processing
 │   └── data_service.py                     # Data utilities
 ├── models/                              # Basic prediction models

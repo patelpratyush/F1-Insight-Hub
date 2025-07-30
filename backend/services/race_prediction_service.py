@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import os
 import logging
+import pickle
 from typing import Dict, List, Optional, Tuple
 from .enhanced_ensemble_service import enhanced_ensemble_service
 import warnings
@@ -22,6 +23,7 @@ class RacePredictionService:
         """Initialize the race prediction service"""
         self.ensemble_service = enhanced_ensemble_service
         self.data_file = os.path.join(os.path.dirname(__file__), '..', 'f1_data.csv')
+        self.fastf1_cache_dir = os.path.join(os.path.dirname(__file__), '..', 'cache')
         
         # Driver roster for 2025 season
         self.drivers_2025 = {
@@ -126,6 +128,9 @@ class RacePredictionService:
         
         # Load historical data for driver form analysis
         self._load_historical_data()
+        
+        # Load 2025 FastF1 cache data for accurate performance ratings
+        self._load_2025_fastf1_data()
     
     def _load_historical_data(self):
         """Load historical F1 data and calculate performance ratings"""
@@ -139,12 +144,323 @@ class RacePredictionService:
                 self._calculate_driver_performance_ratings()
                 
             else:
-                logger.warning("Historical data file not found")
+                logger.warning("Historical data file not found - will rely on 2025 FastF1 data")
                 self.historical_data = pd.DataFrame()
-                self._set_fallback_ratings()
+                # Don't set fallback ratings here - let 2025 data take priority
         except Exception as e:
             logger.error(f"Error loading historical data: {e}")
             self.historical_data = pd.DataFrame()
+            # Don't set fallback ratings here - let 2025 data take priority
+    
+    def _load_2025_fastf1_data(self):
+        """Load and analyze 2025 FastF1 cache data for accurate performance ratings"""
+        try:
+            # Use the standardized cache directory
+            cache_dir = self.fastf1_cache_dir
+            
+            if not os.path.exists(cache_dir):
+                logger.warning(f"FastF1 cache directory not found: {cache_dir}")
+                return
+            
+            # Look for 2025 race data
+            year_2025_dir = os.path.join(cache_dir, '2025')
+            if not os.path.exists(year_2025_dir):
+                logger.warning("No 2025 FastF1 data found")
+                return
+            
+            race_results = []
+            races_processed = 0
+            
+            # Process each 2025 race
+            for race_folder in sorted(os.listdir(year_2025_dir)):
+                race_path = os.path.join(year_2025_dir, race_folder)
+                if not os.path.isdir(race_path):
+                    continue
+                    
+                # Look for race session data
+                for session_folder in sorted(os.listdir(race_path)):
+                    if session_folder.endswith('_Race'):
+                        session_path = os.path.join(race_path, session_folder)
+                        
+                        # Load timing app data (most reliable for race results)
+                        timing_file = os.path.join(session_path, 'timing_app_data.ff1pkl')
+                        if os.path.exists(timing_file):
+                            try:
+                                with open(timing_file, 'rb') as f:
+                                    cache_data = pickle.load(f)
+                                
+                                if 'data' in cache_data:
+                                    timing_data = cache_data['data']
+                                    race_name = race_folder.replace('2025-', '').replace('_', ' ')
+                                    race_date = race_folder.split('_')[0]
+                                    
+                                    # Process timing data to extract race results
+                                    self._process_fastf1_timing_data(timing_data, race_name, race_date, race_results)
+                                    races_processed += 1
+                                    logger.info(f"Loaded 2025 race data: {race_name}")
+                                    
+                            except Exception as e:
+                                logger.warning(f"Could not load timing data from {timing_file}: {e}")
+                        
+                        break  # Only process main race, not sprint
+            
+            if race_results:
+                self.race_2025_results = pd.DataFrame(race_results)
+                logger.info(f"Successfully loaded {len(race_results)} driver results from {races_processed} 2025 races")
+                
+                # Calculate 2025-specific performance ratings
+                self._calculate_2025_performance_ratings()
+            else:
+                logger.warning("No 2025 race results found in FastF1 cache - using fallback ratings")
+                self._set_fallback_ratings()
+                
+        except Exception as e:
+            logger.error(f"Error loading 2025 FastF1 data: {e}")
+    
+    def _process_fastf1_timing_data(self, timing_data, race_name, race_date, race_results):
+        """Process FastF1 timing app data to extract race results"""
+        try:
+            if not hasattr(timing_data, 'empty') or timing_data.empty:
+                return
+            
+            # Group by driver and get their final position and best lap times
+            driver_results = {}
+            
+            for _, row in timing_data.iterrows():
+                driver_num = str(row.get('Driver', ''))
+                if driver_num and driver_num != 'nan':
+                    lap_number = row.get('LapNumber', 0)
+                    
+                    # Only consider valid race laps (not outlaps, practice, etc.)
+                    if pd.notna(lap_number) and lap_number > 0:
+                        if driver_num not in driver_results:
+                            driver_results[driver_num] = {
+                                'lap_times': [],
+                                'compounds': [],
+                                'stints': []
+                            }
+                        
+                        # Collect lap time if valid
+                        lap_time = row.get('LapTime')
+                        if pd.notna(lap_time):
+                            driver_results[driver_num]['lap_times'].append(lap_time)
+                        
+                        # Collect tire compound
+                        compound = row.get('Compound', '')
+                        if compound:
+                            driver_results[driver_num]['compounds'].append(compound)
+                        
+                        # Collect stint info
+                        stint = row.get('Stint', 0)
+                        if pd.notna(stint):
+                            driver_results[driver_num]['stints'].append(stint)
+            
+            # Map driver numbers to codes and calculate positions
+            final_results = []
+            for driver_num, data in driver_results.items():
+                if data['lap_times']:  # Only include drivers who completed laps
+                    # Find driver code from our 2025 roster
+                    driver_code = None
+                    driver_name = None
+                    team = None
+                    
+                    for code, info in self.drivers_2025.items():
+                        if str(info['number']) == driver_num:
+                            driver_code = code
+                            driver_name = info['name']
+                            team = info['team']
+                            break
+                    
+                    if driver_code:
+                        # Calculate average lap time for performance assessment
+                        avg_lap_time = sum(data['lap_times'], pd.Timedelta(0)) / len(data['lap_times'])
+                        best_lap_time = min(data['lap_times']) if data['lap_times'] else pd.Timedelta(0)
+                        
+                        final_results.append({
+                            'driver_code': driver_code,
+                            'driver_name': driver_name,
+                            'team': team,
+                            'avg_lap_time': avg_lap_time,
+                            'best_lap_time': best_lap_time,
+                            'total_laps': len(data['lap_times']),
+                            'compounds_used': len(set(data['compounds'])) if data['compounds'] else 1,
+                            'stints': max(data['stints']) if data['stints'] else 1
+                        })
+            
+            # Sort by average lap time to assign positions (fastest first)
+            final_results.sort(key=lambda x: x['avg_lap_time'])
+            
+            # Create race results with positions
+            for position, result in enumerate(final_results, 1):
+                race_results.append({
+                    'race_name': race_name,
+                    'race_date': race_date,
+                    'driver': result['driver_code'],
+                    'driver_name': result['driver_name'],
+                    'team': result['team'],
+                    'position': position,
+                    'grid_position': position,  # Approximation
+                    'points': self._calculate_points_for_position(position),
+                    'status': 'Finished',
+                    'avg_lap_time': result['avg_lap_time'].total_seconds(),
+                    'best_lap_time': result['best_lap_time'].total_seconds(),
+                    'total_laps': result['total_laps'],
+                    'compounds_used': result['compounds_used'],
+                    'stints': result['stints']
+                })
+                
+        except Exception as e:
+            logger.warning(f"Error processing FastF1 timing data for {race_name}: {e}")
+    
+    def _process_position_data(self, position_data, race_name, race_date, race_results):
+        """Process FastF1 position data to extract race results"""
+        try:
+            # Position data is typically a DataFrame with driver positions over time
+            if hasattr(position_data, 'iloc') and len(position_data) > 0:
+                # Get final positions (last recorded positions)
+                final_positions = position_data.iloc[-1]
+                
+                for driver_code, position in final_positions.items():
+                    if pd.notna(position) and position > 0:
+                        race_results.append({
+                            'race_name': race_name,
+                            'race_date': race_date,
+                            'driver': driver_code,
+                            'driver_name': self.drivers_2025.get(driver_code, {}).get('name', driver_code),
+                            'team': self.drivers_2025.get(driver_code, {}).get('team', 'Unknown'),
+                            'position': int(position),
+                            'grid_position': int(position),  # Approximation
+                            'points': self._calculate_points_for_position(int(position)),
+                            'status': 'Finished'
+                        })
+        except Exception as e:
+            logger.warning(f"Error processing position data for {race_name}: {e}")
+    
+    def _process_timing_data(self, timing_data, race_name, race_date, race_results):
+        """Process FastF1 timing data to extract race results"""
+        try:
+            # Extended timing data contains detailed lap-by-lap information
+            if hasattr(timing_data, 'keys'):
+                for driver_code, driver_timing in timing_data.items():
+                    if isinstance(driver_timing, dict) and 'Position' in driver_timing:
+                        position = driver_timing.get('Position', 0)
+                        if position > 0:
+                            race_results.append({
+                                'race_name': race_name,
+                                'race_date': race_date,
+                                'driver': driver_code,
+                                'driver_name': self.drivers_2025.get(driver_code, {}).get('name', driver_code),
+                                'team': self.drivers_2025.get(driver_code, {}).get('team', 'Unknown'),
+                                'position': int(position),
+                                'grid_position': driver_timing.get('GridPosition', int(position)),
+                                'points': self._calculate_points_for_position(int(position)),
+                                'status': driver_timing.get('Status', 'Finished')
+                            })
+        except Exception as e:
+            logger.warning(f"Error processing timing data for {race_name}: {e}")
+    
+    def _calculate_points_for_position(self, position):
+        """Calculate F1 points for a given position"""
+        points_map = {
+            1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1
+        }
+        return points_map.get(position, 0)
+    
+    def _calculate_2025_performance_ratings(self):
+        """Calculate performance ratings from actual 2025 race results"""
+        if not hasattr(self, 'race_2025_results') or self.race_2025_results.empty:
+            logger.warning("No 2025 results available for performance calculation")
+            return
+        
+        try:
+            # Calculate team performance from 2025 results
+            team_stats = {}
+            
+            for team in self.race_2025_results['team'].unique():
+                if pd.isna(team) or team == '':
+                    continue
+                    
+                team_data = self.race_2025_results[self.race_2025_results['team'] == team]
+                
+                # Basic performance metrics
+                avg_position = team_data['position'].mean()
+                avg_grid = team_data['grid_position'].mean()
+                avg_points = team_data['points'].mean()
+                finish_rate = len(team_data[team_data['position'] > 0]) / len(team_data)
+                
+                # Calculate pace rating (inverse of average position, normalized)
+                # Best team (lowest avg position) gets highest rating
+                pace_rating = max(0.5, min(0.95, 1.0 - ((avg_position - 1) / 19) * 0.45))
+                
+                # Position gain/loss from grid to race
+                position_changes = team_data['position'] - team_data['grid_position']
+                avg_position_change = position_changes.mean()
+                strategy_rating = max(0.5, min(0.95, 0.75 + (avg_position_change * -0.03)))
+                
+                # Reliability rating
+                reliability = max(0.6, min(0.95, finish_rate))
+                
+                team_stats[team] = {
+                    'dry_pace': round(pace_rating, 3),
+                    'wet_pace': round(pace_rating * 0.98, 3),  # Slightly lower for wet
+                    'strategy': round(strategy_rating, 3),
+                    'reliability': round(reliability, 3),
+                    'avg_position': round(avg_position, 2),
+                    'avg_points': round(avg_points, 2)
+                }
+            
+            self.car_performance = team_stats
+            logger.info(f"Calculated 2025 performance ratings for {len(team_stats)} teams")
+            
+            # Log top teams
+            sorted_teams = sorted(team_stats.items(), key=lambda x: x[1]['dry_pace'], reverse=True)[:5]
+            logger.info("Top 5 teams by 2025 performance:")
+            for i, (team, stats) in enumerate(sorted_teams):
+                logger.info(f"  {i+1}. {team}: {stats['dry_pace']} pace (avg pos: {stats['avg_position']})")
+            
+            # Calculate driver performance from 2025 results
+            driver_stats = {}
+            
+            for driver in self.race_2025_results['driver_name'].unique():
+                if pd.isna(driver) or driver == '':
+                    continue
+                    
+                driver_data = self.race_2025_results[self.race_2025_results['driver_name'] == driver]
+                
+                # Basic performance metrics
+                avg_position = driver_data['position'].mean()
+                avg_grid = driver_data['grid_position'].mean()
+                avg_points = driver_data['points'].mean()
+                finish_rate = len(driver_data[driver_data['position'] > 0]) / len(driver_data)
+                
+                # Calculate skill rating
+                skill_rating = max(0.5, min(0.95, 1.0 - ((avg_position - 1) / 19) * 0.45))
+                
+                # Race craft (ability to gain positions)
+                position_changes = driver_data['position'] - driver_data['grid_position']
+                avg_position_change = position_changes.mean()
+                race_craft = max(0.5, min(0.95, 0.75 + (avg_position_change * -0.05)))
+                
+                driver_stats[driver] = {
+                    'overall_skill': round(skill_rating, 3),
+                    'wet_skill': round(skill_rating * 0.95, 3),  # Slightly lower for wet
+                    'race_craft': round(race_craft, 3),
+                    'strategy_execution': round(finish_rate, 3),
+                    'avg_position': round(avg_position, 2),
+                    'avg_points': round(avg_points, 2)
+                }
+            
+            self.driver_performance = driver_stats
+            logger.info(f"Calculated 2025 performance ratings for {len(driver_stats)} drivers")
+            
+            # Log top drivers
+            sorted_drivers = sorted(driver_stats.items(), key=lambda x: x[1]['overall_skill'], reverse=True)[:5]
+            logger.info("Top 5 drivers by 2025 performance:")
+            for i, (driver, stats) in enumerate(sorted_drivers):
+                logger.info(f"  {i+1}. {driver}: {stats['overall_skill']} skill (avg pos: {stats['avg_position']})")
+                
+        except Exception as e:
+            logger.error(f"Error calculating 2025 performance ratings: {e}")
             self._set_fallback_ratings()
     
     def _calculate_car_performance_ratings(self):
@@ -287,24 +603,127 @@ class RacePredictionService:
         self._set_fallback_driver_ratings()
     
     def _set_fallback_car_ratings(self):
-        """Set basic fallback car ratings"""
+        """Set realistic 2025 season fallback car ratings based on current championship"""
         self.car_performance = {
-            'Red Bull Racing Honda RBPT': {'dry_pace': 0.90, 'wet_pace': 0.88, 'strategy': 0.85, 'reliability': 0.82},
-            'McLaren Mercedes': {'dry_pace': 0.88, 'wet_pace': 0.86, 'strategy': 0.83, 'reliability': 0.80},
-            'Scuderia Ferrari': {'dry_pace': 0.85, 'wet_pace': 0.82, 'strategy': 0.75, 'reliability': 0.78},
-            'Mercedes': {'dry_pace': 0.82, 'wet_pace': 0.85, 'strategy': 0.80, 'reliability': 0.83},
+            # McLaren - Currently dominating 2025 season (Piastri P1, Norris P2)
+            'McLaren Mercedes': {'dry_pace': 0.94, 'wet_pace': 0.91, 'strategy': 0.88, 'reliability': 0.87},
+            
+            # Red Bull - Still competitive but not dominant anymore
+            'Red Bull Racing Honda RBPT': {'dry_pace': 0.89, 'wet_pace': 0.92, 'strategy': 0.90, 'reliability': 0.85},
+            
+            # Mercedes - Competitive midfield with Russell and Antonelli
+            'Mercedes': {'dry_pace': 0.85, 'wet_pace': 0.88, 'strategy': 0.83, 'reliability': 0.86},
+            
+            # Ferrari - Midfield struggles despite Hamilton joining
+            'Scuderia Ferrari': {'dry_pace': 0.82, 'wet_pace': 0.80, 'strategy': 0.75, 'reliability': 0.78},
+            
+            # Williams - Decent midfield with Sainz upgrade
+            'Williams Mercedes': {'dry_pace': 0.78, 'wet_pace': 0.76, 'strategy': 0.74, 'reliability': 0.80},
+            
+            # Haas - Improved with Ocon
+            'MoneyGram Haas F1 Team': {'dry_pace': 0.76, 'wet_pace': 0.74, 'strategy': 0.72, 'reliability': 0.77},
+            
+            # Kick Sauber - Midfield with Hulkenberg experience
+            'Kick Sauber F1 Team': {'dry_pace': 0.75, 'wet_pace': 0.73, 'strategy': 0.70, 'reliability': 0.75},
+            
+            # Alpine - Struggling midfield
+            'BWT Alpine F1 Team': {'dry_pace': 0.73, 'wet_pace': 0.72, 'strategy': 0.68, 'reliability': 0.74},
+            
+            # Racing Bulls - Lower midfield
+            'Racing Bulls F1 Team': {'dry_pace': 0.72, 'wet_pace': 0.71, 'strategy': 0.67, 'reliability': 0.73},
+            
+            # Aston Martin - STRUGGLING (realistic for 2025 - their car is ass)
+            'Aston Martin Aramco Mercedes': {'dry_pace': 0.68, 'wet_pace': 0.66, 'strategy': 0.65, 'reliability': 0.70},
         }
-        logger.warning("Using fallback car performance ratings")
+        logger.warning("Using realistic 2025 season fallback car performance ratings")
     
     def _set_fallback_driver_ratings(self):
-        """Set basic fallback driver ratings"""
+        """Set realistic 2025 season fallback driver ratings based on current performance"""
         self.driver_performance = {
-            'VER': {'overall_skill': 0.95, 'wet_skill': 0.92, 'race_craft': 0.90, 'strategy_execution': 0.88},
-            'HAM': {'overall_skill': 0.90, 'wet_skill': 0.95, 'race_craft': 0.92, 'strategy_execution': 0.85},
-            'LEC': {'overall_skill': 0.88, 'wet_skill': 0.85, 'race_craft': 0.86, 'strategy_execution': 0.82},
-            'NOR': {'overall_skill': 0.87, 'wet_skill': 0.83, 'race_craft': 0.85, 'strategy_execution': 0.84},
+            # McLaren drivers - Currently leading championship
+            'Oscar Piastri': {'overall_skill': 0.94, 'wet_skill': 0.88, 'race_craft': 0.92, 'strategy_execution': 0.90},
+            'Lando Norris': {'overall_skill': 0.92, 'wet_skill': 0.86, 'race_craft': 0.89, 'strategy_execution': 0.88},
+            
+            # Top tier drivers
+            'Max Verstappen': {'overall_skill': 0.95, 'wet_skill': 0.95, 'race_craft': 0.93, 'strategy_execution': 0.90},
+            'Lewis Hamilton': {'overall_skill': 0.88, 'wet_skill': 0.93, 'race_craft': 0.90, 'strategy_execution': 0.85},
+            'George Russell': {'overall_skill': 0.86, 'wet_skill': 0.84, 'race_craft': 0.85, 'strategy_execution': 0.87},
+            
+            # Second tier
+            'Charles Leclerc': {'overall_skill': 0.85, 'wet_skill': 0.82, 'race_craft': 0.84, 'strategy_execution': 0.80},
+            'Carlos Sainz': {'overall_skill': 0.82, 'wet_skill': 0.79, 'race_craft': 0.83, 'strategy_execution': 0.82},
+            'Fernando Alonso': {'overall_skill': 0.84, 'wet_skill': 0.88, 'race_craft': 0.87, 'strategy_execution': 0.85},
+            'Yuki Tsunoda': {'overall_skill': 0.79, 'wet_skill': 0.76, 'race_craft': 0.78, 'strategy_execution': 0.75},
+            
+            # Experienced midfield
+            'Alexander Albon': {'overall_skill': 0.78, 'wet_skill': 0.75, 'race_craft': 0.79, 'strategy_execution': 0.80},
+            'Pierre Gasly': {'overall_skill': 0.77, 'wet_skill': 0.79, 'race_craft': 0.76, 'strategy_execution': 0.78},
+            'Esteban Ocon': {'overall_skill': 0.76, 'wet_skill': 0.74, 'race_craft': 0.75, 'strategy_execution': 0.77},
+            'Nico Hülkenberg': {'overall_skill': 0.78, 'wet_skill': 0.80, 'race_craft': 0.77, 'strategy_execution': 0.82},
+            
+            # Rising stars / Rookies
+            'Kimi Antonelli': {'overall_skill': 0.73, 'wet_skill': 0.70, 'race_craft': 0.71, 'strategy_execution': 0.68},
+            'Oliver Bearman': {'overall_skill': 0.71, 'wet_skill': 0.68, 'race_craft': 0.70, 'strategy_execution': 0.67},
+            'Gabriel Bortoleto': {'overall_skill': 0.70, 'wet_skill': 0.67, 'race_craft': 0.69, 'strategy_execution': 0.66},
+            'Franco Colapinto': {'overall_skill': 0.72, 'wet_skill': 0.69, 'race_craft': 0.71, 'strategy_execution': 0.68},
+            'Liam Lawson': {'overall_skill': 0.74, 'wet_skill': 0.71, 'race_craft': 0.73, 'strategy_execution': 0.70},
+            'Isack Hadjar': {'overall_skill': 0.72, 'wet_skill': 0.69, 'race_craft': 0.71, 'strategy_execution': 0.68},
+            
+            # Pay drivers / Struggling
+            'Lance Stroll': {'overall_skill': 0.68, 'wet_skill': 0.65, 'race_craft': 0.66, 'strategy_execution': 0.67},
         }
-        logger.warning("Using fallback driver performance ratings")
+        logger.warning("Using realistic 2025 season fallback driver performance ratings")
+    
+    def _get_field_average_performance(self) -> float:
+        """Calculate field average performance from actual 2025 data"""
+        if hasattr(self, 'car_performance') and self.car_performance:
+            car_performances = [stats.get('dry_pace', 0.75) for stats in self.car_performance.values()]
+            return sum(car_performances) / len(car_performances)
+        return 0.75  # Default if no data
+    
+    def _get_team_fallback_rating(self, team: str) -> Dict:
+        """Get fallback rating for a specific team"""
+        # Create temporary fallback ratings dict
+        fallback_car_ratings = {
+            'McLaren Mercedes': {'dry_pace': 0.94, 'wet_pace': 0.91, 'strategy': 0.88, 'reliability': 0.87},
+            'Red Bull Racing Honda RBPT': {'dry_pace': 0.89, 'wet_pace': 0.92, 'strategy': 0.90, 'reliability': 0.85},
+            'Mercedes': {'dry_pace': 0.85, 'wet_pace': 0.88, 'strategy': 0.83, 'reliability': 0.86},
+            'Scuderia Ferrari': {'dry_pace': 0.82, 'wet_pace': 0.80, 'strategy': 0.75, 'reliability': 0.78},
+            'Williams Mercedes': {'dry_pace': 0.78, 'wet_pace': 0.76, 'strategy': 0.74, 'reliability': 0.80},
+            'MoneyGram Haas F1 Team': {'dry_pace': 0.76, 'wet_pace': 0.74, 'strategy': 0.72, 'reliability': 0.77},
+            'Kick Sauber F1 Team': {'dry_pace': 0.75, 'wet_pace': 0.73, 'strategy': 0.70, 'reliability': 0.75},
+            'BWT Alpine F1 Team': {'dry_pace': 0.73, 'wet_pace': 0.72, 'strategy': 0.68, 'reliability': 0.74},
+            'Racing Bulls F1 Team': {'dry_pace': 0.72, 'wet_pace': 0.71, 'strategy': 0.67, 'reliability': 0.73},
+            'Aston Martin Aramco Mercedes': {'dry_pace': 0.68, 'wet_pace': 0.66, 'strategy': 0.65, 'reliability': 0.70},
+        }
+        return fallback_car_ratings.get(team, {'dry_pace': 0.70, 'wet_pace': 0.70, 'strategy': 0.70, 'reliability': 0.75})
+    
+    def _get_driver_fallback_rating(self, driver_name: str) -> Dict:
+        """Get fallback rating for a specific driver"""
+        # Create temporary fallback ratings dict based on 2025 performance
+        fallback_driver_ratings = {
+            'Oscar Piastri': {'overall_skill': 0.94, 'wet_skill': 0.88, 'race_craft': 0.92, 'strategy_execution': 0.90},
+            'Lando Norris': {'overall_skill': 0.92, 'wet_skill': 0.86, 'race_craft': 0.89, 'strategy_execution': 0.88},
+            'Max Verstappen': {'overall_skill': 0.95, 'wet_skill': 0.95, 'race_craft': 0.93, 'strategy_execution': 0.90},
+            'Lewis Hamilton': {'overall_skill': 0.88, 'wet_skill': 0.93, 'race_craft': 0.90, 'strategy_execution': 0.85},
+            'George Russell': {'overall_skill': 0.86, 'wet_skill': 0.84, 'race_craft': 0.85, 'strategy_execution': 0.87},
+            'Charles Leclerc': {'overall_skill': 0.85, 'wet_skill': 0.82, 'race_craft': 0.84, 'strategy_execution': 0.80},
+            'Carlos Sainz': {'overall_skill': 0.82, 'wet_skill': 0.79, 'race_craft': 0.83, 'strategy_execution': 0.82},
+            'Fernando Alonso': {'overall_skill': 0.84, 'wet_skill': 0.88, 'race_craft': 0.87, 'strategy_execution': 0.85},
+            'Yuki Tsunoda': {'overall_skill': 0.79, 'wet_skill': 0.76, 'race_craft': 0.78, 'strategy_execution': 0.75},
+            'Alexander Albon': {'overall_skill': 0.78, 'wet_skill': 0.75, 'race_craft': 0.79, 'strategy_execution': 0.80},
+            'Pierre Gasly': {'overall_skill': 0.77, 'wet_skill': 0.79, 'race_craft': 0.76, 'strategy_execution': 0.78},
+            'Esteban Ocon': {'overall_skill': 0.76, 'wet_skill': 0.74, 'race_craft': 0.75, 'strategy_execution': 0.77},
+            'Nico Hülkenberg': {'overall_skill': 0.78, 'wet_skill': 0.80, 'race_craft': 0.77, 'strategy_execution': 0.82},
+            'Kimi Antonelli': {'overall_skill': 0.73, 'wet_skill': 0.70, 'race_craft': 0.71, 'strategy_execution': 0.68},
+            'Oliver Bearman': {'overall_skill': 0.71, 'wet_skill': 0.68, 'race_craft': 0.70, 'strategy_execution': 0.67},
+            'Gabriel Bortoleto': {'overall_skill': 0.70, 'wet_skill': 0.67, 'race_craft': 0.69, 'strategy_execution': 0.66},
+            'Franco Colapinto': {'overall_skill': 0.72, 'wet_skill': 0.69, 'race_craft': 0.71, 'strategy_execution': 0.68},
+            'Liam Lawson': {'overall_skill': 0.74, 'wet_skill': 0.71, 'race_craft': 0.73, 'strategy_execution': 0.70},
+            'Isack Hadjar': {'overall_skill': 0.72, 'wet_skill': 0.69, 'race_craft': 0.71, 'strategy_execution': 0.68},
+            'Lance Stroll': {'overall_skill': 0.68, 'wet_skill': 0.65, 'race_craft': 0.66, 'strategy_execution': 0.67},
+        }
+        return fallback_driver_ratings.get(driver_name, {'overall_skill': 0.72, 'wet_skill': 0.70, 'race_craft': 0.70, 'strategy_execution': 0.68})
     
     def predict_race_grid(self, race_name: str, weather: str = "Dry", 
                          qualifying_results: Optional[Dict[str, int]] = None,
@@ -425,44 +844,67 @@ class RacePredictionService:
                 'status': 'Finished'  # Assume finish for prediction
             }
             
-            # Use data-driven car + driver performance for base prediction
+            # Use calculated 2025 performance data - prioritize actual results over fallbacks
             car_stats = self.car_performance.get(team, {})
-            
-            # Map driver code to full name for lookup
             driver_full_name = self.drivers_2025.get(driver, {}).get('name', driver)
             driver_stats = self.driver_performance.get(driver_full_name, {})
             
-            # Get car pace rating (most important factor - 70% weight)
+            # If no 2025 data exists, use realistic fallback based on known 2025 performance
+            if not car_stats:
+                logger.warning(f"No car performance data for {team}, using fallback")
+                car_stats = self._get_team_fallback_rating(team)
+            if not driver_stats:
+                logger.warning(f"No driver performance data for {driver_full_name}, using fallback")
+                driver_stats = self._get_driver_fallback_rating(driver_full_name)
+            
+            # Get car pace rating (most important factor - 80% weight based on 2025 data showing car dominance)
             car_pace = car_stats.get('dry_pace', 0.75) if weather == 'Dry' else car_stats.get('wet_pace', 0.75)
-            car_reliability = car_stats.get('reliability', 0.8)
+            car_reliability = car_stats.get('reliability', 0.85)
+            car_strategy = car_stats.get('strategy', 0.75)
             
-            # Get driver skill rating (30% weight)
-            driver_skill = driver_stats.get('overall_skill', 0.7) if weather == 'Dry' else driver_stats.get('wet_skill', 0.7)
-            driver_race_craft = driver_stats.get('race_craft', 0.7)
+            # Get driver skill rating (20% weight - driver less important than car in 2025)
+            driver_skill = driver_stats.get('overall_skill', 0.75) if weather == 'Dry' else driver_stats.get('wet_skill', 0.75)
+            driver_race_craft = driver_stats.get('race_craft', 0.75)
             
-            # Combined performance score (car dominates, but driver matters)
-            combined_performance = (car_pace * 0.7) + (driver_skill * 0.3)
+            # Log actual ratings being used for debugging
+            logger.debug(f"{driver} ({team}): car_pace={car_pace:.3f}, driver_skill={driver_skill:.3f}")
             
-            # Calculate expected position based on performance vs field average (0.75)
-            performance_advantage = combined_performance - 0.75
-            base_position_change = performance_advantage * -12  # Scale to position changes
+            # Combined performance score (car is dominant factor in 2025)
+            combined_performance = (car_pace * 0.8) + (driver_skill * 0.2)
+            
+            # Calculate expected position based on performance vs field average
+            # Use dynamic field average based on actual 2025 data
+            field_average = self._get_field_average_performance()
+            performance_advantage = combined_performance - field_average
+            
+            # Scale position changes more aggressively to separate fast/slow cars
+            base_position_change = performance_advantage * -15  # Increased from -12
             
             # Add race craft factor (driver's ability to gain positions during race)
-            race_craft_bonus = (driver_race_craft - 0.7) * 2  # Up to ±0.6 positions
+            race_craft_bonus = (driver_race_craft - field_average) * 1.5
             
-            # Add some randomness but less for better performers
-            variance_factor = 1.0 - (combined_performance - 0.5)  # Better performers = less variance
-            random_factor = np.random.normal(0, variance_factor * 2)
+            # Reduce randomness significantly to let data drive predictions
+            variance_factor = max(0.3, 1.0 - combined_performance)  # Much less variance for all drivers
+            random_factor = np.random.normal(0, variance_factor * 0.8)  # Reduced from *2 to *0.8
             
             # Calculate final position change
             total_position_change = base_position_change + race_craft_bonus + random_factor
             
-            # Apply reliability factor (chance of DNF/issues)
-            if np.random.random() > car_reliability:
-                # Reliability issue - worse position
-                total_position_change += np.random.uniform(3, 8)
+            # Apply reliability factor (less random, more data-driven)
+            reliability_threshold = car_reliability * 0.95  # More conservative reliability
+            if np.random.random() > reliability_threshold:
+                # Reliability issue - but not as severe
+                total_position_change += np.random.uniform(1, 4)  # Reduced from 3-8
             
             predicted_pos = max(1, min(20, quali_pos + total_position_change))
+            
+            # Apply 2025 season boost for top performers to ensure they finish near the front
+            if combined_performance > 0.87:  # Top tier (McLaren level)
+                predicted_pos = min(predicted_pos, 5)  # Cap at P5
+            elif combined_performance > 0.84:  # Second tier (Mercedes/Ferrari level)
+                predicted_pos = min(predicted_pos, 8)  # Cap at P8
+            elif combined_performance < 0.75:  # Bottom tier (Aston Martin level)
+                predicted_pos = max(predicted_pos, 12)  # Floor at P12
             
             # Calculate race time based on position and car pace
             base_time = 88.0 + (predicted_pos * 0.15) + np.random.normal(0, 0.5)
