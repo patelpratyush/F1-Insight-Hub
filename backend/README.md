@@ -5,6 +5,7 @@ FastAPI backend providing F1 race predictions, telemetry analysis, and comprehen
 ## 🏎️ Features
 
 ### **🤖 Machine Learning Predictions**
+
 - **Enhanced Ensemble Models**: XGBoost + Random Forest + Neural Networks with Optuna optimization
 - **Advanced Feature Engineering**: Driver momentum, championship pressure, tire degradation modeling
 - **Multi-Model Architecture**: Basic scikit-learn models + Enhanced ensemble system
@@ -13,6 +14,7 @@ FastAPI backend providing F1 race predictions, telemetry analysis, and comprehen
 - **Time-Series Features**: 3-lap and 5-lap momentum indicators for form analysis
 
 ### **📊 Real-time F1 Dashboard & Analysis**
+
 - **2025 F1 Championship Service**: Live championship standings with comprehensive race results
 - **Weather Impact Analysis**: Driver-specific performance modeling across different weather conditions  
 - **Performance Trends**: Last 5 races vs full season analysis with points breakdown
@@ -23,6 +25,7 @@ FastAPI backend providing F1 race predictions, telemetry analysis, and comprehen
 - **FastF1 Cache Optimization**: Automatic cache initialization with error handling and fallback data
 
 ### **🏁 Race Predictions**
+
 - **Individual Driver Predictions**: Position and confidence scoring with enhanced feature engineering
 - **Full Grid Predictions**: Complete 20-driver race results with gap-to-winner estimates
 - **Car Performance Priority**: 70% car, 30% driver with dynamic team performance modeling
@@ -93,8 +96,9 @@ Uses `requirements-base.txt` - includes essential prediction models without Tens
 ```
 
 **Features Available:**
+
 - ✅ Race predictions (XGBoost + Random Forest)
-- ✅ Telemetry analysis 
+- ✅ Telemetry analysis
 - ✅ All API endpoints
 - ✅ Google Drive cache integration
 
@@ -108,6 +112,7 @@ Uses `requirements.txt` - includes all ML models with TensorFlow/PyTorch:
 ```
 
 **Additional Features:**
+
 - ✅ Neural Network models
 - ✅ Enhanced ensemble predictions
 - ✅ Advanced hyperparameter optimization
@@ -117,6 +122,7 @@ Uses `requirements.txt` - includes all ML models with TensorFlow/PyTorch:
 ### F1 Dashboard APIs
 
 #### `GET /api/f1/dashboard/{year}`
+
 Complete dashboard data with championship standings, performance trends, and weather analysis:
 
 ```bash
@@ -124,6 +130,7 @@ curl "http://localhost:8000/api/f1/dashboard/2025"
 ```
 
 #### `GET /api/f1/standings/{year}`
+
 Real-time championship standings:
 
 ```bash
@@ -131,6 +138,7 @@ curl "http://localhost:8000/api/f1/standings/2025"
 ```
 
 #### `GET /api/f1/dashboard-trends/{year}?all_races=true`
+
 Performance trends with toggle for last 5 races or all races:
 
 ```bash
@@ -138,6 +146,7 @@ curl "http://localhost:8000/api/f1/dashboard-trends/2025?all_races=true"
 ```
 
 #### `GET /api/f1/weather-analysis/{year}`
+
 Driver performance analysis by weather conditions:
 
 ```bash
@@ -145,6 +154,7 @@ curl "http://localhost:8000/api/f1/weather-analysis/2025"
 ```
 
 #### `GET /api/f1/latest-race/{year}`
+
 Most recent race results and podium:
 
 ```bash
@@ -154,6 +164,7 @@ curl "http://localhost:8000/api/f1/latest-race/2025"
 ### Core Prediction APIs
 
 #### `POST /api/predict/driver`
+
 Individual driver performance prediction:
 
 ```bash
@@ -168,6 +179,7 @@ curl -X POST "http://localhost:8000/api/predict/driver" \
 ```
 
 #### `POST /api/predict/race`
+
 Full race grid prediction:
 
 ```bash
@@ -186,6 +198,7 @@ curl -X POST "http://localhost:8000/api/predict/race" \
 ### Telemetry Analysis APIs
 
 #### `GET /api/telemetry/available-sessions/{year}`
+
 Get available races and sessions for a specific year:
 
 ```bash
@@ -193,6 +206,7 @@ curl "http://localhost:8000/api/telemetry/available-sessions/2024"
 ```
 
 #### `POST /api/telemetry/analyze`
+
 Comprehensive session telemetry analysis with performance metrics:
 
 ```bash
@@ -207,6 +221,7 @@ curl -X POST "http://localhost:8000/api/telemetry/analyze" \
 ```
 
 #### `POST /api/telemetry/speed-trace`
+
 Detailed lap telemetry with corner annotations:
 
 ```bash
@@ -222,6 +237,7 @@ curl -X POST "http://localhost:8000/api/telemetry/speed-trace" \
 ```
 
 #### `POST /api/telemetry/track-map`
+
 Interactive track map with speed-colored racing line:
 
 ```bash
@@ -237,6 +253,7 @@ curl -X POST "http://localhost:8000/api/telemetry/track-map" \
 ```
 
 #### `POST /api/telemetry/driver-comparison`
+
 Side-by-side driver telemetry comparison:
 
 ```bash
@@ -255,6 +272,7 @@ curl -X POST "http://localhost:8000/api/telemetry/driver-comparison" \
 ### Health & Status
 
 #### `GET /health`
+
 Server health and feature availability:
 
 ```bash
@@ -262,6 +280,7 @@ curl "http://localhost:8000/health"
 ```
 
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -333,12 +352,14 @@ graph TD
 ## 🌤️ Weather Conditions
 
 ### Basic Conditions
+
 - **Dry**: Normal racing conditions
 - **Light Rain**: Slight wet conditions
 - **Heavy Rain**: Challenging wet conditions  
 - **Wet**: Full wet racing
 
 ### Mixed/Changing Conditions
+
 - **Mixed**: Variable conditions throughout race
 - **Dry → Light Rain**: Strategy critical
 - **Light Rain → Dry**: Tire timing crucial
@@ -348,18 +369,21 @@ graph TD
 ## 🏎️ 2025 F1 Grid Support
 
 **All 20 Drivers & Teams:**
+
 - Red Bull, McLaren, Ferrari, Mercedes
 - Aston Martin, Alpine, RB, Williams
 - Haas, Kick Sauber
 - Includes accurate 2025 transfers (Hamilton → Ferrari, etc.)
 
 **All 24 Circuits:**
+
 - Complete 2025 F1 calendar support
 - Track-specific performance modeling
 
 ## 📈 Model Performance
 
 ### Enhanced Prediction Accuracy
+
 - **Qualifying MAE**: 0.359 positions (excellent) - Enhanced ensemble models
 - **Race MAE**: 1.638 positions (very good) - Significant improvement over baseline
 - **Training Data**: 718 race records from 2024-2025 seasons
@@ -367,6 +391,7 @@ graph TD
 - **Ensemble Performance**: 3-model voting system (XGBoost + RF + Neural Network)
 
 ### Advanced Feature Engineering Impact
+
 - **Driver Momentum**: 3-lap and 5-lap trend analysis
 - **Championship Pressure**: Position-based performance modeling
 - **Team Dynamics**: Teammate comparison features
@@ -374,6 +399,7 @@ graph TD
 - **Weather Modeling**: Enhanced wet weather performance indicators
 
 ### Telemetry Performance
+
 - **Session Types**: 6 supported (FP2, FP3, SQ, Q, S, R) with session-specific analysis
 - **Cache Size**: ~4GB compressed telemetry data with Google Drive integration
 - **Response Time**: <200ms with optimized cache system
@@ -381,6 +407,7 @@ graph TD
 - **Corner Detection**: Automated track corner identification and annotations
 
 ### Weather Impact Modeling
+
 - **Dry Conditions**: 80-95% confidence with stable predictions
 - **Mixed Conditions**: 60-80% confidence with realistic uncertainty modeling
 - **Driver-Specific**: Enhanced wet weather performance for Hamilton, Verstappen, Gasly

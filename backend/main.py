@@ -22,7 +22,7 @@ from services.race_prediction_service import race_prediction_service
 from services.telemetry_analyzer_service import TelemetryAnalyzerService
 from services.strategy_simulation_service import strategy_simulator
 from services.live_weather_service import get_live_weather_service
-from services.f1_results_service import f1_results_service
+from services.f1_results_service import get_f1_results_service
 from api.fastf1_routes import router as fastf1_router
 
 app = FastAPI(
@@ -1019,7 +1019,8 @@ async def get_championship_standings():
     Returns driver and constructor standings with championship battle insights
     """
     try:
-        standings = await f1_results_service.get_current_championship_standings()
+        results_service = get_f1_results_service()
+        standings = await results_service.get_current_championship_standings()
         
         if not standings:
             raise HTTPException(status_code=404, detail="Championship standings not available")
@@ -1090,7 +1091,8 @@ async def get_f1_calendar():
     Get 2025 F1 race calendar with dates and circuit information
     """
     try:
-        calendar = f1_results_service.f1_calendar_2025
+        results_service = get_f1_results_service()
+        calendar = results_service.f1_calendar_2025
         
         return {
             'success': True,
@@ -1101,6 +1103,45 @@ async def get_f1_calendar():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"F1 calendar retrieval failed: {str(e)}")
+
+@app.get("/api/results/next-race")
+async def get_next_upcoming_race():
+    """
+    Get the next upcoming F1 race based on current date
+    """
+    try:
+        from datetime import datetime
+        current_date = datetime.now().date()
+        
+        # Get the F1 calendar
+        results_service = get_f1_results_service()
+        calendar = results_service.f1_calendar_2025
+        
+        # Find the next race after current date
+        upcoming_race = None
+        for race in calendar:
+            race_date = datetime.strptime(race['date'], '%Y-%m-%d').date()
+            if race_date > current_date:
+                upcoming_race = race
+                break
+        
+        if not upcoming_race:
+            # If no upcoming races, return the last race of the season
+            upcoming_race = calendar[-1] if calendar else None
+            if upcoming_race:
+                upcoming_race['status'] = 'season_ended'
+        else:
+            upcoming_race['status'] = 'upcoming'
+        
+        return {
+            'success': True,
+            'next_race': upcoming_race,
+            'current_date': current_date.isoformat(),
+            'timestamp': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Next race retrieval failed: {str(e)}")
 
 @app.get("/api/telemetry/available-sessions/{year}")
 async def get_available_sessions(year: int):
@@ -1151,6 +1192,66 @@ async def get_available_sessions(year: int):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get available sessions: {str(e)}")
+
+# F1 Session Results API Endpoints
+class SessionResultsRequest(BaseModel):
+    circuit_name: str
+
+@app.post("/api/results/qualifying-detailed")
+async def get_detailed_qualifying_results(request: SessionResultsRequest):
+    """Get detailed qualifying results with Q1, Q2, Q3 breakdown"""
+    try:
+        results_service = get_f1_results_service()
+        qualifying_data = await results_service.get_detailed_qualifying_results(request.circuit_name)
+        
+        if not qualifying_data:
+            raise HTTPException(status_code=404, detail="Qualifying results not found for this circuit")
+        
+        return {
+            "circuit": request.circuit_name,
+            "qualifying_results": qualifying_data,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get qualifying results: {str(e)}")
+
+@app.get("/api/results/recent-races")
+async def get_recent_race_results(limit: int = 5):
+    """Get recent race results for dashboard display"""
+    try:
+        results_service = get_f1_results_service()
+        recent_races = await results_service.get_recent_race_summary(limit)
+        
+        return {
+            "recent_races": recent_races,
+            "total_races": len(recent_races),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get recent race results: {str(e)}")
+
+@app.post("/api/results/session-comparison")
+async def compare_sessions(circuit: str, session_types: List[str] = ["Q", "R"]):
+    """Compare different session results for the same circuit"""
+    try:
+        results_service = get_f1_results_service()
+        
+        comparison_data = {}
+        for session_type in session_types:
+            if session_type == "Q":
+                comparison_data["qualifying"] = await results_service.get_detailed_qualifying_results(circuit)
+            elif session_type == "R":
+                comparison_data["race"] = await results_service.get_session_results(circuit, "race")
+            elif session_type == "P":
+                comparison_data["practice"] = await results_service.get_session_results(circuit, "practice")
+        
+        return {
+            "circuit": circuit,
+            "session_comparison": comparison_data,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to compare sessions: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

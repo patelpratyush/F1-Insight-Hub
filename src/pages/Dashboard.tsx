@@ -1,25 +1,59 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import LoadingSpinner from "@/components/ui/loading-spinner";
-import ErrorDisplay from "@/components/ui/error-display";
-import DataWrapper from "@/components/ui/data-wrapper";
-import useApiCall from "@/hooks/useApiCall";
-import { 
-  BarChart3, Users, Trophy, Timer, TrendingUp, TrendingDown, 
-  Zap, Flag, Activity, AlertCircle, Crown, Calendar, MapPin, 
-  Thermometer, Eye, Award, Target, Cloud, CloudRain, Sun, Wind, RefreshCw
-} from "lucide-react";
 import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
-import StaggeredAnimation from "@/components/StaggeredAnimation";
 import ChampionshipPressureChart from "@/components/ChampionshipPressureChart";
+import StaggeredAnimation from "@/components/StaggeredAnimation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import DataWrapper from "@/components/ui/data-wrapper";
+import ErrorDisplay from "@/components/ui/error-display";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import useApiCall from "@/hooks/useApiCall";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadarChart, 
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter
+  Activity, AlertCircle,
+  Award,
+  BarChart3,
+  Calendar,
+  Cloud, CloudRain,
+  Crown,
+  Eye,
+  Flag,
+  MapPin,
+  RefreshCw,
+  Sun,
+  Target,
+  Thermometer,
+  Timer,
+  TrendingDown,
+  TrendingUp,
+  Trophy,
+  Users,
+  Wind,
+  Zap
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  RadarChart,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
+  XAxis, YAxis
 } from 'recharts';
 
 const Dashboard = () => {
@@ -135,6 +169,61 @@ const Dashboard = () => {
     return data.circuits;
   }, { maxRetries: 2, retryDelay: 1000 });
 
+  // Next race API call
+  const nextRaceApi = useApiCall(async () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/results/next-race`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error('Failed to fetch next race');
+    }
+    
+    return data;
+  }, { maxRetries: 2, retryDelay: 1000 });
+
+  // Race weekend forecast API call (dynamic based on next race)
+  const raceWeekendForecastApi = useApiCall(async () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    
+    // First get the next race
+    const nextRaceResponse = await fetch(`${apiUrl}/api/results/next-race`);
+    if (!nextRaceResponse.ok) {
+      throw new Error('Failed to get next race');
+    }
+    const nextRaceData = await nextRaceResponse.json();
+    
+    if (!nextRaceData.success || !nextRaceData.next_race) {
+      throw new Error('No upcoming race found');
+    }
+    
+    const nextRace = nextRaceData.next_race;
+    const response = await fetch(`${apiUrl}/api/weather/race-weekend`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        circuit_name: nextRace.name,
+        race_date: nextRace.date
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error('Failed to fetch race weekend forecast');
+    }
+    
+    return data;
+  }, { maxRetries: 2, retryDelay: 1000 });
+
+
   // Available drivers with colors for the performance trends
   const availableDrivers = [
     { code: 'VER', name: 'Verstappen', color: '#EF4444', strokeDasharray: '' },
@@ -209,6 +298,8 @@ const Dashboard = () => {
   const refreshLiveData = () => {
     liveWeatherApi.execute();
     liveChampionshipApi.execute();
+    nextRaceApi.execute();
+    raceWeekendForecastApi.execute();
     setLiveDataLastUpdate(new Date());
   };
 
@@ -225,6 +316,8 @@ const Dashboard = () => {
     availableCircuitsApi.execute();
     liveWeatherApi.execute();
     liveChampionshipApi.execute();
+    nextRaceApi.execute();
+    raceWeekendForecastApi.execute();
     setLiveDataLastUpdate(new Date());
   }, []);
 
@@ -280,7 +373,9 @@ const Dashboard = () => {
   // Live data from new APIs
   const liveWeatherData = liveWeatherApi.data;
   const liveChampionshipData = liveChampionshipApi.data;
+  const nextRaceData = nextRaceApi.data;
   const availableCircuits = availableCircuitsApi.data || [];
+  const raceWeekendForecastData = raceWeekendForecastApi.data;
 
   const getTeamColor = (team) => {
     const colors = {
@@ -415,10 +510,10 @@ const Dashboard = () => {
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Next Race</p>
                   <p className="text-2xl font-bold text-white">
-                    {upcomingRace ? upcomingRace.race_name.replace(' Grand Prix', ' GP') : 'Loading...'}
+                    {nextRaceData?.next_race ? nextRaceData.next_race.name.replace(' Grand Prix', ' GP') : 'Loading...'}
                   </p>
                   <p className="text-green-400 text-sm">
-                    {upcomingRace ? new Date(upcomingRace.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD'}
+                    {nextRaceData?.next_race ? new Date(nextRaceData.next_race.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD'}
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-green-500" />
@@ -953,6 +1048,231 @@ const Dashboard = () => {
             </Card>
           </AnimatedPageWrapper>
 
+
+          {/* Race Weekend Forecast Section */}
+        <AnimatedPageWrapper delay={1500}>
+          <Card className="bg-gray-800/50 border-gray-700 mb-8">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center space-x-2">
+                <Calendar className="h-5 w-5 text-purple-500" />
+                <span>Race Weekend Weather Forecast</span>
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Complete 3-day forecast with tire strategy recommendations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DataWrapper
+                loading={raceWeekendForecastApi.loading && !raceWeekendForecastData}
+                error={raceWeekendForecastApi.error && !raceWeekendForecastData ? raceWeekendForecastApi.error : null}
+                data={raceWeekendForecastData}
+                onRetry={raceWeekendForecastApi.execute}
+                isRetrying={raceWeekendForecastApi.isRetrying}
+                loadingMessage="Loading race weekend forecast..."
+                errorTitle="Failed to load weekend forecast"
+                errorVariant="inline"
+                minHeight="min-h-[300px]"
+              >
+                {raceWeekendForecastData && (
+                  <div className="space-y-6">
+                    {/* Weekend Header */}
+                    <div className="flex items-center justify-between pb-4 border-b border-gray-700">
+                      <div>
+                        <h3 className="text-xl font-semibold text-white">
+                          {raceWeekendForecastData.circuit_name}
+                        </h3>
+                        <p className="text-gray-400">
+                          Race Date: {new Date(raceWeekendForecastData.race_date).toLocaleDateString('en-US', { 
+                            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+                          })}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-white">
+                          {raceWeekendForecastData.race_forecast?.temperature?.toFixed(1)}°C
+                        </div>
+                        <p className="text-sm text-gray-400">Race Day Temperature</p>
+                      </div>
+                    </div>
+
+                    {/* 3-Day Session Timeline */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Practice Sessions */}
+                      <div className="bg-gray-700/30 p-4 rounded-lg">
+                        <div className="flex items-center mb-3">
+                          <Activity className="h-4 w-4 text-blue-500 mr-2" />
+                          <h4 className="font-semibold text-white">Practice Sessions</h4>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Temperature:</span>
+                            <span className="text-white">
+                              {raceWeekendForecastData.current_weather?.temperature?.toFixed(1)}°C
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Conditions:</span>
+                            <span className="text-white capitalize">
+                              {raceWeekendForecastData.current_weather?.description}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Grip Level:</span>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              getGripLevelColor(raceWeekendForecastData.current_weather?.grip_level)
+                            } text-white`}>
+                              {raceWeekendForecastData.current_weather?.grip_level}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Qualifying */}
+                      <div className="bg-gray-700/30 p-4 rounded-lg">
+                        <div className="flex items-center mb-3">
+                          <Timer className="h-4 w-4 text-yellow-500 mr-2" />
+                          <h4 className="font-semibold text-white">Qualifying</h4>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Temperature:</span>
+                            <span className="text-white">
+                              {raceWeekendForecastData.qualifying_forecast?.temperature?.toFixed(1)}°C
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Conditions:</span>
+                            <span className="text-white capitalize">
+                              {raceWeekendForecastData.qualifying_forecast?.description}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Grid Shuffle:</span>
+                            <span className="text-orange-400 font-semibold">
+                              {raceWeekendForecastData.qualifying_forecast?.condition === 'light_rain' ? 'High' : 
+                               raceWeekendForecastData.qualifying_forecast?.condition === 'heavy_rain' ? 'Very High' : 'Low'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Race */}
+                      <div className="bg-gray-700/30 p-4 rounded-lg">
+                        <div className="flex items-center mb-3">
+                          <Flag className="h-4 w-4 text-green-500 mr-2" />
+                          <h4 className="font-semibold text-white">Race Day</h4>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Temperature:</span>
+                            <span className="text-white">
+                              {raceWeekendForecastData.race_forecast?.temperature?.toFixed(1)}°C
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Conditions:</span>
+                            <span className="text-white capitalize">
+                              {raceWeekendForecastData.race_forecast?.description}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Strategy Impact:</span>
+                            <span className="text-red-400 font-semibold">
+                              {raceWeekendForecastData.race_forecast?.condition === 'clear' ? 'Standard' : 'High'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Weekend Summary & Strategy */}
+                    {raceWeekendForecastData.weekend_summary && raceWeekendForecastData.weekend_summary !== "No weather data available" && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Weekend Analysis */}
+                        <div className="bg-gray-700/20 p-4 rounded-lg">
+                          <h4 className="font-semibold text-white mb-3 flex items-center">
+                            <AlertCircle className="h-4 w-4 text-yellow-500 mr-2" />
+                            Weekend Analysis
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Weather Trend:</span>
+                              <span className="text-white">{raceWeekendForecastData.weekend_summary?.weekend_trend || 'Variable'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Temperature Range:</span>
+                              <span className="text-white">{raceWeekendForecastData.weekend_summary?.temperature_range || '20°C - 30°C'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Rain Probability:</span>
+                              <span className="text-blue-400">{raceWeekendForecastData.weekend_summary?.rain_probability || 0}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Strategy Impact:</span>
+                              <span className={`font-semibold ${
+                                raceWeekendForecastData.weekend_summary?.strategy_impact === 'Very High' ? 'text-red-400' :
+                                raceWeekendForecastData.weekend_summary?.strategy_impact === 'High' ? 'text-red-400' :
+                                raceWeekendForecastData.weekend_summary?.strategy_impact === 'Medium' ? 'text-yellow-400' :
+                                'text-green-400'
+                              }`}>
+                                {raceWeekendForecastData.weekend_summary?.strategy_impact || 'Standard'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Tire Strategy */}
+                        <div className="bg-gray-700/20 p-4 rounded-lg">
+                          <h4 className="font-semibold text-white mb-3 flex items-center">
+                            <Target className="h-4 w-4 text-purple-500 mr-2" />
+                            Tire Strategy
+                          </h4>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-gray-400 text-xs mb-1">Weekend Recommendation:</p>
+                              <p className="text-white font-medium">
+                                {raceWeekendForecastData.weekend_summary?.tire_strategy?.primary_strategy || 'Standard dry compounds'}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {(raceWeekendForecastData.weekend_summary?.tire_strategy?.recommended_compounds || ['Soft', 'Medium', 'Hard']).map((compound) => (
+                                <span 
+                                  key={compound}
+                                  className={`px-2 py-1 rounded text-xs font-semibold ${
+                                    compound === 'Soft' ? 'bg-red-600 text-white' :
+                                    compound === 'Medium' ? 'bg-yellow-600 text-white' :
+                                    compound === 'Hard' ? 'bg-gray-600 text-white' :
+                                    compound === 'Intermediate' ? 'bg-green-600 text-white' :
+                                    compound === 'Wet' ? 'bg-blue-600 text-white' :
+                                    'bg-purple-600 text-white'
+                                  }`}
+                                >
+                                  {compound}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="pt-2 border-t border-gray-600">
+                              <p className="text-gray-400 text-xs">Key Focus:</p>
+                              <p className="text-white text-sm">
+                                {raceWeekendForecastData.race_forecast?.condition === 'heavy_rain' ? 
+                                  'Wet weather setup and driver adaptation' :
+                                  raceWeekendForecastData.race_forecast?.condition === 'light_rain' ?
+                                  'Setup versatility for changing conditions' :
+                                  'Optimal dry setup development'
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </DataWrapper>
+            </CardContent>
+          </Card>
+        </AnimatedPageWrapper>
+
           {/* Live Championship Battle */}
           <AnimatedPageWrapper delay={1400}>
             <Card className="bg-gray-800/50 border-gray-700 h-full">
@@ -1036,6 +1356,7 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </AnimatedPageWrapper>
+
         </div>
 
         {/* Championship Pressure Visualization */}

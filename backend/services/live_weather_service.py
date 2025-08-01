@@ -496,7 +496,7 @@ class LiveWeatherService:
         )
     
     def _generate_weekend_summary(self, practice: List[WeatherData], qualifying: WeatherData, race: WeatherData) -> Dict:
-        """Generate race weekend weather summary"""
+        """Generate enhanced race weekend weather summary with detailed analytics"""
         all_sessions = practice + ([qualifying] if qualifying else []) + ([race] if race else [])
         
         if not all_sessions:
@@ -505,16 +505,43 @@ class LiveWeatherService:
         # Analyze conditions across the weekend
         conditions = [session.condition for session in all_sessions]
         temps = [session.temperature for session in all_sessions]
+        humidity_levels = [session.humidity for session in all_sessions]
+        wind_speeds = [session.wind_speed for session in all_sessions]
+        
         rain_sessions = len([c for c in conditions if c in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]])
+        mixed_conditions = len([c for c in conditions if c == WeatherCondition.OVERCAST])
+        
+        # Enhanced analytics
+        temp_variation = max(temps) - min(temps) if temps else 0
+        avg_humidity = sum(humidity_levels) / len(humidity_levels) if humidity_levels else 50
+        max_wind = max(wind_speeds) if wind_speeds else 0
+        
+        # Weather stability assessment
+        stability_score = self._calculate_weather_stability(conditions, temps, humidity_levels)
+        
+        # Tire strategy analysis
+        tire_strategy = self._generate_enhanced_tire_strategy(
+            conditions, temps, humidity_levels, qualifying, race
+        )
+        
+        # Session-specific recommendations
+        session_analysis = self._analyze_session_impacts(practice, qualifying, race)
         
         return {
-            "weekend_trend": "Variable" if len(set(conditions)) > 2 else "Stable",
-            "rain_probability": min(100, rain_sessions * 25),
+            "weekend_trend": self._determine_weekend_trend(conditions, temp_variation),
+            "rain_probability": min(100, (rain_sessions + mixed_conditions * 0.5) * 20),
             "temperature_range": f"{min(temps):.1f}°C - {max(temps):.1f}°C",
+            "temperature_variation": f"{temp_variation:.1f}°C",
             "dominant_condition": max(set(conditions), key=conditions.count).value,
             "grip_assessment": race.grip_level if race else "Unknown",
-            "strategy_impact": "High" if rain_sessions > 0 else "Medium",
-            "tire_recommendation": self._recommend_tires(conditions)
+            "strategy_impact": self._assess_strategy_impact(rain_sessions, mixed_conditions, temp_variation, max_wind),
+            "weather_stability": stability_score,
+            "average_humidity": f"{avg_humidity:.0f}%",
+            "max_wind_speed": f"{max_wind:.1f} km/h",
+            "tire_strategy": tire_strategy,
+            "session_analysis": session_analysis,
+            "key_risks": self._identify_weather_risks(conditions, temps, wind_speeds),
+            "championship_impact": self._assess_championship_impact(race, conditions)
         }
     
     def _recommend_tires(self, conditions: List[WeatherCondition]) -> str:
@@ -527,6 +554,322 @@ class LiveWeatherService:
             return "Mixed strategy - prepare for changing conditions"
         else:
             return "Standard dry compounds"
+    
+    def _calculate_weather_stability(self, conditions: List[WeatherCondition], temps: List[float], humidity: List[int]) -> str:
+        """Calculate weather stability score for the weekend"""
+        if not conditions or not temps:
+            return "Unknown"
+        
+        # Condition stability (0-1)
+        unique_conditions = len(set(conditions))
+        condition_stability = 1 - (unique_conditions - 1) / max(len(conditions) - 1, 1)
+        
+        # Temperature stability (based on variation)
+        temp_variation = max(temps) - min(temps) if len(temps) > 1 else 0
+        temp_stability = max(0, 1 - temp_variation / 15)  # 15°C as max expected variation
+        
+        # Humidity stability
+        humidity_variation = max(humidity) - min(humidity) if len(humidity) > 1 and humidity else 0
+        humidity_stability = max(0, 1 - humidity_variation / 50)  # 50% as max expected variation
+        
+        # Overall stability score
+        overall_stability = (condition_stability + temp_stability + humidity_stability) / 3
+        
+        if overall_stability >= 0.8:
+            return "Very Stable"
+        elif overall_stability >= 0.6:
+            return "Stable"
+        elif overall_stability >= 0.4:
+            return "Variable"
+        else:
+            return "Highly Variable"
+    
+    def _determine_weekend_trend(self, conditions: List[WeatherCondition], temp_variation: float) -> str:
+        """Determine the overall weekend weather trend"""
+        unique_conditions = len(set(conditions))
+        
+        if unique_conditions == 1:
+            return "Consistent"
+        elif unique_conditions == 2 and temp_variation < 5:
+            return "Slightly Variable"
+        elif temp_variation > 10:
+            return "Highly Variable"
+        else:
+            return "Variable"
+    
+    def _assess_strategy_impact(self, rain_sessions: int, mixed_conditions: int, temp_variation: float, max_wind: float) -> str:
+        """Assess the impact of weather on race strategy"""
+        impact_score = 0
+        
+        # Rain impact
+        if rain_sessions > 0:
+            impact_score += 3
+        
+        # Mixed conditions impact
+        if mixed_conditions > 0:
+            impact_score += 1
+        
+        # Temperature variation impact
+        if temp_variation > 8:
+            impact_score += 2
+        elif temp_variation > 5:
+            impact_score += 1
+        
+        # Wind impact
+        if max_wind > 25:
+            impact_score += 2
+        elif max_wind > 15:
+            impact_score += 1
+        
+        if impact_score >= 6:
+            return "Very High"
+        elif impact_score >= 4:
+            return "High"
+        elif impact_score >= 2:
+            return "Medium"
+        else:
+            return "Low"
+    
+    def _generate_enhanced_tire_strategy(self, conditions: List[WeatherCondition], temps: List[float], 
+                                       humidity: List[int], qualifying: WeatherData, race: WeatherData) -> Dict:
+        """Generate detailed tire strategy recommendations"""
+        rain_count = len([c for c in conditions if c in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]])
+        mixed_count = len([c for c in conditions if c == WeatherCondition.OVERCAST])
+        
+        # Base recommendation
+        if rain_count > len(conditions) / 2:
+            primary_strategy = "Wet Weather Focus"
+            compounds = ["Intermediate", "Full Wet"]
+            strategy_notes = "Prioritize wet weather experience and setup"
+        elif rain_count > 0 or mixed_count > 1:
+            primary_strategy = "Mixed Conditions"
+            compounds = ["Soft", "Medium", "Intermediate"]
+            strategy_notes = "Prepare for rapid compound changes"
+        else:
+            # Dry conditions - temperature-based strategy
+            avg_temp = sum(temps) / len(temps) if temps else 25
+            if avg_temp > 30:
+                primary_strategy = "Hot Weather"
+                compounds = ["Hard", "Medium", "Soft"]
+                strategy_notes = "Focus on tire degradation management"
+            elif avg_temp < 15:
+                primary_strategy = "Cool Weather"
+                compounds = ["Soft", "Medium", "Hard"]
+                strategy_notes = "Tire warm-up critical for performance"
+            else:
+                primary_strategy = "Standard Conditions"
+                compounds = ["Medium", "Soft", "Hard"]
+                strategy_notes = "Flexible strategy options available"
+        
+        # Session-specific recommendations
+        qualifying_compound = self._recommend_qualifying_compound(qualifying) if qualifying else "Unknown"
+        race_compound = self._recommend_race_compound(race, conditions) if race else "Unknown"
+        
+        return {
+            "primary_strategy": primary_strategy,
+            "recommended_compounds": compounds,
+            "qualifying_compound": qualifying_compound,
+            "race_start_compound": race_compound,
+            "strategy_notes": strategy_notes,
+            "pit_window_impact": self._assess_pit_window_impact(conditions, temps),
+            "degradation_risk": self._assess_degradation_risk(temps, humidity, conditions)
+        }
+    
+    def _analyze_session_impacts(self, practice: List[WeatherData], qualifying: WeatherData, race: WeatherData) -> Dict:
+        """Analyze weather impact on specific sessions"""
+        analysis = {}
+        
+        if practice:
+            practice_conditions = [p.condition for p in practice]
+            analysis["practice"] = {
+                "setup_difficulty": "High" if len(set(practice_conditions)) > 1 else "Standard",
+                "data_reliability": "Low" if WeatherCondition.HEAVY_RAIN in practice_conditions else "High",
+                "key_focus": self._get_practice_focus(practice_conditions)
+            }
+        
+        if qualifying:
+            analysis["qualifying"] = {
+                "grid_shuffle_potential": self._assess_grid_shuffle(qualifying),
+                "q3_compound_strategy": self._recommend_qualifying_compound(qualifying),
+                "weather_advantage": self._identify_weather_specialists(qualifying.condition)
+            }
+        
+        if race:
+            analysis["race"] = {
+                "start_difficulty": self._assess_race_start_difficulty(race),
+                "safety_car_probability": self._estimate_safety_car_probability(race),
+                "undercut_effectiveness": self._assess_undercut_potential(race),
+                "weather_window_opportunities": self._identify_weather_windows(race)
+            }
+        
+        return analysis
+    
+    def _identify_weather_risks(self, conditions: List[WeatherCondition], temps: List[float], wind_speeds: List[float]) -> List[str]:
+        """Identify key weather risks for the weekend"""
+        risks = []
+        
+        # Rain risks
+        if WeatherCondition.HEAVY_RAIN in conditions:
+            risks.append("Heavy rain could cause session delays or red flags")
+        elif WeatherCondition.LIGHT_RAIN in conditions:
+            risks.append("Changing track conditions may affect tire strategy")
+        
+        # Temperature risks
+        if temps and max(temps) > 35:
+            risks.append("High temperatures may cause tire overheating")
+        elif temps and min(temps) < 10:
+            risks.append("Cold conditions may impact tire warm-up")
+        
+        # Wind risks
+        if wind_speeds and max(wind_speeds) > 30:
+            risks.append("Strong winds may affect car balance and braking stability")
+        
+        # Condition change risks
+        unique_conditions = len(set(conditions))
+        if unique_conditions > 2:
+            risks.append("Rapidly changing conditions may favor adaptable drivers")
+        
+        return risks if risks else ["Minimal weather-related risks identified"]
+    
+    def _assess_championship_impact(self, race: WeatherData, conditions: List[WeatherCondition]) -> Dict:
+        """Assess how weather might impact championship standings"""
+        if not race or not conditions:
+            return {"impact": "Unknown"}
+        
+        # Weather variability creates opportunities for position changes
+        variability_score = len(set(conditions))
+        rain_factor = len([c for c in conditions if c in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]])
+        
+        if rain_factor > 0:
+            championship_impact = "High"
+            impact_notes = "Wet conditions can lead to significant grid position changes"
+        elif variability_score > 2:
+            championship_impact = "Medium"
+            impact_notes = "Variable conditions may favor experienced drivers"
+        else:
+            championship_impact = "Low"
+            impact_notes = "Stable conditions favor current form and car performance"
+        
+        return {
+            "impact_level": championship_impact,
+            "notes": impact_notes,
+            "opportunity_drivers": self._identify_weather_specialists(race.condition),
+            "risk_drivers": "Championship leaders in challenging conditions" if rain_factor > 0 else "None identified"
+        }
+    
+    # Helper methods for detailed analysis
+    def _recommend_qualifying_compound(self, qualifying: WeatherData) -> str:
+        """Recommend qualifying compound based on conditions"""
+        if qualifying.condition in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]:
+            return "Intermediate/Wet"
+        elif qualifying.temperature > 30:
+            return "Medium (tire management)"
+        else:
+            return "Soft (maximum performance)"
+    
+    def _recommend_race_compound(self, race: WeatherData, conditions: List[WeatherCondition]) -> str:
+        """Recommend race start compound"""
+        if race.condition in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]:
+            return "Intermediate"
+        elif len(set(conditions)) > 2:
+            return "Medium (flexible strategy)"
+        elif race.temperature > 32:
+            return "Hard (durability focus)"
+        else:
+            return "Medium (balanced approach)"
+    
+    def _assess_pit_window_impact(self, conditions: List[WeatherCondition], temps: List[float]) -> str:
+        """Assess how weather affects pit stop timing"""
+        rain_sessions = len([c for c in conditions if c in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]])
+        
+        if rain_sessions > 0:
+            return "Highly variable - weather windows critical"
+        elif temps and max(temps) > 35:
+            return "Extended windows due to tire degradation"
+        else:
+            return "Standard pit windows expected"
+    
+    def _assess_degradation_risk(self, temps: List[float], humidity: List[int], conditions: List[WeatherCondition]) -> str:
+        """Assess tire degradation risk"""
+        if not temps:
+            return "Unknown"
+        
+        avg_temp = sum(temps) / len(temps)
+        avg_humidity = sum(humidity) / len(humidity) if humidity else 50
+        
+        if avg_temp > 35 or avg_humidity < 30:
+            return "High"
+        elif avg_temp > 28 or avg_humidity < 40:
+            return "Medium"
+        else:
+            return "Low"
+    
+    def _get_practice_focus(self, conditions: List[WeatherCondition]) -> str:
+        """Get practice session focus based on conditions"""
+        if WeatherCondition.HEAVY_RAIN in conditions:
+            return "Wet weather setup and driver adaptation"
+        elif len(set(conditions)) > 1:
+            return "Setup versatility for changing conditions"
+        else:
+            return "Optimal dry setup development"
+    
+    def _assess_grid_shuffle(self, qualifying: WeatherData) -> str:
+        """Assess potential for grid position shuffling"""
+        if qualifying.condition == WeatherCondition.HEAVY_RAIN:
+            return "Very High"
+        elif qualifying.condition == WeatherCondition.LIGHT_RAIN:
+            return "High"
+        elif qualifying.grip_level == "Variable":
+            return "Medium"
+        else:
+            return "Low"
+    
+    def _identify_weather_specialists(self, condition: WeatherCondition) -> str:
+        """Identify drivers who excel in specific conditions"""
+        if condition in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]:
+            return "Verstappen, Hamilton, Russell, Norris"
+        else:
+            return "Form-dependent advantage"
+    
+    def _assess_race_start_difficulty(self, race: WeatherData) -> str:
+        """Assess race start difficulty based on weather"""
+        if race.condition == WeatherCondition.HEAVY_RAIN:
+            return "Very High"
+        elif race.condition == WeatherCondition.LIGHT_RAIN:
+            return "High"
+        elif race.grip_level in ["Poor", "Variable"]:
+            return "Medium"
+        else:
+            return "Standard"
+    
+    def _estimate_safety_car_probability(self, race: WeatherData) -> str:
+        """Estimate safety car probability based on weather"""
+        if race.condition == WeatherCondition.HEAVY_RAIN:
+            return "Very High (60-80%)"
+        elif race.condition == WeatherCondition.LIGHT_RAIN:
+            return "High (40-60%)"
+        elif race.wind_speed > 25:
+            return "Medium (25-40%)"
+        else:
+            return "Standard (15-25%)"
+    
+    def _assess_undercut_potential(self, race: WeatherData) -> str:
+        """Assess undercut strategy effectiveness"""
+        if race.condition in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]:
+            return "Limited due to weather variability"
+        elif race.temperature > 32:
+            return "High due to tire degradation"
+        else:
+            return "Standard effectiveness"
+    
+    def _identify_weather_windows(self, race: WeatherData) -> str:
+        """Identify potential weather windows during race"""
+        if race.condition == WeatherCondition.OVERCAST:
+            return "Monitor for potential rain - strategic windows may emerge"
+        elif race.condition in [WeatherCondition.LIGHT_RAIN, WeatherCondition.HEAVY_RAIN]:
+            return "Dry windows critical for slick tire changes"
+        else:
+            return "Stable conditions - standard strategy windows"
     
     def _get_fallback_weather(self, circuit_name: str) -> WeatherData:
         """Generate fallback weather data when API is unavailable"""
