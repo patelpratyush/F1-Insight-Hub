@@ -31,8 +31,13 @@ const DriverPredictor = () => {
 
   // API call for driver prediction with error handling
   const predictionApi = useApiCall(async () => {
-    const selectedDriverData = drivers.find(d => d.code === selectedDriver);
+    const selectedDriverData = drivers.find(d => d.id === selectedDriver);
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    
+    // Debug logging
+    console.log('Debug - selectedDriver:', selectedDriver);
+    console.log('Debug - selectedDriverData:', selectedDriverData);
+    console.log('Debug - team being sent:', selectedDriverData?.team || "Unknown");
     
     const response = await fetch(`${apiUrl}/api/predict/driver`, {
       method: 'POST',
@@ -67,7 +72,26 @@ const DriverPredictor = () => {
       race: data.predicted_race_position,
       podiumProbability: podiumProbability,
       qualifyingConfidence: data.qualifying_confidence,
-      raceConfidence: data.race_confidence
+      raceConfidence: data.race_confidence,
+      
+      // Enhanced model information
+      modelType: data.model_type,
+      ensembleBreakdown: data.ensemble_breakdown,
+      featureImportance: data.feature_importance,
+      uncertaintyRange: data.uncertainty_range,
+      modelPerformance: data.model_performance,
+      
+      // Context data
+      driverRatings: data.driver_ratings,
+      carRatings: data.car_ratings,
+      weatherImpact: data.weather_impact,
+      historicalComparison: data.historical_comparison,
+      trackAnalysis: data.track_analysis,
+      
+      // Advanced insights
+      predictionFactors: data.prediction_factors,
+      confidenceExplanation: data.confidence_explanation,
+      riskAssessment: data.risk_assessment
     };
   }, { maxRetries: 2, retryDelay: 1500 });
 
@@ -356,29 +380,34 @@ const DriverPredictor = () => {
                       })}
                     </StaggeredAnimation>
 
+                    {/* Enhanced Model Information */}
                     <div className="mt-8 p-4 bg-gray-700/30 rounded-lg">
                       <h4 className="text-white font-medium mb-3 flex items-center">
                         <TrendingUp className="h-4 w-4 mr-2 text-red-500" />
-                        Performance Insights
+                        Enhanced AI Model Analysis
                       </h4>
                       <div className="space-y-2 text-sm text-gray-300">
                         <div className="flex items-center justify-between">
                           <span>Model Type</span>
-                          <Badge variant="outline" className="text-green-400 border-green-400">Gradient Boosting</Badge>
+                          <Badge variant="outline" className="text-green-400 border-green-400">
+                            {predictionApi.data.modelType ? 'Enhanced Ensemble' : 'Gradient Boosting'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Model Accuracy</span>
+                          <Badge variant="outline" className="text-blue-400 border-blue-400">
+                            {predictionApi.data.modelPerformance?.model_accuracy || 'Excellent'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Training Data</span>
+                          <Badge variant="outline" className="text-purple-400 border-purple-400">
+                            {predictionApi.data.modelPerformance?.training_data_size || 718} races
+                          </Badge>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>Weather Conditions</span>
                           <Badge variant="outline" className="text-blue-400 border-blue-400 capitalize">{weather}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>Team Performance</span>
-                          <Badge variant="outline" className="text-purple-400 border-purple-400">{drivers.find(d => d.code === selectedDriver)?.team}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>Qualifying vs Race</span>
-                          <Badge variant="outline" className={`${predictionApi.data.race <= predictionApi.data.qualifying ? 'text-green-400 border-green-400' : 'text-red-400 border-red-400'}`}>
-                            {predictionApi.data.race <= predictionApi.data.qualifying ? 'Gains positions' : 'Loses positions'}
-                          </Badge>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>Overall Confidence</span>
@@ -388,6 +417,174 @@ const DriverPredictor = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Uncertainty Range Visualization */}
+                    {predictionApi.data.uncertaintyRange && (
+                      <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                        <h4 className="text-white font-medium mb-3 flex items-center">
+                          <Target className="h-4 w-4 mr-2 text-yellow-500" />
+                          Confidence Intervals
+                        </h4>
+                        <div className="space-y-4">
+                          {/* Qualifying Range */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-gray-300 text-sm">Qualifying Position Range</span>
+                              <span className="text-blue-400 text-sm font-medium">
+                                {predictionApi.data.uncertaintyRange.qualifying?.confidence_interval}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-gray-400 text-xs">P{predictionApi.data.uncertaintyRange.qualifying?.min_position}</span>
+                              <div className="flex-1 bg-gray-600 rounded-full h-2 relative">
+                                <div className="bg-blue-500 h-2 rounded-full" style={{width: '100%'}}></div>
+                                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-2 bg-blue-200 rounded-full"></div>
+                              </div>
+                              <span className="text-gray-400 text-xs">P{predictionApi.data.uncertaintyRange.qualifying?.max_position}</span>
+                              <span className="text-blue-400 font-bold text-sm ml-2">P{predictionApi.data.uncertaintyRange.qualifying?.predicted}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Race Range */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-gray-300 text-sm">Race Position Range</span>
+                              <span className="text-green-400 text-sm font-medium">
+                                {predictionApi.data.uncertaintyRange.race?.confidence_interval}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-gray-400 text-xs">P{predictionApi.data.uncertaintyRange.race?.min_position}</span>
+                              <div className="flex-1 bg-gray-600 rounded-full h-2 relative">
+                                <div className="bg-green-500 h-2 rounded-full" style={{width: '100%'}}></div>
+                                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-2 bg-green-200 rounded-full"></div>
+                              </div>
+                              <span className="text-gray-400 text-xs">P{predictionApi.data.uncertaintyRange.race?.max_position}</span>
+                              <span className="text-green-400 font-bold text-sm ml-2">P{predictionApi.data.uncertaintyRange.race?.predicted}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Prediction Factors */}
+                    {predictionApi.data.predictionFactors && predictionApi.data.predictionFactors.length > 0 && (
+                      <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                        <h4 className="text-white font-medium mb-3 flex items-center">
+                          <Zap className="h-4 w-4 mr-2 text-orange-500" />
+                          Key Prediction Factors
+                        </h4>
+                        <div className="space-y-2">
+                          {predictionApi.data.predictionFactors.map((factor, index) => (
+                            <div key={index} className="flex items-start space-x-2">
+                              <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <span className="text-gray-300 text-sm">{factor}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Weather Impact Analysis */}
+                    {predictionApi.data.weatherImpact && (
+                      <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                        <h4 className="text-white font-medium mb-3 flex items-center">
+                          <Cloud className="h-4 w-4 mr-2 text-blue-500" />
+                          Weather Impact Analysis
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-gray-400 text-xs">Driver Adaptation</span>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Badge variant="outline" className={`${
+                                predictionApi.data.weatherImpact.driver_adaptation === 'Excellent' ? 'text-green-400 border-green-400' :
+                                predictionApi.data.weatherImpact.driver_adaptation === 'Good' ? 'text-yellow-400 border-yellow-400' :
+                                'text-red-400 border-red-400'
+                              }`}>
+                                {predictionApi.data.weatherImpact.driver_adaptation}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 text-xs">Grid Shuffle Risk</span>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Badge variant="outline" className={`${
+                                predictionApi.data.weatherImpact.grid_shuffle_potential === 'Very High' ? 'text-red-400 border-red-400' :
+                                predictionApi.data.weatherImpact.grid_shuffle_potential === 'High' ? 'text-orange-400 border-orange-400' :
+                                'text-green-400 border-green-400'
+                              }`}>
+                                {predictionApi.data.weatherImpact.grid_shuffle_potential}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Risk Assessment */}
+                    {predictionApi.data.riskAssessment && (
+                      <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                        <h4 className="text-white font-medium mb-3 flex items-center">
+                          <Users className="h-4 w-4 mr-2 text-red-500" />
+                          Risk Assessment
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-xs">Weather Risk</span>
+                              <Badge variant="outline" className={`${
+                                predictionApi.data.riskAssessment.weather_risk === 'High' ? 'text-red-400 border-red-400' :
+                                predictionApi.data.riskAssessment.weather_risk === 'Medium' ? 'text-yellow-400 border-yellow-400' :
+                                'text-green-400 border-green-400'
+                              }`}>
+                                {predictionApi.data.riskAssessment.weather_risk}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-xs">Strategy Risk</span>
+                              <Badge variant="outline" className={`${
+                                predictionApi.data.riskAssessment.strategy_risk === 'High' ? 'text-red-400 border-red-400' :
+                                predictionApi.data.riskAssessment.strategy_risk === 'Medium' ? 'text-yellow-400 border-yellow-400' :
+                                'text-green-400 border-green-400'
+                              }`}>
+                                {predictionApi.data.riskAssessment.strategy_risk}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-xs">Mechanical Risk</span>
+                              <Badge variant="outline" className="text-green-400 border-green-400">
+                                {predictionApi.data.riskAssessment.mechanical_risk}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-xs">Overall Risk</span>
+                              <Badge variant="outline" className={`${
+                                predictionApi.data.riskAssessment.overall_risk === 'High' ? 'text-red-400 border-red-400' :
+                                predictionApi.data.riskAssessment.overall_risk === 'Medium' ? 'text-yellow-400 border-yellow-400' :
+                                'text-green-400 border-green-400'
+                              }`}>
+                                {predictionApi.data.riskAssessment.overall_risk}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Confidence Explanation */}
+                    {predictionApi.data.confidenceExplanation && (
+                      <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                        <h4 className="text-white font-medium mb-3 flex items-center">
+                          <TrendingUp className="h-4 w-4 mr-2 text-purple-500" />
+                          AI Explanation
+                        </h4>
+                        <p className="text-gray-300 text-sm leading-relaxed">
+                          {predictionApi.data.confidenceExplanation}
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

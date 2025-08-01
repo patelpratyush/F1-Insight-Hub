@@ -161,7 +161,21 @@ const RacePredictor = () => {
     
     return {
       predictions: transformedPredictions,
-      statistics: data.statistics
+      statistics: data.statistics,
+      
+      // Enhanced model information
+      modelType: data.model_type,
+      ensemblePerformance: data.ensemble_performance,
+      gridAnalysis: data.grid_analysis,
+      strategyInsights: data.strategy_insights,
+      weatherAnalysis: data.weather_analysis,
+      championshipImpact: data.championship_impact,
+      
+      // Original fields
+      success: data.success,
+      raceName: data.race_name,
+      weatherConditions: data.weather_conditions,
+      temperature: data.temperature
     };
   }, { maxRetries: 2, retryDelay: 2000 });
 
@@ -403,6 +417,190 @@ const RacePredictor = () => {
                       <div className="text-sm text-gray-300">Race Laps</div>
                     </div>
                   </div>
+
+                  {/* Enhanced Model Information */}
+                  {raceApi.data?.modelType && (
+                    <div className="mt-8 p-4 bg-gray-700/30 rounded-lg">
+                      <h4 className="text-white font-medium mb-4 flex items-center">
+                        <Zap className="h-4 w-4 mr-2 text-purple-500" />
+                        Enhanced Race Model Analysis
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-gray-400 text-xs">Model Type</span>
+                          <div className="text-green-400 text-sm font-medium mt-1">
+                            {raceApi.data.modelType}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 text-xs">Grid Competitiveness</span>
+                          <div className="text-blue-400 text-sm font-medium mt-1">
+                            {raceApi.data?.gridAnalysis?.grid_competitiveness || 'High'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Grid Analysis */}
+                  {raceApi.data?.gridAnalysis && (
+                    <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                      <h4 className="text-white font-medium mb-4 flex items-center">
+                        <Trophy className="h-4 w-4 mr-2 text-yellow-500" />
+                        Grid Analysis
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {raceApi.data.gridAnalysis.pole_contenders && (
+                          <div>
+                            <span className="text-gray-400 text-xs">Pole Contenders</span>
+                            <div className="mt-2 space-y-1">
+                              {raceApi.data.gridAnalysis.pole_contenders.map((driver, index) => (
+                                <Badge key={index} variant="outline" className="text-yellow-400 border-yellow-400 mr-2 mb-1">
+                                  {driver}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {raceApi.data.gridAnalysis.midfield_battle && (
+                          <div>
+                            <span className="text-gray-400 text-xs">Midfield Battle</span>
+                            <div className="mt-2 space-y-1">
+                              {raceApi.data.gridAnalysis.midfield_battle.slice(0, 4).map((driver, index) => (
+                                <Badge key={index} variant="outline" className="text-blue-400 border-blue-400 mr-2 mb-1">
+                                  {driver}
+                                </Badge>
+                              ))}
+                              {raceApi.data.gridAnalysis.midfield_battle.length > 4 && (
+                                <span className="text-gray-500 text-xs">+{raceApi.data.gridAnalysis.midfield_battle.length - 4} more</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Weather Analysis */}
+                  {raceApi.data?.weatherAnalysis && (
+                    <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                      <h4 className="text-white font-medium mb-4 flex items-center">
+                        <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
+                        Weather Impact Analysis
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <span className="text-gray-400 text-xs">Impact on Grid</span>
+                          <div className={`text-sm font-medium mt-1 ${
+                            raceApi.data.weatherAnalysis.impact_on_grid === 'Significant' ? 'text-orange-400' :
+                            raceApi.data.weatherAnalysis.impact_on_grid === 'High' ? 'text-red-400' : 'text-green-400'
+                          }`}>
+                            {raceApi.data.weatherAnalysis.impact_on_grid}
+                          </div>
+                        </div>
+                        
+                        {raceApi.data.weatherAnalysis.wet_weather_specialists && raceApi.data.weatherAnalysis.wet_weather_specialists.length > 0 && (
+                          <div>
+                            <span className="text-gray-400 text-xs">Weather Specialists</span>
+                            <div className="mt-2 space-y-1">
+                              {raceApi.data.weatherAnalysis.wet_weather_specialists.map((driver, index) => (
+                                <Badge key={index} variant="outline" className="text-cyan-400 border-cyan-400 mr-2 mb-1">
+                                  {driver}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Strategy Insights */}
+                  {raceApi.data?.strategyInsights && (
+                    <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                      <h4 className="text-white font-medium mb-4 flex items-center">
+                        <Flag className="h-4 w-4 mr-2 text-green-500" />
+                        Strategy Insights
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-400 text-xs">Key Strategy Factor</span>
+                            <Badge variant="outline" className="text-green-400 border-green-400">
+                              {raceApi.data.strategyInsights.key_strategy_factor || 'Tire management'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-400 text-xs">Overtaking Difficulty</span>
+                            <Badge variant="outline" className={`${
+                              raceApi.data.strategyInsights.overtaking_difficulty === 'High' ? 'text-red-400 border-red-400' :
+                              raceApi.data.strategyInsights.overtaking_difficulty === 'Medium' ? 'text-yellow-400 border-yellow-400' :
+                              'text-green-400 border-green-400'
+                            }`}>
+                              {raceApi.data.strategyInsights.overtaking_difficulty || 'Medium'}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-400 text-xs">Pit Window Importance</span>
+                            <Badge variant="outline" className={`${
+                              raceApi.data.strategyInsights.pit_window_importance === 'Critical' ? 'text-red-400 border-red-400' :
+                              raceApi.data.strategyInsights.pit_window_importance === 'High' ? 'text-orange-400 border-orange-400' :
+                              'text-green-400 border-green-400'
+                            }`}>
+                              {raceApi.data.strategyInsights.pit_window_importance || 'Medium'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-400 text-xs">Safety Car Probability</span>
+                            <Badge variant="outline" className="text-purple-400 border-purple-400">
+                              {raceApi.data.strategyInsights.safety_car_probability || '25%'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Championship Impact */}
+                  {raceApi.data?.championshipImpact && (
+                    <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+                      <h4 className="text-white font-medium mb-4 flex items-center">
+                        <Users className="h-4 w-4 mr-2 text-orange-500" />
+                        Championship Impact
+                      </h4>
+                      <div className="space-y-4">
+                        <div>
+                          <span className="text-gray-400 text-xs">Points Implications</span>
+                          <div className="text-orange-400 text-sm font-medium mt-1">
+                            {raceApi.data.championshipImpact.points_implications}
+                          </div>
+                        </div>
+                        
+                        {raceApi.data.championshipImpact.title_contenders_positions && (
+                          <div>
+                            <span className="text-gray-400 text-xs">Title Contenders</span>
+                            <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                              {Object.entries(raceApi.data.championshipImpact.title_contenders_positions).map(([driver, position]) => (
+                                <div key={driver} className="flex items-center justify-between bg-gray-600/50 rounded px-2 py-1">
+                                  <span className="text-gray-300 text-sm font-medium">{driver}</span>
+                                  <span className={`text-sm font-bold ${
+                                    position <= 3 ? 'text-yellow-400' :
+                                    position <= 8 ? 'text-green-400' : 'text-gray-400'
+                                  }`}>
+                                    P{position}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ) : null}

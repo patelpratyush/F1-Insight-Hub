@@ -13,8 +13,9 @@ import logging
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
-# Import enhanced ensemble service
+# Import enhanced ensemble service and race prediction service for 2025 ratings
 from .enhanced_ensemble_service import enhanced_ensemble_service
+from .race_prediction_service import race_prediction_service
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,9 @@ class EnhancedPredictionService:
         self.ensemble_service = enhanced_ensemble_service
         self.models_loaded = True  # Ensemble service handles model loading
         self.data_file = os.path.join(os.path.dirname(__file__), '..', 'f1_data.csv')
+        
+        # Use the correct 2025 performance ratings from race_prediction_service
+        self.race_service = race_prediction_service
         
         # Current season driver and team mappings
         self.current_drivers = {
@@ -428,11 +432,12 @@ class EnhancedPredictionService:
                         team=team
                     )
                     
-                    # Blend data-driven (60%) with enhanced ML (40%) for better accuracy
-                    final_quali = int((base_prediction['qualifying_position'] * 0.6) + 
-                                    (ml_predictions['predicted_qualifying_position'] * 0.4))
-                    final_race = int((base_prediction['race_position'] * 0.6) + 
-                                   (ml_predictions['predicted_race_position'] * 0.4))
+                    # Use data-driven prediction heavily (85%) when we have quality 2025 ratings
+                    # The data-driven approach with actual 2025 ratings is more accurate than ML on old data
+                    final_quali = int((base_prediction['qualifying_position'] * 0.85) + 
+                                    (ml_predictions['predicted_qualifying_position'] * 0.15))
+                    final_race = int((base_prediction['race_position'] * 0.85) + 
+                                   (ml_predictions['predicted_race_position'] * 0.15))
                     
                     # Use higher confidence from either method  
                     quali_conf = max(base_prediction['qualifying_confidence'], 
@@ -467,51 +472,97 @@ class EnhancedPredictionService:
     def _get_data_driven_prediction(self, driver: str, track: str, weather: str, team: str) -> Dict:
         """Generate prediction using calculated car and driver ratings"""
         try:
-            # Get car performance ratings
+            # Use the correct 2025 performance ratings from race_prediction_service
             team_normalized = self._normalize_team_name(team)
-            car_stats = self.car_performance.get(team_normalized, {})
-            
-            # Get driver performance ratings
             driver_normalized = self._normalize_driver_name(driver)
-            driver_stats = self.driver_performance.get(driver_normalized, {})
+            logger.info(f"Looking for team '{team}' normalized to '{team_normalized}'")
+            
+            # Get actual 2025 car performance ratings (from race_prediction_service!)
+            car_stats = {}
+            if hasattr(self.race_service, 'car_performance') and self.race_service.car_performance:
+                logger.info(f"Available teams: {list(self.race_service.car_performance.keys())}")
+                for team_key, team_data in self.race_service.car_performance.items():
+                    if team_normalized.lower() in team_key.lower() or team_key.lower() in team_normalized.lower():
+                        pace_rating = team_data.get('dry_pace', 0.75)  # Use 'dry_pace' key!
+                        car_stats = {
+                            'dry_pace': pace_rating,
+                            'wet_pace': pace_rating * 0.95,  # Slightly lower in wet
+                            'reliability': team_data.get('reliability', 0.85),
+                            'strategy': team_data.get('strategy', 0.80)
+                        }
+                        logger.info(f"Found car ratings for {team_key}: pace={pace_rating:.3f}")
+                        break
+                if not car_stats:
+                    logger.warning(f"No car ratings found for '{team_normalized}'")
+            
+            # Get actual 2025 driver performance ratings (from race_prediction_service!)  
+            driver_stats = {}
+            if hasattr(self.race_service, 'driver_performance') and self.race_service.driver_performance:
+                for driver_key, driver_data in self.race_service.driver_performance.items():
+                    if driver_normalized.lower() in driver_key.lower() or driver_key.lower() in driver_normalized.lower():
+                        skill_rating = driver_data.get('overall_skill', 0.7)  # Use 'overall_skill' key!
+                        driver_stats = {
+                            'overall_skill': skill_rating,
+                            'wet_skill': driver_data.get('wet_skill', skill_rating * 0.95),
+                            'race_craft': driver_data.get('race_craft', skill_rating),
+                            'strategy_execution': driver_data.get('strategy_execution', 0.75)
+                        }
+                        logger.info(f"Found driver ratings for {driver_key}: skill={skill_rating:.3f}")
+                        break
             
             # Get car pace rating (most important factor - 70% weight)
-            car_pace = car_stats.get('dry_pace', 0.75) if weather.lower() == 'dry' else car_stats.get('wet_pace', 0.75)
+            is_dry_conditions = weather.lower() in ['dry', 'clear', 'overcast']
+            car_pace = car_stats.get('dry_pace', 0.75) if is_dry_conditions else car_stats.get('wet_pace', 0.75)
             car_reliability = car_stats.get('reliability', 0.8)
             car_strategy = car_stats.get('strategy', 0.75)
             
             # Get driver skill rating (30% weight)
-            driver_skill = driver_stats.get('overall_skill', 0.7) if weather.lower() == 'dry' else driver_stats.get('wet_skill', 0.7)
+            driver_skill = driver_stats.get('overall_skill', 0.7) if is_dry_conditions else driver_stats.get('wet_skill', 0.7)
             driver_race_craft = driver_stats.get('race_craft', 0.7)
             driver_strategy = driver_stats.get('strategy_execution', 0.7)
             
             # Combined performance score (F1 realistic: car dominates, but driver matters)
             combined_performance = (car_pace * 0.7) + (driver_skill * 0.3)
+            logger.info(f"Performance calculation: car_pace={car_pace:.3f}, driver_skill={driver_skill:.3f}, combined={combined_performance:.3f}")
             
-            # Calculate expected position based on performance vs field average (0.75)
-            performance_advantage = combined_performance - 0.75
-            base_position_change = performance_advantage * -12  # Scale to position changes
+            # Convert performance rating to realistic F1 grid position
+            # 0.90+ = P1-P3 (championship contenders)
+            # 0.85+ = P4-P6 (strong competitors) 
+            # 0.80+ = P7-P10 (midfield leaders)
+            # 0.75+ = P11-P15 (midfield)
+            # 0.70- = P16-P20 (back markers)
             
-            # Qualifying prediction (car + driver skill, less variance)
-            quali_variance = 1.0 - (combined_performance - 0.5)  # Better performers = less variance
-            quali_random = np.random.normal(0, quali_variance * 1.5)
-            qualifying_pos = max(1, min(20, 10.5 + base_position_change + quali_random))
+            if combined_performance >= 0.885:  # Elite level (PIA/NOR territory) - slightly lowered for championship leader
+                base_quali_pos = np.random.uniform(1.5, 3.5)
+                base_race_pos = np.random.uniform(2.0, 4.5)
+            elif combined_performance >= 0.85:  # Very strong (VER/LEC territory) 
+                base_quali_pos = np.random.uniform(3.0, 6.0)
+                base_race_pos = np.random.uniform(4.0, 7.0)
+            elif combined_performance >= 0.80:  # Strong (RUS territory)
+                base_quali_pos = np.random.uniform(5.0, 9.0)
+                base_race_pos = np.random.uniform(6.0, 10.0)
+            elif combined_performance >= 0.75:  # Average
+                base_quali_pos = np.random.uniform(8.0, 12.0)
+                base_race_pos = np.random.uniform(9.0, 13.0)
+            else:  # Below average
+                base_quali_pos = np.random.uniform(12.0, 18.0)
+                base_race_pos = np.random.uniform(13.0, 19.0)
             
-            # Race prediction (add race craft and strategy factors)
-            race_craft_bonus = (driver_race_craft - 0.7) * 2  # Up to ±0.6 positions
-            strategy_bonus = ((car_strategy * 0.6) + (driver_strategy * 0.4) - 0.7) * 1.5
+            # Apply small random variance (much smaller than before)
+            quali_variance = 0.8  # Reduced variance for consistency
+            race_variance = 1.2   # Slightly more variance in race
             
-            # Add reliability factor (chance of issues)
-            reliability_penalty = 0
-            if np.random.random() > car_reliability:
-                reliability_penalty = np.random.uniform(2, 6)  # Reliability issues
+            qualifying_pos = max(1, min(20, base_quali_pos + np.random.normal(0, quali_variance)))
             
-            # More variance in race due to strategy, incidents, etc.
-            race_variance = 1.2 - (combined_performance - 0.5)
-            race_random = np.random.normal(0, race_variance * 2)
+            # Race adjustments
+            race_craft_bonus = (driver_race_craft - 0.7) * 1.5  # Smaller impact
+            strategy_bonus = ((car_strategy * 0.6) + (driver_strategy * 0.4) - 0.7) * 1.0
             
-            race_pos = max(1, min(20, qualifying_pos + race_craft_bonus + strategy_bonus + 
-                                reliability_penalty + race_random))
+            # Simplified reliability (no random failures during prediction)
+            reliability_factor = 0.95 if car_reliability > 0.8 else 0.9
+            
+            race_pos = max(1, min(20, (base_race_pos + race_craft_bonus + strategy_bonus) * reliability_factor + 
+                                np.random.normal(0, race_variance)))
             
             # Calculate confidence scores based on data quality and performance level
             base_quali_confidence = 0.75 + (combined_performance - 0.75) * 0.3
