@@ -1,653 +1,585 @@
-# F1 Insight Hub
+# 🏎️ F1 Insight Hub
 
-Advanced Formula 1 prediction and telemetry analysis platform combining ensemble machine learning with a beautifully animated React interface for race predictions and real-time telemetry visualization.
+> **Comprehensive Formula 1 Data Analytics Platform with Live Integration, ML Predictions, and Advanced Telemetry Analysis**
 
-## 🏎️ Overview
+F1 Insight Hub is a cutting-edge platform that brings together real-time F1 data, machine learning predictions, advanced telemetry analysis, and strategic race simulation in a unified dashboard experience.
 
-F1 Insight Hub delivers the most comprehensive F1 analysis system available, featuring data-driven performance ratings, realistic car-driver balance modeling, advanced telemetry visualization, and professional race predictions. Built with modern React + TypeScript frontend and enhanced Python ML backend.
+---
 
-## ✨ Features
+## ✨ Key Features
 
-### 🏆 **Enhanced F1 Dashboard**
-- **Real-time 2025 F1 Championship**: Live standings with Oscar Piastri leading McLaren's title charge
-- **Performance Trends Analysis**: Toggle between last 5 races or full season data with driver selection
-- **Latest Race Results**: Belgium Grand Prix 2025 podium (Piastri, Norris, Leclerc)
-- **Weather Impact Analysis**: Driver performance comparison across different weather conditions
-- **Championship Pressure Visualization**: Advanced pressure metrics with mathematical championship possibilities
-- **Responsive Card Layout**: Perfectly balanced dashboard with consistent card sizing
+### 🌐 Live Data Integration
 
-### 🤖 **Enhanced Race Predictions**
-- **Full Race Grid Predictions**: Predict all 20 drivers' positions with confidence scoring
-- **Individual Driver Analysis**: Detailed qualifying and race forecasts with weather impact
-- **Data-Driven Performance**: Ratings calculated from 718+ historical race records (2024-2025)
-- **Realistic F1 Modeling**: 70% car performance, 30% driver skill (authentic F1 balance)
-- **Advanced Weather System**: 9 weather conditions including mixed/changing conditions
-- **Enhanced Ensemble Models**: XGBoost + Random Forest + Neural Networks with Optuna optimization
+- **Real-time Weather**: Live weather conditions for all F1 circuits using OpenWeatherMap API
+- **Race Weekend Forecasting**: 3-day weather forecasts with tire strategy recommendations
+- **Championship Standings**: Auto-updating driver and constructor standings with battle analysis
+- **Session Results**: Live qualifying results, race analysis, and session comparisons
 
-### 📊 **Advanced Telemetry Analysis**
-- **Multi-Variable Overlap Graphs**: Compare 6 telemetry variables simultaneously
-- **Session Type Support**: Practice (FP2, FP3), Qualifying (Q, SQ), Sprint (S), Race (R)
-- **Customizable Graph UI**: 4 chart types, 4 color schemes, multi-axis configuration
-- **Speed Trace Analysis**: Detailed lap-by-lap telemetry visualization
-- **FastF1 Integration**: Real telemetry data from 2024-2025 seasons with caching
+### 🧠 Machine Learning Predictions
 
-### 🎨 **Professional Animated Interface**
-- **Smooth Page Transitions**: Elegant fade-in animations with staggered timing
-- **Interactive Visualizations**: Real-time graph customization with animated transitions
-- **Animated Background Elements**: Dynamic floating orbs with F1-themed color schemes
-- **Enhanced Error Handling**: Loading spinners, error displays, and retry mechanisms
-- **Responsive Design**: Seamless desktop and mobile experience with consistent animations
-- **Modern UI Components**: Built with shadcn/ui and Tailwind CSS with custom animation system
-- **Authentic F1 Styling**: Racing-inspired design with professional aesthetics and motion
+- **Enhanced Ensemble Models**: XGBoost + Random Forest + Neural Network for maximum accuracy
+- **Driver Performance Prediction**: Individual driver qualifying and race position predictions
+- **Full Grid Prediction**: Complete race grid predictions with confidence scoring
+- **Advanced Feature Engineering**: 50+ features including momentum, pressure, weather impact
+
+### 📊 Advanced Telemetry Analysis
+
+- **Session Telemetry**: Comprehensive race and qualifying session analysis
+- **Speed Trace Analysis**: Detailed speed traces with throttle/brake overlay
+- **Driver Comparisons**: Side-by-side telemetry comparison between drivers
+- **Track Mapping**: Interactive track maps with racing line visualization
+
+### 🎯 Strategy Simulation
+
+- **Monte Carlo Simulation**: Advanced tire strategy simulation with race events
+- **AI-Powered Optimization**: Google Gemini AI integration for intelligent strategy recommendations
+- **Multi-Strategy Comparison**: Compare different tire strategies for optimal race planning
+- **Real-time Strategy Adaptation**: Dynamic strategy adjustments based on race conditions
+
+### 🎨 Modern Dashboard
+
+- **Real-time Updates**: Live data refresh with auto-updating components
+- **Interactive Visualizations**: Charts, graphs, and track maps powered by Recharts
+- **Responsive Design**: Optimized for desktop and mobile viewing
+- **Dark Theme**: Professional dark theme with F1-inspired color scheme
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Python 3.11+** (for backend)
+- **Node.js 18+** (for frontend)
+- **OpenWeatherMap API Key** (free tier available)
+
+### Backend Setup
+
+1. **Clone and navigate to backend**
+
+   ```bash
+   cd backend
+   ```
+
+2. **Install Python dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configure environment variables**
+
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   ```
+
+4. **Start the FastAPI server**
+
+   ```bash
+   python main.py
+   ```
+
+   The API will be available at `http://localhost:8000`
+
+   **First startup**: The system will automatically download F1 data (5-10 minutes)
+
+### Frontend Setup
+
+1. **Navigate to frontend root**
+
+   ```bash
+   cd ..  # Back to project root
+   ```
+
+2. **Install Node.js dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+   The dashboard will be available at `http://localhost:5173`
+
+### Live Data Setup (Required)
+
+To enable live weather and championship data, you need API keys:
+
+1. **Get OpenWeatherMap API Key** (Required):
+   - Visit [OpenWeatherMap](https://openweathermap.org/api)
+   - Sign up for free account (1000 calls/day free tier)
+   - Copy your API key from dashboard
+   - Add to `backend/.env` as `OPENWEATHER_API_KEY=your_key_here`
+
+2. **Get Google Gemini API Key** (Optional - for AI strategy):
+   - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Create API key for Gemini Pro
+   - Add to `backend/.env` as `GEMINI_API_KEY=your_key_here`
+
+---
+
+## 🏗️ Project Structure
+
+```
+F1-Insight-Hub/
+├── backend/                     # FastAPI backend
+│   ├── services/               # Business logic services
+│   │   ├── live_weather_service.py      # Weather API integration
+│   │   ├── f1_results_service.py        # F1 results & standings
+│   │   ├── enhanced_prediction_service.py # ML predictions
+│   │   ├── strategy_simulation_service.py # Strategy simulation
+│   │   └── telemetry_analyzer_service.py  # Telemetry analysis
+│   ├── api/                    # API route handlers
+│   ├── cache/                  # FastF1 data cache
+│   ├── main.py                 # FastAPI application
+│   └── requirements.txt        # Python dependencies
+├── src/                        # React frontend
+│   ├── components/             # Reusable UI components
+│   ├── pages/                  # Page components
+│   │   ├── Dashboard.tsx       # Main dashboard with live data
+│   │   ├── DriverPredictor.tsx # Individual predictions
+│   │   ├── RacePredictor.tsx   # Grid predictions
+│   │   ├── TelemetryAnalyzer.tsx # Telemetry analysis
+│   │   └── StrategySimulator.tsx # Strategy simulation
+│   └── hooks/                  # Custom React hooks
+└── README.md                   # This file
+```
+
+---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React 18** with TypeScript for type safety and modern hooks
-- **Vite** for lightning-fast development and building
-- **Tailwind CSS** for responsive utility-first styling with animation utilities
-- **shadcn/ui** premium component library for consistent UI components
-- **Custom Animation System**: Reusable AnimatedPageWrapper and StaggeredAnimation components
-- **Recharts** for advanced data visualization and telemetry charts
-- **React Router** for seamless navigation between features
-- **Lucide Icons** for consistent iconography throughout the interface
+
+- **React 18** with TypeScript for type safety
+- **Vite** for lightning-fast development
+- **Tailwind CSS** for responsive styling
+- **shadcn/ui** for premium components
+- **Recharts** for data visualization
+- **React Router** for navigation
 
 ### Backend
-- **Python 3.10+** with FastAPI for high-performance async API
-- **Enhanced Machine Learning**: XGBoost, Random Forest, Neural Networks with Optuna optimization
-- **Advanced Feature Engineering**: Driver momentum, championship pressure, team dynamics
-- **Data Processing**: Pandas, NumPy, Scikit-learn for efficient data handling
-- **F1 Data Integration**: FastF1 API with comprehensive telemetry caching and corner annotations
-- **Google Drive Cache**: Pre-cached telemetry for sub-200ms response times
-- **Deployment Ready**: Multi-configuration Docker images for lightweight and full ML deployment
 
-## 🚀 Quick Start
+- **Python 3.11+** with FastAPI for high-performance API
+- **Machine Learning**: XGBoost, Random Forest, Neural Networks
+- **Data Processing**: Pandas, NumPy, Scikit-learn
+- **F1 Data**: FastF1 API with telemetry caching
+- **Live APIs**: OpenWeatherMap, Google Gemini
 
-### Frontend Setup
+---
 
-```bash
-# 1. Clone repository
-git clone <repository-url>
-cd F1-Insight-Hub
+## 📖 Dashboard Features
 
-# 2. Install dependencies
-npm install
+### Main Dashboard (`/`)
 
-# 3. Create environment file
-echo "VITE_API_URL=http://localhost:8000" > .env
+- **Live Weather Conditions**: Real-time weather for upcoming races with circuit selection
+- **Race Weekend Forecast**: 3-day weather timeline with tire strategy recommendations
+- **Championship Standings**: Current driver and constructor standings with battle analysis
+- **Dynamic Race Detection**: Automatically shows next upcoming race
+- **Weekend Analysis**: Weather trends, temperature ranges, strategy impact
 
-# 4. Start development server
-npm run dev
-# Frontend runs on http://localhost:5173
-```
+### Driver Predictor (`/predictor`)
 
-### Backend Setup
-
-```bash
-# 1. Navigate to backend
-cd backend
-
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Create environment file (optional)
-cp .env.example .env
-# Edit .env with your Google Drive cache file ID if available
-
-# 4. Start API server
-python main.py
-# Backend runs on http://localhost:8000
-# FastF1 cache will be automatically initialized on first run
-```
-
-## 🏗️ Application Architecture
-
-### Frontend Pages & Features
-
-#### **📈 Dashboard (`/`)**
-- **Real-time Championship Standings**: 2025 F1 season with Piastri leading at 266 points
-- **Performance Trends Chart**: Interactive line chart with Last 5/All Races toggle and driver selection
-- **Latest Race Results**: Belgium GP 2025 podium results with lap times and statistics
-- **Weather Impact Analysis**: Bar chart showing driver performance across different weather conditions
-- **Championship Pressure Visualization**: Advanced pressure metrics for top 6 championship contenders
-- **Responsive Card Layout**: Perfectly sized cards with consistent spacing and professional styling
-
-#### **🎯 Driver Predictor (`/predictor`)**
 - Individual driver performance predictions
-- Weather impact analysis
-- Team and track-specific adjustments
+- Weather impact analysis with 9+ weather conditions
+- Advanced ensemble ML models with confidence scoring
+- Driver and car ratings based on 2024-2025 data
 
-#### **🏁 Race Predictor (`/race-predictor`)**
+### Race Predictor (`/race-predictor`)
+
 - Full 20-driver grid predictions
-- Advanced weather modeling
-- Gap time predictions and confidence scoring
+- Championship impact analysis
+- Weather-adjusted performance modeling
+- Confidence intervals and uncertainty ranges
 
-#### **📊 Telemetry Analyzer (`/telemetry`)**
-- **Multi-Variable Overlap Graphs**: Compare speed, throttle, brake, gear, RPM, DRS
-- **Session Type Filters**: FP2, FP3, Sprint Qualifying, Qualifying, Sprint, Race
-- **Customizable Graph UI**: 
-  - Chart Types: Line, Area, Scatter, Bar charts
-  - Color Schemes: F1 Official, Racing, Neon, Monochrome
-  - Multi-Axis Configuration: Independent Y-axes for different data types
-  - Interactive Controls: Zoom, pan, variable toggles
-- **Speed Trace Analysis**: Detailed lap-by-lap telemetry comparison
-- **Driver Comparison Mode**: Side-by-side performance analysis
+### Telemetry Analyzer (`/telemetry`)
 
-### Component Structure
+- Multi-variable overlap graphs (Speed, Throttle, Brake, Gear, RPM, DRS)
+- Session type support (Practice, Qualifying, Sprint, Race)
+- Customizable graph UI with 4 chart types and color schemes
+- Driver comparison mode with side-by-side analysis
 
-```
-src/
-├── components/
-│   ├── ui/                           # shadcn/ui premium components
-│   │   ├── loading-spinner.tsx       # Reusable loading spinner component
-│   │   ├── error-display.tsx         # Enhanced error display with retry functionality
-│   │   └── data-wrapper.tsx          # Wrapper component for loading states and error handling
-│   ├── Layout.tsx                    # Main app layout with navigation
-│   ├── AnimatedPageWrapper.tsx       # Reusable page transition animations
-│   ├── StaggeredAnimation.tsx        # List/grid item staggered animations
-│   ├── ChampionshipPressureChart.tsx # Advanced championship pressure visualization
-│   ├── TelemetryOverlapGraphs.tsx    # Multi-variable telemetry visualization
-│   ├── TelemetrySpeedTrace.tsx       # Speed trace analysis component
-│   ├── GraphCustomizationPanel.tsx   # Graph styling and configuration
-│   ├── DriverSelect.tsx              # 2025 F1 grid driver selection
-│   ├── RaceSelect.tsx                # All 24 F1 circuits selection
-│   └── PredictionForm.tsx            # Enhanced prediction interface
-├── pages/
-│   ├── Index.tsx                     # Dashboard with race overview (animated)
-│   ├── DriverPredictor.tsx           # Individual driver predictions (animated)
-│   ├── RacePredictor.tsx             # Full race grid predictions (animated)
-│   ├── TelemetryAnalyzer.tsx         # Advanced telemetry analysis (animated)
-│   ├── StrategySimulator.tsx         # Race strategy optimization (animated)
-│   └── NotFound.tsx                  # Enhanced 404 page (animated)
-├── hooks/
-│   ├── useApiCall.ts                 # Enhanced API call hook with loading states, error handling, and retry logic
-│   ├── useGraphCustomization.ts      # Graph styling state management
-│   └── useTelemetryData.ts           # Telemetry API integration
-└── lib/
-    ├── api.ts                        # API integration utilities
-    └── telemetry-utils.ts            # Telemetry data processing
-```
+### Strategy Simulator (`/strategy`)
 
-## ✨ Animation System
+- Monte Carlo race strategy simulation
+- AI-powered optimization with Google Gemini
+- Multi-strategy comparison
+- Tire degradation modeling
 
-### Custom Animation Components
+---
 
-#### **AnimatedPageWrapper**
-Reusable component for smooth page entrance animations:
+## 📋 Environment Configuration
 
-```typescript
-<AnimatedPageWrapper delay={300}>
-  <div className="page-content">
-    {/* Page content with fade-in animation */}
-  </div>
-</AnimatedPageWrapper>
-```
+### Backend Environment Variables
 
-**Features:**
-- Configurable delay timing for progressive loading
-- Smooth translate-y and opacity transitions
-- 1-second duration for professional feel
-- Automatic trigger on component mount
-
-#### **StaggeredAnimation**
-Creates sequential animations for lists and grids:
-
-```typescript
-<StaggeredAnimation
-  delay={500}
-  staggerDelay={150}
-  className="grid grid-cols-3 gap-4"
->
-  {items.map((item, index) => (
-    <Card key={index}>
-      {/* Each card animates with increasing delay */}
-    </Card>
-  ))}
-</StaggeredAnimation>
-```
-
-**Features:**
-- Individual item delays for visual hierarchy
-- Customizable stagger timing between items
-- Support for any grid or list layout
-- Smooth translate-y and opacity effects
-
-### Page-Specific Animations
-
-#### **Animated Backgrounds**
-Each page features unique floating orb animations:
-
-```typescript
-{/* Animated Background Effects */}
-<div className="fixed inset-0 overflow-hidden pointer-events-none">
-  <div className="absolute -top-4 -right-4 w-72 h-72 bg-red-500/10 rounded-full blur-3xl animate-pulse"></div>
-  <div className="absolute top-1/2 -left-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-  <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
-</div>
-```
-
-**Color Themes by Page:**
-- **Index**: Red, Blue, Purple orbs for F1 branding
-- **Driver Predictor**: Red, Blue, Green for trophy/performance theme
-- **Race Predictor**: Blue, Purple, Green for race/strategy theme
-- **Telemetry Analyzer**: Green, Blue, Purple for data/analysis theme
-- **Strategy Simulator**: Purple, Yellow, Blue for strategy/optimization theme
-- **NotFound**: Red, Yellow, Orange for warning/alert theme
-
-#### **Progressive Loading**
-Content appears in sequence for better UX:
-
-```typescript
-const [isVisible, setIsVisible] = useState(false);
-
-useEffect(() => {
-  setIsVisible(true);
-}, []);
-
-// Header (100ms delay)
-<AnimatedPageWrapper delay={100}>
-  <header>{/* Header content */}</header>
-</AnimatedPageWrapper>
-
-// Controls (600ms delay)
-<AnimatedPageWrapper delay={600}>
-  <div className="controls">{/* Control panels */}</div>
-</AnimatedPageWrapper>
-
-// Results (800ms delay)
-<AnimatedPageWrapper delay={800}>
-  <div className="results">{/* Results display */}</div>
-</AnimatedPageWrapper>
-```
-
-### Interactive Animations
-
-#### **Hover Effects**
-Enhanced hover states with scaling and shadow effects:
-
-```css
-.hover\\:scale-105:hover {
-  transform: scale(1.05);
-}
-
-.hover\\:shadow-2xl:hover {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-.hover\\:shadow-red-500\\/25:hover {
-  box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.25);
-}
-```
-
-#### **Button Animations**
-Professional button interactions with smooth transitions:
-
-```typescript
-<Button className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
-  <span className="relative flex items-center">
-    Get Started
-    <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-  </span>
-</Button>
-```
-
-### Performance Optimizations
-
-#### **Animation Performance**
-- **CSS Transforms**: Hardware-accelerated animations using transform and opacity
-- **Reduced Motion**: Respects user preference for reduced motion
-- **Efficient Triggers**: useEffect hooks with proper cleanup
-- **Stagger Optimization**: Calculated delays prevent animation overlap
-
-#### **Memory Management**
-```typescript
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setIsVisible(true);
-  }, delay);
-
-  // Cleanup timer to prevent memory leaks
-  return () => clearTimeout(timer);
-}, [delay]);
-```
-
-## 🔌 API Integration
-
-### Core Prediction APIs
-
-#### Individual Driver Prediction
-```typescript
-const prediction = await fetch('/api/predict/driver', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    driver: 'VER',
-    track: 'Monaco Grand Prix',
-    weather: 'Dry',
-    team: 'Red Bull Racing'
-  })
-});
-```
-
-#### Full Race Grid Prediction
-```typescript
-const raceResult = await fetch('/api/predict/race', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    race_name: 'Austrian Grand Prix',
-    weather: 'Dry to Light Rain',
-    temperature: 20.0,
-    qualifying_results: { 'VER': 1, 'NOR': 2, 'LEC': 3 }
-  })
-});
-```
-
-### Telemetry Analysis APIs
-
-#### Speed Trace Data
-```typescript
-const telemetryData = await fetch('/api/telemetry/speed-trace', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    race: 'Austrian Grand Prix',
-    session: 'Q',
-    drivers: ['VER', 'NOR'],
-    lap_numbers: [1, 2]
-  })
-});
-```
-
-#### Session Analysis
-```typescript
-const sessionData = await fetch('/api/telemetry/session-analysis', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    race: 'Austrian Grand Prix',
-    session: 'Q',
-    drivers: ['VER', 'NOR']
-  })
-});
-```
-
-## 📊 Telemetry Features
-
-### Multi-Variable Overlap Graphs
-Visualize up to 6 telemetry variables simultaneously:
-- **Speed**: Track speed throughout the lap
-- **Throttle**: Accelerator input percentage (0-100%)
-- **Brake**: Braking intensity and brake points
-- **Gear**: Gear changes and optimal gear selection
-- **RPM**: Engine RPM and power delivery
-- **DRS**: DRS activation zones and usage
-
-### Customizable Graph UI
-**Chart Types:**
-- Line Chart: Clean telemetry traces
-- Area Chart: Filled visualization with transparency
-- Scatter Plot: Individual data point analysis
-- Bar Chart: Discrete value comparison
-
-**Color Schemes:**
-- F1 Official: Authentic Formula 1 team colors
-- Racing: High-contrast racing-inspired palette
-- Neon: Vibrant cyber-style colors
-- Monochrome: Professional black and white
-
-**Advanced Features:**
-- Multi-axis configuration for different data ranges
-- Interactive zoom and pan controls
-- Variable toggle switches for selective display
-- Persistent settings saved to localStorage
-
-### Session Type Support
-**Practice Sessions:**
-- FP2 (Practice 2): Long runs and race simulation
-- FP3 (Practice 3): Qualifying preparation
-
-**Qualifying Sessions:**
-- Q (Qualifying): Traditional 3-part qualifying
-- SQ (Sprint Qualifying): Sprint race qualification
-
-**Race Sessions:**
-- S (Sprint): Sprint race format
-- R (Race): Full Grand Prix distance
-
-## 🏎️ 2025 F1 Grid (20 Drivers)
-
-**Complete 2025 season support with accurate transfers:**
-
-- **Red Bull Racing**: Max Verstappen (VER) #1, Sergio Pérez (PER) #11
-- **Ferrari**: Lewis Hamilton (HAM) #44 ⭐, Charles Leclerc (LEC) #16
-- **Mercedes**: George Russell (RUS) #63, Kimi Antonelli (ANT) #12 ⭐
-- **McLaren**: Lando Norris (NOR) #4, Oscar Piastri (PIA) #81
-- **Aston Martin**: Fernando Alonso (ALO) #14, Lance Stroll (STR) #18
-- **Alpine**: Pierre Gasly (GAS) #10, Esteban Ocon (OCO) #31
-- **RB**: Yuki Tsunoda (TSU) #22, Liam Lawson (LAW) #30 ⭐
-- **Williams**: Carlos Sainz (SAI) #55 ⭐, Alexander Albon (ALB) #23
-- **Haas**: Nico Hülkenberg (HUL) #27, Oliver Bearman (BEA) #38 ⭐
-- **Kick Sauber**: Gabriel Bortoleto (BOR) #5 ⭐, Isack Hadjar (HAD) #6 ⭐
-
-⭐ = New for 2025 season
-
-## 🏁 All 24 F1 Circuits
-
-**Complete 2025 calendar with telemetry support:**
-Bahrain, Saudi Arabian, Australian, Japanese, Chinese, Miami, Emilia Romagna, Monaco, Canadian, Spanish, Austrian, British, Hungarian, Belgian, Dutch, Italian, Azerbaijan, Singapore, United States, Mexico City, São Paulo, Las Vegas, Qatar, Abu Dhabi
-
-## 🌤️ Weather Conditions
-
-### Basic Conditions
-- **Dry**: Optimal racing conditions for maximum performance
-- **Light Rain**: Slight wet conditions favoring skilled wet-weather drivers
-- **Heavy Rain**: Challenging conditions with high uncertainty and strategy importance
-- **Wet**: Full wet racing conditions with intermediate/wet tire compounds
-
-### Mixed & Changing Conditions
-- **Mixed**: Variable conditions throughout the race distance
-- **Dry → Light Rain**: Race starts dry, rain develops (strategy critical)
-- **Light Rain → Dry**: Race starts wet, track dries (tire timing crucial)
-- **Dry → Heavy Rain**: Sudden heavy rain during race (chaos factor)
-- **Variable**: Highly unpredictable changing conditions (maximum uncertainty)
-
-## 🚀 Development
-
-### Available Scripts
+Create `backend/.env` file:
 
 ```bash
-# Frontend Development
-npm run dev          # Start development server with hot reload
-npm run build        # Build optimized production bundle
-npm run preview      # Preview production build locally
-npm run lint         # Run ESLint with TypeScript support
-npm run type-check   # TypeScript type checking
+# Required: OpenWeatherMap API Integration
+OPENWEATHER_API_KEY=your_openweathermap_api_key_here
 
-# Backend Development
-python main.py                    # Start FastAPI server with auto-reload
-python enhanced_ml_model.py       # Train enhanced ensemble models
-python download_current_data.py   # Update F1 data from Google Drive
-```
+# Optional: Google Gemini AI Integration  
+GEMINI_API_KEY=your_google_gemini_api_key_here
 
-### Environment Configuration
+# Optional: Database Configuration
+DATABASE_URL=sqlite:///./f1_data.db
 
-Create `.env` file in root directory:
-```env
-# Frontend Configuration
-VITE_API_URL=http://localhost:8000
-VITE_APP_TITLE=F1 Insight Hub
+# Optional: Cache Configuration
+CACHE_DIR=./cache
+FASTF1_CACHE_ENABLED=true
 
-# Backend Configuration (backend/.env)
-GOOGLE_DRIVE_CACHE_FILE_ID=your_drive_file_id
+# Optional: Server Configuration
 API_HOST=0.0.0.0
 API_PORT=8000
 ```
 
-### Adding New Features
+### Frontend Environment Variables
 
-1. **New Telemetry Variables**: Extend `TelemetryOverlapGraphs.tsx` variable configuration
-2. **Custom Chart Types**: Add new chart types to `GraphCustomizationPanel.tsx`
-3. **New Session Types**: Update session mapping in `TelemetryAnalyzer.tsx`
-4. **Color Schemes**: Add new color palettes to `useGraphCustomization.ts`
-5. **Prediction Models**: Extend backend ensemble models in `enhanced_ml_model.py`
-
-## 📈 Performance & Accuracy
-
-### Frontend Performance
-- **First Contentful Paint**: < 1.2s
-- **Largest Contentful Paint**: < 2.0s
-- **Cumulative Layout Shift**: < 0.05
-- **Time to Interactive**: < 2.5s
-- **Telemetry Rendering**: < 500ms for multi-variable graphs
-
-### ML Model Performance
-- **Qualifying Predictions**: 0.359 MAE (excellent accuracy)
-- **Race Predictions**: 1.638 MAE (very good accuracy)
-- **API Response Time**: < 150ms average
-- **Confidence Range**: 60-98% based on conditions
-- **Training Data**: 700+ race records, 2024-2025 seasons
-
-### Telemetry Performance
-- **Session Loading**: < 2s with Google Drive cache
-- **Graph Rendering**: 60fps smooth interactions
-- **Multi-Variable Display**: Real-time updates for 6 variables
-- **Zoom/Pan Response**: < 16ms for fluid interactions
-
-## 🌐 Deployment
-
-### Frontend Deployment (Vercel/Netlify)
+Create `.env` file in project root:
 
 ```bash
-# Build for production
-npm run build
+# API Endpoint Configuration
+VITE_API_URL=http://localhost:8000
 
-# Deploy dist/ folder with environment variables
-# Set VITE_API_URL to production backend URL
+# Optional: Application Configuration
+VITE_APP_TITLE=F1 Insight Hub
 ```
 
-### Backend Deployment Options
+### API Key Setup Guide
 
-#### Option 1: Fly.io (Recommended - 10GB support)
-```bash
-fly launch --name f1-insight-backend
-fly deploy --remote-only
-```
+**OpenWeatherMap API Key (Required)**:
 
-#### Option 2: Railway (4GB limit - use lightweight build)
-```bash
-railway login
-railway init
-railway up
-```
+1. Visit [OpenWeatherMap](https://openweathermap.org/api)
+2. Create free account (1,000 calls/day limit)
+3. Navigate to "API keys" in dashboard
+4. Copy your API key
+5. Add to `backend/.env` as `OPENWEATHER_API_KEY=your_key`
 
-#### Option 3: DigitalOcean App Platform
-```bash
-# Use Dockerfile with requirements-base.txt for smaller image
-# Image size: ~500MB (basic) vs ~4GB (enhanced ML)
-```
+**Free Tier Limits**:
 
-### Docker Configuration
-```dockerfile
-# Lightweight deployment (500MB)
-COPY requirements-base.txt .
+- 1,000 API calls per day
+- 60 calls per minute
+- Current weather + 5-day forecast
 
-# Full ML deployment (4GB)
-COPY requirements.txt .
-```
+**Google Gemini API Key (Optional)**:
 
-## 🔧 Troubleshooting
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with Google account
+3. Create new API key for Gemini Pro
+4. Add to `backend/.env` as `GEMINI_API_KEY=your_key`
 
-### Frontend Issues
+**Gemini Features**:
 
-1. **Telemetry Loading Problems**
-   ```bash
-   # Check API connection
-   curl http://localhost:8000/health
-   
-   # Verify backend telemetry cache
-   ls backend/cache/
-   ```
-
-2. **Graph Rendering Issues**
-   - Clear browser cache and localStorage
-   - Check console for Recharts warnings
-   - Verify telemetry data format matches component expectations
-
-3. **Build Failures**
-   ```bash
-   rm -rf node_modules package-lock.json
-   npm install
-   npm run type-check
-   ```
-
-### Backend Issues
-
-1. **Telemetry Cache Problems**
-   ```bash
-   # Re-download F1 data with Google Drive cache
-   python download_current_data.py
-   
-   # Check cache status
-   python -c "import os; print(os.path.exists('cache/fastf1_http_cache.sqlite'))"
-   ```
-
-2. **Model Loading Errors**
-   ```bash
-   # Retrain models if corrupted
-   python enhanced_ml_model.py
-   
-   # Check model files
-   ls models/ enhanced_models/
-   ```
-
-3. **API Connection Issues**
-   - Verify CORS settings in FastAPI
-   - Check port 8000 availability
-   - Ensure Google Drive cache file ID is set
-
-## 🏆 Key Achievements
-
-### Enhanced F1 Dashboard
-- ✅ **Real-time 2025 F1 Championship** with live standings showing Piastri's McLaren title lead
-- ✅ **Interactive Performance Trends** with Last 5/All Races toggle and multi-driver selection
-- ✅ **Weather Impact Analysis** with driver performance comparison across weather conditions
-- ✅ **Championship Pressure Visualization** showing mathematical championship possibilities
-- ✅ **Responsive Card Layout** with perfectly balanced sizing and professional aesthetics
-- ✅ **Enhanced Error Handling** with loading states, error displays, and retry mechanisms
-
-### Advanced Telemetry Visualization
-- ✅ **Multi-variable overlap graphs** with 6 telemetry variables
-- ✅ **Customizable graph UI** with 4 chart types and color schemes
-- ✅ **Session type filters** supporting all F1 session formats
-- ✅ **Interactive controls** with zoom, pan, and variable toggles
-- ✅ **Professional aesthetics** with F1-inspired design and smooth animations
-
-### Professional Animation System
-- ✅ **Custom Animation Components** with AnimatedPageWrapper and StaggeredAnimation
-- ✅ **Page-Specific Themes** with unique color-coded floating background orbs
-- ✅ **Progressive Loading** with carefully timed content appearance
-- ✅ **Interactive Hover Effects** with scaling and shadow animations
-- ✅ **Performance Optimized** using hardware-accelerated CSS transforms
-
-### Production-Ready Architecture
-- ✅ **FastF1 integration** with real telemetry data from 2024-2025
-- ✅ **FastF1 cache optimization** with automatic initialization and error handling
-- ✅ **Ensemble ML models** with XGBoost + Random Forest + Neural Networks
-- ✅ **Enhanced API architecture** with comprehensive FastF1 championship service
-- ✅ **Multi-platform deployment** support for various cloud providers
-
-### Data-Driven Intelligence
-- ✅ **718+ race records** from complete 2024-2025 seasons with enhanced ML models
-- ✅ **Realistic F1 modeling** with 70% car, 30% driver balance and advanced feature engineering
-- ✅ **Advanced weather system** with realistic driver-specific weather performance data
-- ✅ **Driver-specific skills** modeling wet weather expertise and momentum trends
-- ✅ **Enhanced confidence scoring** with ensemble model variance analysis and Optuna optimization
-
-## 📄 License
-
-MIT License - See LICENSE file for details.
+- AI-powered strategy optimization
+- Intelligent race analysis
+- Advanced weather recommendations
+- Contextual strategy insights
 
 ---
 
-**Built with ❤️ for F1 fans by combining real data science, professional telemetry analysis, and modern web technology.**
+## 📊 API Reference
+
+### Live Data APIs
+
+**Get Current Weather**
+
+```bash
+curl -X POST "http://localhost:8000/api/weather/current" \
+  -H "Content-Type: application/json" \
+  -d '{"circuit_name": "Silverstone"}'
+```
+
+**Get Race Weekend Forecast**  
+
+```bash
+curl -X POST "http://localhost:8000/api/weather/race-weekend" \
+  -H "Content-Type: application/json" \
+  -d '{"circuit_name": "Silverstone", "race_date": "2025-08-31"}'
+```
+
+**Get Championship Standings**
+
+```bash
+curl -X GET "http://localhost:8000/api/championship/standings"
+```
+
+**Get Next Upcoming Race**
+
+```bash
+curl -X GET "http://localhost:8000/api/results/next-race"
+```
+
+### Machine Learning APIs
+
+**Individual Driver Prediction**
+
+```bash
+curl -X POST "http://localhost:8000/api/predict/driver" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "driver": "VER",
+    "track": "Silverstone", 
+    "weather": "Dry",
+    "team": "Red Bull Racing"
+  }'
+```
+
+**Full Race Grid Prediction**
+
+```bash
+curl -X POST "http://localhost:8000/api/predict/race" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "race_name": "Hungarian Grand Prix",
+    "weather": "Dry",
+    "temperature": 28.5
+  }'
+```
+
+### Strategy & Telemetry APIs
+
+**Strategy Simulation**
+
+```bash
+curl -X POST "http://localhost:8000/api/strategy/simulate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "driver": "VER",
+    "track": "Silverstone",
+    "tire_strategy": "Medium-Hard-Hard"
+  }'
+```
+
+**Telemetry Analysis**
+
+```bash
+curl -X POST "http://localhost:8000/api/telemetry/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "year": 2024,
+    "race": "British Grand Prix",
+    "session": "R",
+    "drivers": ["VER", "NOR"]
+  }'
+```
+
+---
+
+## 🚀 Deployment
+
+### Development Setup
+
+**Frontend**:
+
+```bash
+npm run dev          # Development server with hot reload
+npm run build        # Build for production
+npm run preview      # Preview production build
+```
+
+**Backend**:
+
+```bash
+python main.py                    # FastAPI server with auto-reload
+python enhanced_ml_model.py       # Train ML models
+python download_current_data.py   # Download F1 data cache
+```
+
+### Production Deployment
+
+**Frontend Deployment (Vercel/Netlify)**:
+
+```bash
+npm run build
+# Deploy dist/ folder
+# Set VITE_API_URL to production backend URL
+```
+
+**Backend Deployment Options**:
+
+1. **Fly.io (Recommended - handles large ML models)**:
+
+   ```bash
+   fly launch --name f1-insight-backend
+   fly deploy --remote-only
+   ```
+
+2. **Railway (4GB limit - use lightweight build)**:
+
+   ```bash
+   railway login
+   railway init
+   railway up
+   ```
+
+3. **Docker Deployment**:
+
+   ```bash
+   # Full ML deployment (4GB)
+   docker build -t f1-insight-hub .
+   docker run -p 8000:8000 f1-insight-hub
+   
+   # Lightweight deployment (500MB)
+   docker build -f Dockerfile.light -t f1-insight-hub-light .
+   ```
+
+**Production Environment Variables**:
+
+```bash
+export OPENWEATHER_API_KEY="your_production_key"
+export GEMINI_API_KEY="your_production_key"
+export DATABASE_URL="postgresql://user:pass@localhost/f1db"
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Backend Won't Start**:
+
+- Check Python version: `python --version` (need 3.11+)
+- Install dependencies: `pip install -r requirements.txt`
+- Verify API keys in `backend/.env`
+- Check port 8000 availability: `lsof -i :8000`
+
+**Frontend Build Issues**:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+npm run type-check
+```
+
+**API Key Issues**:
+
+```bash
+# Test if API key is loaded
+python -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.getenv('OPENWEATHER_API_KEY'))"
+```
+
+**Data Download Issues**:
+
+- First startup downloads ~2GB F1 data (10-15 minutes)
+- Ensure stable internet connection
+- Check `backend/cache/` directory exists
+- Restart if download fails: `python download_current_data.py`
+
+**Live Data Not Updating**:
+
+- Verify OpenWeatherMap API key is valid
+- Check API quota usage
+- Restart backend after adding API keys
+- Test API directly: `curl localhost:8000/api/weather/circuits`
+
+### Performance Issues
+
+**Slow API Responses**:
+
+- Clear cache: `rm -rf backend/cache/`
+- Rebuild cache: `python download_current_data.py`
+- Use SSD storage for cache directory
+- Consider PostgreSQL for production database
+
+**Memory Issues**:
+
+- ML models require ~4GB RAM
+- Use lightweight deployment for resource-constrained environments
+- Monitor memory usage: `htop` or `top`
+
+---
+
+## 📈 Model Performance
+
+### Machine Learning Accuracy
+
+- **Qualifying Predictions**: 0.359 MAE (excellent accuracy)
+- **Race Predictions**: 1.638 MAE (very good accuracy)
+- **Training Data**: 718+ race records from 2024-2025 seasons
+- **Confidence Range**: 60-98% based on conditions
+- **API Response Time**: < 150ms average
+
+### System Performance
+
+- **Frontend**: < 1.2s First Contentful Paint
+- **Telemetry Loading**: < 2s with cache
+- **Live Data Refresh**: Real-time updates every 5 minutes
+- **Graph Rendering**: 60fps smooth interactions
+
+---
+
+## 🌟 Recent Updates
+
+### Live Data Integration (Completed)
+
+✅ Real-time weather API integration  
+✅ Dynamic race weekend forecasting  
+✅ Auto-updating championship standings  
+✅ Live session results integration  
+
+### Enhanced ML Models (Completed)
+
+✅ Ensemble models with XGBoost + Random Forest + Neural Networks  
+✅ Advanced feature engineering (50+ features)  
+✅ Hyperparameter optimization with Optuna  
+✅ Enhanced confidence scoring  
+
+### Dashboard Improvements (Completed)
+
+✅ Live weather conditions display  
+✅ Race weekend forecast timeline  
+✅ Dynamic next race detection  
+✅ Championship battle analysis  
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository**
+2. **Create feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make changes** and add tests
+4. **Commit changes**: `git commit -m 'Add amazing feature'`
+5. **Push to branch**: `git push origin feature/amazing-feature`
+6. **Open Pull Request**
+
+### Development Guidelines
+
+- Follow existing code style and patterns
+- Add tests for new features  
+- Update documentation as needed
+- Ensure all tests pass before submitting
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **FastF1**: Formula 1 telemetry data library
+- **OpenWeatherMap**: Live weather data API
+- **Google Gemini**: AI-powered strategy optimization
+- **Ergast API**: Historical F1 data
+- **Shadcn/ui**: Beautiful UI components
+- **F1 Community**: For inspiration and feedback
+
+---
+
+**Ready to explore F1 data like never before?** 🏁
+
+Get started with the setup instructions above and dive into the world of Formula 1 analytics with real-time data, machine learning predictions, and professional telemetry analysis!
+
+---
+
+*Built with ❤️ for F1 fans by combining real data science, professional telemetry analysis, and modern web technology.*

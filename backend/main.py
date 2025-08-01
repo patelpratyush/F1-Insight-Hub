@@ -1043,7 +1043,8 @@ async def get_session_results(request: SessionResultsRequest):
     Returns race, qualifying, or practice session results with detailed analysis
     """
     try:
-        session_result = await f1_results_service.get_latest_session_results(
+        results_service = get_f1_results_service()
+        session_result = await results_service.get_latest_session_results(
             request.circuit_name, request.session_type
         )
         
@@ -1071,7 +1072,8 @@ async def update_standings_after_race(circuit_name: str):
     Triggers a refresh of championship data following race completion
     """
     try:
-        success = await f1_results_service.update_standings_after_race(circuit_name)
+        results_service = get_f1_results_service()
+        success = await results_service.update_standings_after_race(circuit_name)
         
         if not success:
             raise HTTPException(status_code=400, detail=f"Failed to update standings after {circuit_name}")
