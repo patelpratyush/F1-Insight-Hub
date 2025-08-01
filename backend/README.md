@@ -293,7 +293,7 @@ Response:
 
 ### File Structure
 
-```
+```bash
 backend/
 ├── main.py                              # FastAPI server with all endpoints
 ├── f1_data.csv                          # Historical race data (718+ records)

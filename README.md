@@ -125,7 +125,7 @@ To enable live weather and championship data, you need API keys:
 
 ## 🏗️ Project Structure
 
-```
+```bash
 F1-Insight-Hub/
 ├── backend/                     # FastAPI backend
 │   ├── services/               # Business logic services
@@ -286,7 +286,7 @@ VITE_APP_TITLE=F1 Insight Hub
 
 ### Live Data APIs
 
-**Get Current Weather**
+#### Get Current Weather
 
 ```bash
 curl -X POST "http://localhost:8000/api/weather/current" \
@@ -294,7 +294,7 @@ curl -X POST "http://localhost:8000/api/weather/current" \
   -d '{"circuit_name": "Silverstone"}'
 ```
 
-**Get Race Weekend Forecast**  
+#### Get Race Weekend Forecast  
 
 ```bash
 curl -X POST "http://localhost:8000/api/weather/race-weekend" \
@@ -302,13 +302,13 @@ curl -X POST "http://localhost:8000/api/weather/race-weekend" \
   -d '{"circuit_name": "Silverstone", "race_date": "2025-08-31"}'
 ```
 
-**Get Championship Standings**
+#### Get Championship Standings
 
 ```bash
 curl -X GET "http://localhost:8000/api/championship/standings"
 ```
 
-**Get Next Upcoming Race**
+#### Get Next Upcoming Race
 
 ```bash
 curl -X GET "http://localhost:8000/api/results/next-race"
@@ -316,7 +316,7 @@ curl -X GET "http://localhost:8000/api/results/next-race"
 
 ### Machine Learning APIs
 
-**Individual Driver Prediction**
+#### Individual Driver Prediction
 
 ```bash
 curl -X POST "http://localhost:8000/api/predict/driver" \
@@ -329,7 +329,7 @@ curl -X POST "http://localhost:8000/api/predict/driver" \
   }'
 ```
 
-**Full Race Grid Prediction**
+#### Full Race Grid Prediction
 
 ```bash
 curl -X POST "http://localhost:8000/api/predict/race" \
@@ -343,7 +343,7 @@ curl -X POST "http://localhost:8000/api/predict/race" \
 
 ### Strategy & Telemetry APIs
 
-**Strategy Simulation**
+#### Strategy Simulation
 
 ```bash
 curl -X POST "http://localhost:8000/api/strategy/simulate" \
@@ -355,7 +355,7 @@ curl -X POST "http://localhost:8000/api/strategy/simulate" \
   }'
 ```
 
-**Telemetry Analysis**
+#### Telemetry Analysis
 
 ```bash
 curl -X POST "http://localhost:8000/api/telemetry/analyze" \
