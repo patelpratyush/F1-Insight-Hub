@@ -585,5 +585,12 @@ class LiveWeatherService:
             }
         )
 
-# Global service instance
-live_weather_service = LiveWeatherService()
+# Global service instance (lazy-loaded)
+live_weather_service = None
+
+def get_live_weather_service():
+    """Get or create the live weather service instance"""
+    global live_weather_service
+    if live_weather_service is None:
+        live_weather_service = LiveWeatherService()
+    return live_weather_service

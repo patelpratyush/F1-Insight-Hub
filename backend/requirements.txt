@@ -10,6 +10,7 @@ numpy>=1.26.0
 # Additional dependencies for data processing and ML
 python-dotenv>=1.0.0
 requests>=2.31.0
+aiohttp>=3.9.0
 optuna>=3.4.0
 
 # AI/ML API integrations

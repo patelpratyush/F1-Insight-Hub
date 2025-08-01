@@ -11,7 +11,7 @@ import useApiCall from "@/hooks/useApiCall";
 import { 
   BarChart3, Users, Trophy, Timer, TrendingUp, TrendingDown, 
   Zap, Flag, Activity, AlertCircle, Crown, Calendar, MapPin, 
-  Thermometer, Eye, Award, Target
+  Thermometer, Eye, Award, Target, Cloud, CloudRain, Sun, Wind, RefreshCw
 } from "lucide-react";
 import AnimatedPageWrapper from "@/components/AnimatedPageWrapper";
 import StaggeredAnimation from "@/components/StaggeredAnimation";
@@ -27,6 +27,8 @@ const Dashboard = () => {
   const [selectedDrivers, setSelectedDrivers] = useState(['VER', 'LEC', 'NOR', 'RUS', 'PIA', 'HAM']);
   const [showAllRaces, setShowAllRaces] = useState(false);
   const [showDriverDropdown, setShowDriverDropdown] = useState(false);
+  const [selectedCircuit, setSelectedCircuit] = useState('Monaco Grand Prix');
+  const [liveDataLastUpdate, setLiveDataLastUpdate] = useState(null);
 
   // API call for dashboard data with error handling
   const dashboardApi = useApiCall(async () => {
@@ -78,6 +80,61 @@ const Dashboard = () => {
     return data.performance_trends;
   }, { maxRetries: 3, retryDelay: 2000 });
 
+  // Live weather data API call
+  const liveWeatherApi = useApiCall(async () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/weather/current`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ circuit_name: selectedCircuit })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error('Failed to fetch weather data');
+    }
+    
+    return data;
+  }, { maxRetries: 2, retryDelay: 1000 });
+
+  // Live championship standings API call
+  const liveChampionshipApi = useApiCall(async () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/championship/standings`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error('Failed to fetch championship standings');
+    }
+    
+    return data;
+  }, { maxRetries: 2, retryDelay: 1000 });
+
+  // Available circuits for weather data
+  const availableCircuitsApi = useApiCall(async () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/weather/circuits`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error('Failed to fetch available circuits');
+    }
+    
+    return data.circuits;
+  }, { maxRetries: 2, retryDelay: 1000 });
+
   // Available drivers with colors for the performance trends
   const availableDrivers = [
     { code: 'VER', name: 'Verstappen', color: '#EF4444', strokeDasharray: '' },
@@ -118,6 +175,43 @@ const Dashboard = () => {
     return trendsData;
   };
 
+  // Utility functions for live data
+  const getWeatherIcon = (condition) => {
+    switch (condition?.toLowerCase()) {
+      case 'clear':
+        return <Sun className="h-6 w-6 text-yellow-500" />;
+      case 'light_rain':
+        return <CloudRain className="h-6 w-6 text-blue-400" />;
+      case 'heavy_rain':
+        return <CloudRain className="h-6 w-6 text-blue-600" />;
+      case 'overcast':
+        return <Cloud className="h-6 w-6 text-gray-500" />;
+      default:
+        return <Cloud className="h-6 w-6 text-gray-400" />;
+    }
+  };
+
+  const getGripLevelColor = (gripLevel) => {
+    switch (gripLevel?.toLowerCase()) {
+      case 'excellent':
+        return 'bg-green-500';
+      case 'good':
+        return 'bg-blue-500';
+      case 'variable':
+        return 'bg-yellow-500';
+      case 'poor':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const refreshLiveData = () => {
+    liveWeatherApi.execute();
+    liveChampionshipApi.execute();
+    setLiveDataLastUpdate(new Date());
+  };
+
   useEffect(() => {
     setIsVisible(true);
     dashboardApi.execute();
@@ -127,6 +221,11 @@ const Dashboard = () => {
     } else {
       performanceTrendsLast5Api.execute();
     }
+    // Load live data
+    availableCircuitsApi.execute();
+    liveWeatherApi.execute();
+    liveChampionshipApi.execute();
+    setLiveDataLastUpdate(new Date());
   }, []);
 
   // Update performance trends when toggle changes
@@ -137,6 +236,22 @@ const Dashboard = () => {
       performanceTrendsLast5Api.execute();
     }
   }, [showAllRaces]);
+
+  // Update weather when circuit changes
+  useEffect(() => {
+    if (selectedCircuit) {
+      liveWeatherApi.execute();
+    }
+  }, [selectedCircuit]);
+
+  // Auto-refresh live data every 10 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshLiveData();
+    }, 10 * 60 * 1000); // 10 minutes
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -161,6 +276,11 @@ const Dashboard = () => {
   const weatherData = dashboardApi.data?.weather_analysis || [];
   const upcomingRace = dashboardApi.data?.upcoming_race || null;
   const seasonStats = dashboardApi.data?.season_statistics || { completedRaces: 15, totalRaces: 24 };
+  
+  // Live data from new APIs
+  const liveWeatherData = liveWeatherApi.data;
+  const liveChampionshipData = liveChampionshipApi.data;
+  const availableCircuits = availableCircuitsApi.data || [];
 
   const getTeamColor = (team) => {
     const colors = {
@@ -693,6 +813,225 @@ const Dashboard = () => {
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
+                </DataWrapper>
+              </CardContent>
+            </Card>
+          </AnimatedPageWrapper>
+        </div>
+
+        {/* Live Data Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+          {/* Live Weather Data */}
+          <AnimatedPageWrapper delay={1300}>
+            <Card className="bg-gray-800/50 border-gray-700 h-full">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-white flex items-center space-x-2">
+                      <Cloud className="h-5 w-5 text-blue-500" />
+                      <span>Live Weather Conditions</span>
+                    </CardTitle>
+                    <CardDescription className="text-gray-400">
+                      Real-time weather for F1 circuits
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {liveDataLastUpdate && (
+                      <Badge variant="outline" className="text-gray-300 text-xs">
+                        {liveDataLastUpdate.toLocaleTimeString()}
+                      </Badge>
+                    )}
+                    <Button 
+                      onClick={refreshLiveData}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-gray-400 hover:text-white"
+                      disabled={liveWeatherApi.loading}
+                    >
+                      <RefreshCw className={`h-4 w-4 ${liveWeatherApi.loading ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <Select value={selectedCircuit} onValueChange={setSelectedCircuit}>
+                    <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Select a circuit" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-600">
+                      {availableCircuits.map((circuit) => (
+                        <SelectItem 
+                          key={circuit.name} 
+                          value={circuit.name}
+                          className="text-white hover:bg-gray-700 focus:bg-gray-700 focus:text-white"
+                        >
+                          {circuit.name.replace(' Grand Prix', '')} - {circuit.location}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <DataWrapper
+                  loading={liveWeatherApi.loading && !liveWeatherData}
+                  error={liveWeatherApi.error && !liveWeatherData ? liveWeatherApi.error : null}
+                  data={liveWeatherData}
+                  onRetry={liveWeatherApi.execute}
+                  isRetrying={liveWeatherApi.isRetrying}
+                  loadingMessage="Loading weather data..."
+                  errorTitle="Failed to load weather"
+                  errorVariant="inline"
+                  minHeight="min-h-[200px]"
+                >
+                  {liveWeatherData && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          {getWeatherIcon(liveWeatherData.condition)}
+                          <div>
+                            <h3 className="text-lg font-semibold text-white">
+                              {liveWeatherData.location}, {liveWeatherData.country}
+                            </h3>
+                            <p className="text-gray-400 capitalize text-sm">{liveWeatherData.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-white flex items-center">
+                            <Thermometer className="h-5 w-5 mr-1" />
+                            {liveWeatherData.temperature?.toFixed(1)}°C
+                          </div>
+                          <p className="text-xs text-gray-400">Air Temperature</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gray-700/50 p-3 rounded-lg">
+                          <div className="flex items-center mb-1">
+                            <Thermometer className="h-3 w-3 text-orange-500 mr-1" />
+                            <span className="text-xs text-gray-400">Track</span>
+                          </div>
+                          <div className="text-sm font-semibold text-white">
+                            {liveWeatherData.track_temperature?.toFixed(1)}°C
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-700/50 p-3 rounded-lg">
+                          <div className="flex items-center mb-1">
+                            <Wind className="h-3 w-3 text-blue-500 mr-1" />
+                            <span className="text-xs text-gray-400">Wind</span>
+                          </div>
+                          <div className="text-sm font-semibold text-white">
+                            {liveWeatherData.wind_speed?.toFixed(1)} km/h
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-700/50 p-3 rounded-lg">
+                          <div className="flex items-center mb-1">
+                            <Cloud className="h-3 w-3 text-gray-500 mr-1" />
+                            <span className="text-xs text-gray-400">Humidity</span>
+                          </div>
+                          <div className="text-sm font-semibold text-white">
+                            {liveWeatherData.humidity}%
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-700/50 p-3 rounded-lg">
+                          <div className="flex items-center mb-1">
+                            <div className={`h-3 w-3 rounded-full mr-1 ${getGripLevelColor(liveWeatherData.grip_level)}`} />
+                            <span className="text-xs text-gray-400">Grip</span>
+                          </div>
+                          <div className="text-sm font-semibold text-white">
+                            {liveWeatherData.grip_level}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </DataWrapper>
+              </CardContent>
+            </Card>
+          </AnimatedPageWrapper>
+
+          {/* Live Championship Battle */}
+          <AnimatedPageWrapper delay={1400}>
+            <Card className="bg-gray-800/50 border-gray-700 h-full">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <Trophy className="h-5 w-5 text-yellow-500" />
+                  <span>Live Championship Battle</span>
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  2025 season standings with battle analysis
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DataWrapper
+                  loading={liveChampionshipApi.loading && !liveChampionshipData}
+                  error={liveChampionshipApi.error && !liveChampionshipData ? liveChampionshipApi.error : null}
+                  data={liveChampionshipData}
+                  onRetry={liveChampionshipApi.execute}
+                  isRetrying={liveChampionshipApi.isRetrying}
+                  loadingMessage="Loading championship data..."
+                  errorTitle="Failed to load standings"
+                  errorVariant="inline"
+                  minHeight="min-h-[200px]"
+                >
+                  {liveChampionshipData && liveChampionshipData.championship_battle && (
+                    <div className="space-y-4">
+                      <div className="text-center pb-4 border-b border-gray-700">
+                        <div className="text-2xl font-bold text-yellow-500">
+                          {liveChampionshipData.championship_battle.leader}
+                        </div>
+                        <div className="text-sm text-gray-400">Championship Leader</div>
+                        <div className="text-lg font-semibold text-white mt-1">
+                          {liveChampionshipData.championship_battle.leader_points} points
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Battle Status:</span>
+                            <span className={`font-semibold ${
+                              liveChampionshipData.championship_battle.battle_status === 'Tight' ? 'text-red-500' :
+                              liveChampionshipData.championship_battle.battle_status === 'Competitive' ? 'text-yellow-500' :
+                              'text-green-500'
+                            }`}>
+                              {liveChampionshipData.championship_battle.battle_status}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Gap to 2nd:</span>
+                            <span className="text-white font-semibold">
+                              {liveChampionshipData.championship_battle.points_gap_to_second} pts
+                            </span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Races Left:</span>
+                            <span className="text-white font-semibold">
+                              {liveChampionshipData.championship_battle.remaining_races}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Round:</span>
+                            <span className="text-white font-semibold">
+                              {liveChampionshipData.current_round}/{liveChampionshipData.total_rounds}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <div className="text-xs text-gray-500">
+                          Last updated: {liveChampionshipData.last_updated ? 
+                            new Date(liveChampionshipData.last_updated).toLocaleString() : 'Unknown'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </DataWrapper>
               </CardContent>
             </Card>

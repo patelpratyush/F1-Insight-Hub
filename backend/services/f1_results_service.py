@@ -80,7 +80,9 @@ class F1ResultsService:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         
         # Configure FastF1 cache
-        fastf1.Cache.enable_cache(str(self.cache_dir / "fastf1_cache"))
+        fastf1_cache_dir = self.cache_dir / "fastf1_cache"
+        fastf1_cache_dir.mkdir(parents=True, exist_ok=True)
+        fastf1.Cache.enable_cache(str(fastf1_cache_dir))
         
         self.ergast_base_url = "https://ergast.com/api/f1"
         self.current_season = 2025

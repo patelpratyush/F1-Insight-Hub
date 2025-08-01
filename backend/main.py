@@ -6,6 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import pandas as pd
 import logging
+from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,6 +21,8 @@ from services.enhanced_prediction_service import EnhancedPredictionService
 from services.race_prediction_service import race_prediction_service
 from services.telemetry_analyzer_service import TelemetryAnalyzerService
 from services.strategy_simulation_service import strategy_simulator
+from services.live_weather_service import get_live_weather_service
+from services.f1_results_service import f1_results_service
 from api.fastf1_routes import router as fastf1_router
 
 app = FastAPI(
@@ -772,6 +779,22 @@ class WeatherContextRequest(BaseModel):
     race: str
     session: str = "R"
 
+# Live Weather and F1 Results Models
+
+class LiveWeatherRequest(BaseModel):
+    circuit_name: str
+
+class RaceWeekendWeatherRequest(BaseModel):
+    circuit_name: str
+    race_date: str  # ISO format: "2025-08-31"
+
+class ChampionshipStandingsRequest(BaseModel):
+    season: Optional[int] = 2025
+
+class SessionResultsRequest(BaseModel):
+    circuit_name: str
+    session_type: str = "Race"  # "Race", "Qualifying", "Practice"
+
 @app.post("/api/telemetry/analyze")
 async def analyze_session_telemetry(request: TelemetryAnalysisRequest):
     """
@@ -886,6 +909,198 @@ async def get_weather_context(request: WeatherContextRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Weather context analysis failed: {str(e)}")
+
+# Live Weather API Endpoints
+
+@app.post("/api/weather/current")
+async def get_current_weather(request: LiveWeatherRequest):
+    """
+    Get current weather conditions for a specific F1 circuit
+    Returns real-time weather data including temperature, conditions, and track analysis
+    """
+    try:
+        weather_data = await get_live_weather_service().get_current_weather(request.circuit_name)
+        
+        if not weather_data:
+            raise HTTPException(status_code=404, detail=f"Weather data not available for {request.circuit_name}")
+        
+        # Convert dataclass to dict for JSON response
+        from dataclasses import asdict
+        response_data = asdict(weather_data)
+        response_data['success'] = True
+        response_data['timestamp'] = weather_data.timestamp.isoformat()
+        
+        return response_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Weather data retrieval failed: {str(e)}")
+
+@app.post("/api/weather/race-weekend")
+async def get_race_weekend_weather(request: RaceWeekendWeatherRequest):
+    """
+    Get complete race weekend weather forecast
+    Returns practice, qualifying, and race weather predictions with strategy insights
+    """
+    try:
+        from datetime import datetime
+        race_date = datetime.fromisoformat(request.race_date)
+        
+        weekend_weather = await get_live_weather_service().get_race_weekend_forecast(
+            request.circuit_name, race_date
+        )
+        
+        if not weekend_weather:
+            raise HTTPException(status_code=404, detail=f"Weekend forecast not available for {request.circuit_name}")
+        
+        # Convert dataclass to dict for JSON response
+        from dataclasses import asdict
+        response_data = asdict(weekend_weather)
+        response_data['success'] = True
+        response_data['race_date'] = race_date.isoformat()
+        
+        # Convert datetime objects to ISO strings for JSON serialization
+        if 'current_weather' in response_data and response_data['current_weather']:
+            response_data['current_weather']['timestamp'] = weekend_weather.current_weather.timestamp.isoformat()
+        
+        for i, practice in enumerate(response_data.get('practice_forecast', [])):
+            if practice and 'timestamp' in practice:
+                response_data['practice_forecast'][i]['timestamp'] = weekend_weather.practice_forecast[i].timestamp.isoformat()
+        
+        if 'qualifying_forecast' in response_data and response_data['qualifying_forecast']:
+            response_data['qualifying_forecast']['timestamp'] = weekend_weather.qualifying_forecast.timestamp.isoformat()
+        
+        if 'race_forecast' in response_data and response_data['race_forecast']:
+            response_data['race_forecast']['timestamp'] = weekend_weather.race_forecast.timestamp.isoformat()
+        
+        return response_data
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid date format: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Weekend weather forecast failed: {str(e)}")
+
+@app.get("/api/weather/circuits")
+async def get_available_circuits():
+    """
+    Get list of all F1 circuits available for weather data
+    """
+    try:
+        circuits = list(get_live_weather_service().circuit_locations.keys())
+        circuit_details = []
+        
+        for circuit_name in circuits:
+            circuit_info = get_live_weather_service().circuit_locations[circuit_name]
+            circuit_details.append({
+                'name': circuit_name,
+                'location': circuit_info['location'],
+                'country': circuit_info['country'],
+                'timezone': circuit_info['timezone'],
+                'coordinates': {
+                    'lat': circuit_info['lat'],
+                    'lon': circuit_info['lon']
+                }
+            })
+        
+        return {
+            'success': True,
+            'total_circuits': len(circuits),
+            'circuits': circuit_details
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get available circuits: {str(e)}")
+
+# F1 Results and Championship API Endpoints
+
+@app.get("/api/championship/standings")
+async def get_championship_standings():
+    """
+    Get current championship standings with detailed analysis
+    Returns driver and constructor standings with championship battle insights
+    """
+    try:
+        standings = await f1_results_service.get_current_championship_standings()
+        
+        if not standings:
+            raise HTTPException(status_code=404, detail="Championship standings not available")
+        
+        # Convert dataclass to dict for JSON response
+        from dataclasses import asdict
+        response_data = asdict(standings)
+        response_data['success'] = True
+        response_data['last_updated'] = standings.last_updated.isoformat()
+        
+        return response_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Championship standings retrieval failed: {str(e)}")
+
+@app.post("/api/results/session")
+async def get_session_results(request: SessionResultsRequest):
+    """
+    Get latest session results for a specific circuit
+    Returns race, qualifying, or practice session results with detailed analysis
+    """
+    try:
+        session_result = await f1_results_service.get_latest_session_results(
+            request.circuit_name, request.session_type
+        )
+        
+        if not session_result:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"No {request.session_type} results found for {request.circuit_name}"
+            )
+        
+        # Convert dataclass to dict for JSON response
+        from dataclasses import asdict
+        response_data = asdict(session_result)
+        response_data['success'] = True
+        response_data['date'] = session_result.date.isoformat()
+        
+        return response_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Session results retrieval failed: {str(e)}")
+
+@app.post("/api/results/update-standings")
+async def update_standings_after_race(circuit_name: str):
+    """
+    Update championship standings after a race
+    Triggers a refresh of championship data following race completion
+    """
+    try:
+        success = await f1_results_service.update_standings_after_race(circuit_name)
+        
+        if not success:
+            raise HTTPException(status_code=400, detail=f"Failed to update standings after {circuit_name}")
+        
+        return {
+            'success': True,
+            'message': f'Championship standings updated after {circuit_name}',
+            'timestamp': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Standings update failed: {str(e)}")
+
+@app.get("/api/results/calendar")
+async def get_f1_calendar():
+    """
+    Get 2025 F1 race calendar with dates and circuit information
+    """
+    try:
+        calendar = f1_results_service.f1_calendar_2025
+        
+        return {
+            'success': True,
+            'season': 2025,
+            'total_rounds': len(calendar),
+            'calendar': calendar
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"F1 calendar retrieval failed: {str(e)}")
 
 @app.get("/api/telemetry/available-sessions/{year}")
 async def get_available_sessions(year: int):
