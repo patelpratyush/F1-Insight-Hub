@@ -58,43 +58,12 @@ async def startup_event():
     cache_db = os.path.join(cache_dir, 'fastf1_http_cache.sqlite')
     data_file = os.path.join(os.path.dirname(__file__), 'f1_data.csv')
     
-    # Auto-download F1 data if cache is missing
+    # Auto-download F1 data if cache is missing (SKIPPED for fast startup)
+    # To download data manually, run: python3 download_current_data.py
     if not os.path.exists(cache_db) or not os.path.exists(data_file):
-        print("Cache or data files missing - downloading F1 data...")
-        print("This may take 5-10 minutes on first startup...")
-        
-        try:
-            import subprocess
-            import sys
-            
-            # Run the download script
-            download_script = os.path.join(os.path.dirname(__file__), 'download_current_data.py')
-            print(f"Running: python3 {download_script}")
-            
-            # Stream output in real-time
-            process = subprocess.Popen([sys.executable, download_script], 
-                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                     universal_newlines=True, cwd=os.path.dirname(__file__))
-            
-            # Print output line by line as it comes
-            while True:
-                output = process.stdout.readline()
-                if output == '' and process.poll() is not None:
-                    break
-                if output:
-                    print(f"📥 {output.strip()}")
-            
-            return_code = process.poll()
-            if return_code == 0:
-                print("✅ F1 data download completed successfully!")
-                print("Cache and data files are now ready.")
-            else:
-                print(f"❌ Download failed with return code: {return_code}")
-                print("API will start but predictions may not work correctly")
-                
-        except Exception as e:
-            print(f"❌ Error during auto-download: {e}")
-            print("API will start but predictions may not work correctly")
+        print("⚠️  Cache or data files missing - skipping auto-download for fast startup")
+        print("💡 To download data manually, run: python3 download_current_data.py")
+        print("API will start but some prediction features may have limited data")
     
     # Check if cached data exists and load info
     if os.path.exists(data_file):
