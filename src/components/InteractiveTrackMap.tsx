@@ -257,7 +257,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
       </div>
 
       {/* Track Map SVG */}
-      <div className="bg-[#050505] rounded-[24px] p-4 h-96 border border-white/5 shadow-inner overflow-hidden relative">
+      <div className="bg-transparent border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent p-4 h-96 rounded-[40px] shadow-2xl relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px] rounded-[24px]"></div>
         <svg
           ref={svgRef}
