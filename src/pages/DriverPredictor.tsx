@@ -142,11 +142,11 @@ const DriverPredictor = () => {
           </div>
         </AnimatedPageWrapper>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="flex flex-col gap-12">
           {/* Input Parameters - Left Column */}
           <AnimatedPageWrapper
             delay={600}
-            className="lg:col-span-4 flex flex-col pt-2 lg:pt-0"
+            className="w-full flex flex-col pt-2 lg:pt-0"
           >
             <div className="mb-8">
               <h2 className="text-3xl font-black tracking-tighter">
@@ -157,10 +157,10 @@ const DriverPredictor = () => {
               </p>
             </div>
 
-            <div className="p-8 flex flex-col gap-6 relative group">
+            <div className="flex flex-col lg:flex-row gap-6 relative group items-start lg:items-end">
               <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 blur-[40px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-700"></div>
 
-              <div>
+              <div className="flex-1 w-full">
                 <label className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Users className="w-4 h-4 text-red-500" /> Driver Object
                 </label>
@@ -197,7 +197,7 @@ const DriverPredictor = () => {
                 </Select>
               </div>
 
-              <div>
+              <div className="flex-1 w-full">
                 <label className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Target className="w-4 h-4 text-red-500" /> Circuit Data
                 </label>
@@ -219,7 +219,7 @@ const DriverPredictor = () => {
                 </Select>
               </div>
 
-              <div>
+              <div className="flex-1 w-full">
                 <label className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Cloud className="w-4 h-4 text-red-500" /> Weather Condition
                 </label>
@@ -339,7 +339,7 @@ const DriverPredictor = () => {
                   !weather ||
                   predictionApi.loading
                 }
-                className="w-full bg-white text-black hover:bg-red-600 hover:text-white mt-4 h-16 rounded-full text-lg font-black tracking-widest transition-all duration-300 disabled:bg-white/10 disabled:text-white/30"
+                className="flex-1 w-full lg:w-auto bg-white text-black hover:bg-red-600 hover:text-white h-14 rounded-full text-lg font-black tracking-widest transition-all duration-300 disabled:bg-white/10 disabled:text-white/30"
               >
                 {predictionApi.loading ? (
                   <span className="flex items-center gap-2">
@@ -355,7 +355,10 @@ const DriverPredictor = () => {
           </AnimatedPageWrapper>
 
           {/* Results Output - Right Column */}
-          <AnimatedPageWrapper delay={800} className="lg:col-span-8">
+          <AnimatedPageWrapper
+            delay={800}
+            className="w-full border-t border-white/10 pt-12"
+          >
             <DataWrapper
               loading={predictionApi.loading}
               error={predictionApi.error}

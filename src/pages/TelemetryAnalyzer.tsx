@@ -330,12 +330,12 @@ const TelemetryAnalyzer = () => {
           </div>
         </AnimatedPageWrapper>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="flex flex-col gap-12">
           {/* Controls Section */}
-          <AnimatedPageWrapper delay={600} className="lg:col-span-1">
+          <AnimatedPageWrapper delay={600} className="w-full">
             <Card className="bg-transparent border-0 shadow-none">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4">
+                <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4 text-white">
                   <Settings className="h-5 w-5 text-green-500" />
                   <span>Session Selection</span>
                 </CardTitle>
@@ -343,158 +343,159 @@ const TelemetryAnalyzer = () => {
                   Choose session and driver for analysis
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Season
-                  </label>
-                  <Select
-                    value={selectedSeason}
-                    onValueChange={setSelectedSeason}
-                  >
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-full h-14 px-5 text-lg font-bold focus:ring-red-500/50">
-                      <SelectValue placeholder="Select season" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
-                      {seasons.map((season) => (
-                        <SelectItem
-                          key={season}
-                          value={season}
-                          className="text-white hover:bg-white/10 cursor-pointer"
-                        >
-                          {season}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Grand Prix
-                  </label>
-                  <Select value={selectedGP} onValueChange={setSelectedGP}>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-full h-14 px-5 text-lg font-bold focus:ring-red-500/50">
-                      <SelectValue placeholder="Select GP" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
-                      {racesLoading ? (
-                        <SelectItem
-                          value="loading"
-                          disabled
-                          className="text-gray-400"
-                        >
-                          Loading races...
-                        </SelectItem>
-                      ) : (
-                        raceOptions.map((race) => (
+              <CardContent className="flex flex-col gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Season
+                    </label>
+                    <Select
+                      value={selectedSeason}
+                      onValueChange={setSelectedSeason}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-full h-14 px-5 text-lg font-bold focus:ring-red-500/50">
+                        <SelectValue placeholder="Select season" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
+                        {seasons.map((season) => (
                           <SelectItem
-                            key={race.race_name}
-                            value={race.race_name}
+                            key={season}
+                            value={season}
                             className="text-white hover:bg-white/10 cursor-pointer"
                           >
-                            {race.race_name}
+                            {season}
                           </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Session
-                  </label>
-                  <Select
-                    value={selectedSession}
-                    onValueChange={setSelectedSession}
-                  >
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-full h-14 px-5 text-lg font-bold focus:ring-red-500/50">
-                      <SelectValue placeholder="Select session" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
-                      {Object.keys(sessionMap).map((session) => (
-                        <SelectItem
-                          key={session}
-                          value={session}
-                          className="text-white hover:bg-white/10 cursor-pointer"
-                        >
-                          {session}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {/* Session Type Indicator */}
-                  {selectedSession && (
-                    <div className="mt-4 p-4 border-l-2 border-red-500 bg-white/5 rounded-r-[20px]">
-                      <div className="text-xs text-gray-400">
-                        Selected Session
-                      </div>
-                      <div className="text-sm font-medium text-white">
-                        {selectedSession}
-                      </div>
-                      <div className="text-xs text-blue-400">
-                        {selectedSession === "Practice 2"
-                          ? "🏁 Long runs & tire testing"
-                          : selectedSession === "Practice 3"
-                            ? "⚙️ Final setup tuning"
-                            : selectedSession === "Sprint Qualifying"
-                              ? "🏆 Sprint pole battle"
-                              : selectedSession === "Qualifying"
-                                ? "🚀 Pure speed focus"
-                                : selectedSession === "Sprint"
-                                  ? "⚡ Short format race"
-                                  : "🏁 Full race distance"}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Driver
-                  </label>
-                  <Select
-                    value={selectedDriver}
-                    onValueChange={setSelectedDriver}
-                  >
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-full h-14 px-5 text-lg font-bold focus:ring-red-500/50">
-                      <SelectValue placeholder="Select driver">
-                        {selectedDriver && (
-                          <span>
-                            {drivers2025.find((d) => d.id === selectedDriver)
-                              ?.name || selectedDriver}
-                          </span>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Grand Prix
+                    </label>
+                    <Select value={selectedGP} onValueChange={setSelectedGP}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-full h-14 px-5 text-lg font-bold focus:ring-red-500/50">
+                        <SelectValue placeholder="Select GP" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
+                        {racesLoading ? (
+                          <SelectItem
+                            value="loading"
+                            disabled
+                            className="text-gray-400"
+                          >
+                            Loading races...
+                          </SelectItem>
+                        ) : (
+                          raceOptions.map((race) => (
+                            <SelectItem
+                              key={race.race_name}
+                              value={race.race_name}
+                              className="text-white hover:bg-white/10 cursor-pointer"
+                            >
+                              {race.race_name}
+                            </SelectItem>
+                          ))
                         )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
-                      {drivers.map((driverCode) => {
-                        const driverInfo = drivers2025.find(
-                          (d) => d.id === driverCode,
-                        );
-                        return (
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Session
+                    </label>
+                    <Select
+                      value={selectedSession}
+                      onValueChange={setSelectedSession}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-full h-14 px-5 text-lg font-bold focus:ring-red-500/50">
+                        <SelectValue placeholder="Select session" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
+                        {Object.keys(sessionMap).map((session) => (
                           <SelectItem
-                            key={driverCode}
-                            value={driverCode}
+                            key={session}
+                            value={session}
                             className="text-white hover:bg-white/10 cursor-pointer"
                           >
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                {driverInfo?.name || driverCode}
-                              </span>
-                              <span className="text-xs text-gray-400">
-                                #{driverInfo?.number} - {driverInfo?.team}
-                              </span>
-                            </div>
+                            {session}
                           </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {/* Session Type Indicator */}
+                    {selectedSession && (
+                      <div className="mt-4 p-4 border-l-2 border-red-500 bg-white/5 rounded-r-[20px]">
+                        <div className="text-xs text-gray-400">
+                          Selected Session
+                        </div>
+                        <div className="text-sm font-medium text-white">
+                          {selectedSession}
+                        </div>
+                        <div className="text-xs text-blue-400">
+                          {selectedSession === "Practice 2"
+                            ? "🏁 Long runs & tire testing"
+                            : selectedSession === "Practice 3"
+                              ? "⚙️ Final setup tuning"
+                              : selectedSession === "Sprint Qualifying"
+                                ? "🏆 Sprint pole battle"
+                                : selectedSession === "Qualifying"
+                                  ? "🚀 Pure speed focus"
+                                  : selectedSession === "Sprint"
+                                    ? "⚡ Short format race"
+                                    : "🏁 Full race distance"}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-                <div className="space-y-3 mt-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Driver
+                    </label>
+                    <Select
+                      value={selectedDriver}
+                      onValueChange={setSelectedDriver}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-full h-14 px-5 text-lg font-bold focus:ring-red-500/50">
+                        <SelectValue placeholder="Select driver">
+                          {selectedDriver && (
+                            <span>
+                              {drivers2025.find((d) => d.id === selectedDriver)
+                                ?.name || selectedDriver}
+                            </span>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
+                        {drivers.map((driverCode) => {
+                          const driverInfo = drivers2025.find(
+                            (d) => d.id === driverCode,
+                          );
+                          return (
+                            <SelectItem
+                              key={driverCode}
+                              value={driverCode}
+                              className="text-white hover:bg-white/10 cursor-pointer"
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {driverInfo?.name || driverCode}
+                                </span>
+                                <span className="text-xs text-gray-400">
+                                  #{driverInfo?.number} - {driverInfo?.team}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex flex-col lg:flex-row gap-4 mt-6">
                   <Button
                     onClick={handleAnalyze}
                     disabled={
@@ -504,7 +505,7 @@ const TelemetryAnalyzer = () => {
                       !selectedDriver ||
                       analyzeTelemetry.isPending
                     }
-                    className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
+                    className="flex-1 w-full bg-red-600 hover:bg-red-700 text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
                     size="lg"
                   >
                     {analyzeTelemetry.isPending ? (
@@ -524,7 +525,7 @@ const TelemetryAnalyzer = () => {
                       !selectedDriver ||
                       getSpeedTrace.isPending
                     }
-                    className="w-full bg-white hover:bg-white/90 text-black rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
+                    className="flex-1 w-full bg-white hover:bg-white/90 text-black rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
                     size="lg"
                   >
                     {getSpeedTrace.isPending ? (
@@ -544,7 +545,7 @@ const TelemetryAnalyzer = () => {
                       !selectedDriver ||
                       getTrackMap.isPending
                     }
-                    className="w-full bg-transparent border border-white/20 hover:bg-white/10 text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
+                    className="flex-1 w-full bg-transparent border border-white/20 hover:bg-white/10 text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
                     size="lg"
                   >
                     {getTrackMap.isPending ? (
@@ -560,7 +561,10 @@ const TelemetryAnalyzer = () => {
           </AnimatedPageWrapper>
 
           {/* Data Visualization Section */}
-          <AnimatedPageWrapper delay={800} className="lg:col-span-3">
+          <AnimatedPageWrapper
+            delay={800}
+            className="w-full border-t border-white/10 pt-12"
+          >
             {error && (
               <Alert className="mb-6 border-red-600 bg-red-600/10">
                 <AlertTriangle className="h-4 w-4" />
@@ -583,7 +587,7 @@ const TelemetryAnalyzer = () => {
             {telemetryData || speedTraceData ? (
               <Card className="bg-transparent border-0 shadow-none">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4">
+                  <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4 text-white">
                     <BarChart3 className="h-5 w-5 text-green-500" />
                     <span>Telemetry Analysis - {selectedDriver}</span>
                   </CardTitle>
@@ -1776,7 +1780,7 @@ const TelemetryAnalyzer = () => {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="bg-gradient-to-br from-white/[0.02] to-transparent border-t border-l border-white/5 rounded-[40px] h-96 flex items-center justify-center shadow-none p-6">
+              <Card className="bg-transparent bg-gradient-to-br from-white/[0.02] to-transparent border-t border-l border-white/5 rounded-[40px] h-96 flex items-center justify-center shadow-none p-6">
                 <CardContent className="text-center">
                   <Activity className="h-16 w-16 text-gray-600 mx-auto mb-4" />
                   <CardTitle className="text-gray-400 mb-2">

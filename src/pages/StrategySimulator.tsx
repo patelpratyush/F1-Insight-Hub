@@ -567,12 +567,12 @@ const StrategySimulator = () => {
           </div>
         </AnimatedPageWrapper>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="flex flex-col gap-12">
           {/* Strategy Configuration */}
-          <AnimatedPageWrapper delay={600} className="lg:col-span-1 space-y-6">
+          <AnimatedPageWrapper delay={600} className="w-full space-y-6">
             <Card className="bg-transparent border-0 shadow-none">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4">
+                <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4 text-white">
                   <Target className="h-5 w-5 text-purple-500" />
                   <span>Strategy Setup</span>
                 </CardTitle>
@@ -580,7 +580,7 @@ const StrategySimulator = () => {
                   Configure race parameters
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-end">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Driver
@@ -1019,7 +1019,7 @@ const StrategySimulator = () => {
                       selectedTires.length !==
                         getRequiredTireSelections(strategyType)
                     }
-                    className="w-full bg-white hover:bg-purple-600 text-black hover:text-white mt-6 rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02] disabled:opacity-50"
+                    className="w-full bg-white hover:bg-purple-600 text-black hover:text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02] disabled:opacity-50 md:col-span-2 lg:col-span-3 xl:col-span-4"
                     size="lg"
                   >
                     {isLoading ? (
@@ -1044,7 +1044,7 @@ const StrategySimulator = () => {
                       selectedStrategies.length < 2 ||
                       isComparing
                     }
-                    className="w-full bg-white hover:bg-purple-600 text-black hover:text-white mt-6 rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02] disabled:opacity-50"
+                    className="w-full bg-white hover:bg-purple-600 text-black hover:text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02] disabled:opacity-50 md:col-span-2 lg:col-span-3 xl:col-span-4"
                     size="lg"
                   >
                     {isComparing ? (
@@ -1069,7 +1069,7 @@ const StrategySimulator = () => {
                       !optimizationParams.target ||
                       isOptimizing
                     }
-                    className="w-full bg-white hover:bg-purple-600 text-black hover:text-white mt-6 rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02] disabled:opacity-50"
+                    className="w-full bg-white hover:bg-purple-600 text-black hover:text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02] disabled:opacity-50 md:col-span-2 lg:col-span-3 xl:col-span-4"
                     size="lg"
                   >
                     {isOptimizing ? (
@@ -1096,7 +1096,10 @@ const StrategySimulator = () => {
           </AnimatedPageWrapper>
 
           {/* Results Section */}
-          <AnimatedPageWrapper delay={800} className="lg:col-span-3">
+          <AnimatedPageWrapper
+            delay={800}
+            className="w-full border-t border-white/10 pt-12"
+          >
             {activeMode === "simulate" && simulation ? (
               <div className="space-y-6">
                 {/* Overview Stats */}
@@ -1169,7 +1172,7 @@ const StrategySimulator = () => {
                 {/* Stint Breakdown */}
                 <Card className="bg-transparent border-0 shadow-none">
                   <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4">
+                    <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4 text-white">
                       <Timer className="h-5 w-5 text-purple-500" />
                       <span>Stint Analysis</span>
                     </CardTitle>
@@ -1371,7 +1374,7 @@ const StrategySimulator = () => {
                 {simulation.optimization && (
                   <Card className="bg-transparent border-0 shadow-none">
                     <CardHeader>
-                      <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4">
+                      <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4 text-white">
                         <TrendingUp className="h-5 w-5 text-green-500" />
                         <span>Performance Insights</span>
                       </CardTitle>
@@ -1471,7 +1474,7 @@ const StrategySimulator = () => {
                 {/* Strategy Comparison Results */}
                 <Card className="bg-transparent border-0 shadow-none">
                   <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4">
+                    <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4 text-white">
                       <GitCompare className="h-5 w-5 text-purple-500" />
                       <span>Strategy Comparison Results</span>
                     </CardTitle>
@@ -1602,7 +1605,7 @@ const StrategySimulator = () => {
                 {/* Quick Comparison Chart */}
                 <Card className="bg-transparent border-0 shadow-none">
                   <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4">
+                    <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4 text-white">
                       <Target className="h-5 w-5 text-blue-500" />
                       <span>Performance Comparison</span>
                     </CardTitle>
@@ -1675,7 +1678,7 @@ const StrategySimulator = () => {
                 {/* Optimization Results */}
                 <Card className="bg-transparent border-0 shadow-none">
                   <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4">
+                    <CardTitle className="flex items-center space-x-2 border-b border-white/10 pb-4 mb-4 text-white">
                       <Brain className="h-5 w-5 text-purple-500" />
                       <span>
                         {optimizationResults.ai_powered

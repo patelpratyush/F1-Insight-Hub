@@ -180,11 +180,11 @@ const RacePredictor = () => {
           </div>
         </AnimatedPageWrapper>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="flex flex-col gap-12">
           {/* Input Parameters - Left Column */}
           <AnimatedPageWrapper
             delay={600}
-            className="lg:col-span-4 flex flex-col pt-2 lg:pt-0"
+            className="w-full flex flex-col pt-2 lg:pt-0"
           >
             <div className="mb-8">
               <h2 className="text-3xl font-black tracking-tighter">
@@ -195,10 +195,10 @@ const RacePredictor = () => {
               </p>
             </div>
 
-            <div className="p-8 flex flex-col gap-6 relative group border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent shadow-2xl rounded-[40px] overflow-hidden">
+            <div className="flex flex-col lg:flex-row gap-6 relative group items-start lg:items-end p-8 border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent shadow-2xl rounded-[40px] overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 blur-[40px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-700"></div>
 
-              <div>
+              <div className="flex-1 w-full">
                 <label className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Flag className="w-4 h-4 text-red-500" /> Circuit Selection
                 </label>
@@ -220,7 +220,7 @@ const RacePredictor = () => {
                 </Select>
               </div>
 
-              <div>
+              <div className="flex-1 w-full">
                 <label className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Zap className="w-4 h-4 text-red-500" /> Track Conditions
                 </label>
@@ -277,7 +277,7 @@ const RacePredictor = () => {
               <Button
                 onClick={handlePredict}
                 disabled={!selectedTrack || !weather || raceApi.loading}
-                className="w-full bg-white text-black hover:bg-red-600 hover:text-white mt-4 h-16 rounded-full text-lg font-black tracking-widest transition-all duration-300 disabled:bg-white/10 disabled:text-white/30"
+                className="flex-1 w-full lg:w-auto bg-white text-black hover:bg-red-600 hover:text-white h-14 rounded-full text-lg font-black tracking-widest transition-all duration-300 disabled:bg-white/10 disabled:text-white/30"
               >
                 {raceApi.loading ? (
                   <span className="flex items-center gap-2">
@@ -294,7 +294,10 @@ const RacePredictor = () => {
           </AnimatedPageWrapper>
 
           {/* Results Output - Right Column */}
-          <AnimatedPageWrapper delay={800} className="lg:col-span-8">
+          <AnimatedPageWrapper
+            delay={800}
+            className="w-full border-t border-white/10 pt-12"
+          >
             <DataWrapper
               loading={raceApi.loading}
               error={raceApi.error}
