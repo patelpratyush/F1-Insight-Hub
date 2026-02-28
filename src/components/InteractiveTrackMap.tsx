@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Eye, EyeOff, Palette } from 'lucide-react';
+import { Eye, EyeOff, Palette, Pause, Play, RotateCcw } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface TrackPosition {
   distance: number;
@@ -41,7 +41,7 @@ interface InteractiveTrackMapProps {
   onPlayStateChange?: (playing: boolean) => void;
   showRacingLine?: boolean;
   onRacingLineToggle?: (show: boolean) => void;
-  colorScheme?: 'speed' | 'time' | 'position';
+  colorScheme?: "speed" | "time" | "position";
 }
 
 const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
@@ -52,7 +52,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
   onPlayStateChange,
   showRacingLine = true,
   onRacingLineToggle,
-  colorScheme = 'speed'
+  colorScheme = "speed",
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [currentPosition, setCurrentPosition] = useState(0);
@@ -63,39 +63,39 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
   // Calculate SVG viewport dimensions
   const getViewBox = () => {
     if (!trackData?.track_layout) return "0 0 1000 1000";
-    
+
     const { x, y } = trackData.track_layout;
     const minX = Math.min(...x);
     const maxX = Math.max(...x);
     const minY = Math.min(...y);
     const maxY = Math.max(...y);
-    
+
     const padding = 50;
-    const width = maxX - minX + (padding * 2);
-    const height = maxY - minY + (padding * 2);
-    
+    const width = maxX - minX + padding * 2;
+    const height = maxY - minY + padding * 2;
+
     return `${minX - padding} ${minY - padding} ${width} ${height}`;
   };
 
   // Get color based on speed value
   const getSpeedColor = (speed: number, maxSpeed: number) => {
     const normalizedSpeed = speed / maxSpeed;
-    
-    if (normalizedSpeed < 0.3) return '#EF4444'; // Red - slow
-    if (normalizedSpeed < 0.5) return '#F59E0B'; // Orange - medium-slow
-    if (normalizedSpeed < 0.7) return '#EAB308'; // Yellow - medium
-    if (normalizedSpeed < 0.85) return '#84CC16'; // Light green - fast
-    return '#10B981'; // Green - very fast
+
+    if (normalizedSpeed < 0.3) return "#EF4444"; // Red - slow
+    if (normalizedSpeed < 0.5) return "#F59E0B"; // Orange - medium-slow
+    if (normalizedSpeed < 0.7) return "#EAB308"; // Yellow - medium
+    if (normalizedSpeed < 0.85) return "#84CC16"; // Light green - fast
+    return "#10B981"; // Green - very fast
   };
 
   // Get color based on position in lap (time-based)
   const getTimeColor = (position: number, totalPositions: number) => {
     const normalizedTime = position / totalPositions;
-    
+
     // Blue to purple gradient for time progression
-    const blue = Math.floor(59 + (normalizedTime * 120)); // 59 to 179
-    const purple = Math.floor(130 + (normalizedTime * 100)); // 130 to 230
-    
+    const blue = Math.floor(59 + normalizedTime * 120); // 59 to 179
+    const purple = Math.floor(130 + normalizedTime * 100); // 130 to 230
+
     return `rgb(${Math.floor(purple * 0.6)}, ${Math.floor(blue * 0.8)}, ${purple})`;
   };
 
@@ -104,8 +104,8 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
     if (!isAnimating || !trackData?.driver_positions) return;
 
     const interval = setInterval(() => {
-      setCurrentPosition(prev => {
-        const next = prev + (1 * animationSpeed);
+      setCurrentPosition((prev) => {
+        const next = prev + 1 * animationSpeed;
         if (next >= trackData.driver_positions.length - 1) {
           setIsAnimating(false);
           if (onPlayStateChange) onPlayStateChange(false);
@@ -136,30 +136,37 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
 
   if (!trackData?.track_layout) {
     return (
-      <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-        <h3 className="text-lg font-bold text-white mb-4">Interactive Track Map</h3>
-        <div className="h-96 bg-gray-700/30 rounded-lg flex items-center justify-center">
+      <div className="bg-gradient-to-br from-white/[0.02] to-transparent p-6 rounded-[24px] border border-white/5">
+        <h3 className="text-xl font-black text-white mb-4 tracking-tighter">
+          INTERACTIVE TRACK MAP
+        </h3>
+        <div className="h-96 bg-white/5 rounded-[24px] flex items-center justify-center">
           <div className="text-center">
-            <div className="text-gray-400 mb-2">Track layout data not available</div>
-            <div className="text-sm text-gray-500">Try selecting a different session or driver</div>
+            <div className="text-gray-400 mb-2 font-light">
+              Track layout data not available
+            </div>
+            <div className="text-sm text-gray-500">
+              Try selecting a different session or driver
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  const maxSpeed = Math.max(...trackData.driver_positions.map(p => p.speed));
+  const maxSpeed = Math.max(...trackData.driver_positions.map((p) => p.speed));
   const currentPoint = trackData.driver_positions[Math.floor(currentPosition)];
 
   return (
-    <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-white">
-          Interactive Track Map - {driverName}
+    <div className="bg-gradient-to-br from-white/[0.02] to-transparent p-6 lg:p-8 rounded-[40px] border-t border-l border-white/5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <h3 className="text-2xl font-black tracking-tighter text-white">
+          INTERACTIVE TRACK MAP -{" "}
+          <span className="text-red-500">{driverName}</span>
         </h3>
-        <div className="bg-blue-600/20 border border-blue-600/40 rounded-lg px-3 py-1">
-          <span className="text-blue-400 font-medium text-sm">
-            Lap {lapNumber}
+        <div className="bg-[#111111] border border-white/10 rounded-full px-4 py-1.5 w-fit">
+          <span className="text-white/70 font-bold text-sm">
+            LAP {lapNumber}
           </span>
         </div>
       </div>
@@ -169,34 +176,36 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
         <div className="flex items-center space-x-3">
           <button
             onClick={handleReset}
-            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white"
             title="Reset to start"
           >
-            <RotateCcw className="w-4 h-4 text-white" />
+            <RotateCcw className="w-5 h-5" />
           </button>
-          
+
           <button
             onClick={handlePlayPause}
-            className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+            className="p-3 bg-red-600 hover:bg-red-500 text-white rounded-full transition-all hover:scale-105 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
             title={isAnimating ? "Pause animation" : "Start animation"}
           >
             {isAnimating ? (
-              <Pause className="w-4 h-4 text-white" />
+              <Pause className="w-5 h-5" />
             ) : (
-              <Play className="w-4 h-4 text-white" />
+              <Play className="w-5 h-5 ml-0.5" />
             )}
           </button>
 
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-300">Speed:</span>
-            {[0.5, 1, 2, 3].map(speed => (
+          <div className="flex items-center space-x-2 bg-[#111111] p-1.5 rounded-full border border-white/5">
+            <span className="text-xs text-white/40 font-bold tracking-wider ml-2 mr-1">
+              SPEED
+            </span>
+            {[0.5, 1, 2, 3].map((speed) => (
               <button
                 key={speed}
                 onClick={() => setAnimationSpeed(speed)}
-                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
                   animationSpeed === speed
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                    ? "bg-white text-black"
+                    : "text-white/50 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {speed}x
@@ -209,63 +218,70 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
           {onRacingLineToggle && (
             <button
               onClick={() => onRacingLineToggle(!showRacingLine)}
-              className={`p-2 rounded-lg transition-colors ${
-                showRacingLine 
-                  ? 'bg-green-600 hover:bg-green-500' 
-                  : 'bg-gray-700 hover:bg-gray-600'
+              className={`p-3 rounded-full transition-colors flex items-center justify-center ${
+                showRacingLine
+                  ? "bg-white/20 hover:bg-white/30 text-white"
+                  : "bg-white/5 hover:bg-white/10 text-white/50"
               }`}
               title="Toggle racing line"
             >
               {showRacingLine ? (
-                <Eye className="w-4 h-4 text-white" />
+                <Eye className="w-4 h-4" />
               ) : (
-                <EyeOff className="w-4 h-4 text-white" />
+                <EyeOff className="w-4 h-4" />
               )}
             </button>
           )}
 
-          <div className="flex items-center space-x-2">
-            <Palette className="w-4 h-4 text-gray-400" />
+          <div className="flex items-center space-x-2 bg-[#111111] p-1.5 rounded-full border border-white/5 pl-4">
+            <Palette className="w-4 h-4 text-white/40" />
             <select
               value={colorScheme}
               onChange={(e) => {
                 // Handle color scheme change if parent provides handler
               }}
-              className="bg-gray-700 border border-gray-600 text-white text-sm rounded px-2 py-1"
+              className="bg-transparent border-none text-white text-sm font-bold focus:ring-0 outline-none pr-2 cursor-pointer appearance-none"
             >
-              <option value="speed">Speed</option>
-              <option value="time">Time</option>
-              <option value="position">Position</option>
+              <option value="speed" className="bg-[#111111]">
+                Speed
+              </option>
+              <option value="time" className="bg-[#111111]">
+                Time
+              </option>
+              <option value="position" className="bg-[#111111]">
+                Position
+              </option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Track Map SVG */}
-      <div className="bg-gray-900/50 rounded-lg p-4 h-96">
+      <div className="bg-[#050505] rounded-[24px] p-4 h-96 border border-white/5 shadow-inner overflow-hidden relative">
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px] rounded-[24px]"></div>
         <svg
           ref={svgRef}
           viewBox={getViewBox()}
-          className="w-full h-full"
-          style={{ background: '#1a1a1a' }}
+          className="w-full h-full relative z-10"
+          style={{ filter: "drop-shadow(0 0 10px rgba(255,255,255,0.05))" }}
         >
           {/* Track Layout */}
           <path
-            d={`M ${trackData.track_layout.x.map((x, i) => 
-              `${x},${trackData.track_layout.y[i]}`
-            ).join(' L ')}`}
+            d={`M ${trackData.track_layout.x
+              .map((x, i) => `${x},${trackData.track_layout.y[i]}`)
+              .join(" L ")}`}
             fill="none"
             stroke="#6B7280"
             strokeWidth="16"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          
+
           {/* Track center line */}
           <path
-            d={`M ${trackData.track_layout.x.map((x, i) => 
-              `${x},${trackData.track_layout.y[i]}`
-            ).join(' L ')}`}
+            d={`M ${trackData.track_layout.x
+              .map((x, i) => `${x},${trackData.track_layout.y[i]}`)
+              .join(" L ")}`}
             fill="none"
             stroke="#9CA3AF"
             strokeWidth="2"
@@ -278,9 +294,9 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
           {/* Racing Line */}
           {showRacingLine && trackData.racing_line && (
             <path
-              d={`M ${trackData.racing_line.x.map((x, i) => 
-                `${x},${trackData.racing_line.y[i]}`
-              ).join(' L ')}`}
+              d={`M ${trackData.racing_line.x
+                .map((x, i) => `${x},${trackData.racing_line.y[i]}`)
+                .join(" L ")}`}
               fill="none"
               stroke="#FBBF24"
               strokeWidth="2"
@@ -292,13 +308,18 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
           {/* Sector Boundaries */}
           {trackData.sectors && trackData.track_layout.distance && (
             <>
-              {[trackData.sectors.sector_1_end, trackData.sectors.sector_2_end].map((sectorEnd, index) => {
-                const closestIndex = trackData.track_layout.distance.findIndex(d => d >= sectorEnd);
+              {[
+                trackData.sectors.sector_1_end,
+                trackData.sectors.sector_2_end,
+              ].map((sectorEnd, index) => {
+                const closestIndex = trackData.track_layout.distance.findIndex(
+                  (d) => d >= sectorEnd,
+                );
                 if (closestIndex === -1) return null;
-                
+
                 const x = trackData.track_layout.x[closestIndex];
                 const y = trackData.track_layout.y[closestIndex];
-                
+
                 return (
                   <g key={`sector-${index}`}>
                     <circle
@@ -345,29 +366,38 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
           )}
 
           {/* Driver Trail (showing path taken so far) */}
-          {trackData.driver_positions.slice(0, Math.floor(currentPosition) + 1).map((point, index) => {
-            if (index % 3 !== 0) return null; // Sample every 3rd point for better visibility
-            
-            const color = colorScheme === 'speed' 
-              ? getSpeedColor(point.speed, maxSpeed)
-              : getTimeColor(index, trackData.driver_positions.length);
-            
-            const opacity = Math.max(0.4, 1 - (Math.floor(currentPosition) - index) / 80);
-            const radius = Math.max(2, 4 - (Math.floor(currentPosition) - index) / 50);
-            
-            return (
-              <circle
-                key={`trail-${index}`}
-                cx={point.x}
-                cy={point.y}
-                r={radius}
-                fill={color}
-                opacity={opacity}
-                stroke="#FFFFFF"
-                strokeWidth="0.5"
-              />
-            );
-          })}
+          {trackData.driver_positions
+            .slice(0, Math.floor(currentPosition) + 1)
+            .map((point, index) => {
+              if (index % 3 !== 0) return null; // Sample every 3rd point for better visibility
+
+              const color =
+                colorScheme === "speed"
+                  ? getSpeedColor(point.speed, maxSpeed)
+                  : getTimeColor(index, trackData.driver_positions.length);
+
+              const opacity = Math.max(
+                0.4,
+                1 - (Math.floor(currentPosition) - index) / 80,
+              );
+              const radius = Math.max(
+                2,
+                4 - (Math.floor(currentPosition) - index) / 50,
+              );
+
+              return (
+                <circle
+                  key={`trail-${index}`}
+                  cx={point.x}
+                  cy={point.y}
+                  r={radius}
+                  fill={color}
+                  opacity={opacity}
+                  stroke="#FFFFFF"
+                  strokeWidth="0.5"
+                />
+              );
+            })}
 
           {/* Current Car Position - SUPER VISIBLE */}
           {currentPoint && (
@@ -393,7 +423,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
                   repeatCount="indefinite"
                 />
               </circle>
-              
+
               {/* Secondary glow */}
               <circle
                 cx={currentPoint.x}
@@ -409,7 +439,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
                   repeatCount="indefinite"
                 />
               </circle>
-              
+
               {/* Main car position - HUGE */}
               <circle
                 cx={currentPoint.x}
@@ -426,7 +456,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
                   repeatCount="indefinite"
                 />
               </circle>
-              
+
               {/* Inner core */}
               <circle
                 cx={currentPoint.x}
@@ -442,7 +472,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
                   repeatCount="indefinite"
                 />
               </circle>
-              
+
               {/* Center dot */}
               <circle
                 cx={currentPoint.x}
@@ -451,7 +481,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
                 fill="#FFFFFF"
                 opacity="1"
               />
-              
+
               {/* Speed indicator with larger background */}
               <rect
                 x={currentPoint.x - 50}
@@ -474,7 +504,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
               >
                 🏎️ {Math.round(currentPoint.speed)} km/h
               </text>
-              
+
               {/* Arrow pointing to car */}
               <polygon
                 points={`${currentPoint.x - 8},${currentPoint.y - 80} ${currentPoint.x + 8},${currentPoint.y - 80} ${currentPoint.x},${currentPoint.y - 65}`}
@@ -490,7 +520,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
                   repeatCount="indefinite"
                 />
               </polygon>
-              
+
               {/* "DRIVER" label */}
               <rect
                 x={currentPoint.x - 30}
@@ -550,41 +580,58 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
       </div>
 
       {/* Progress Information */}
-      <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-        <div className="text-center">
-          <div className="text-lg font-bold text-blue-400">
-            {currentPoint ? Math.round(currentPoint.speed) : 0} km/h
+      <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+        <div className="text-center bg-white/5 p-4 rounded-3xl">
+          <div className="text-2xl font-black text-white">
+            {currentPoint ? Math.round(currentPoint.speed) : 0}{" "}
+            <span className="text-sm text-white/40 font-bold">km/h</span>
           </div>
-          <div className="text-gray-300">Current Speed</div>
+          <div className="text-white/40 mt-1 uppercase tracking-wider text-xs font-bold">
+            Current Speed
+          </div>
         </div>
-        
-        <div className="text-center">
-          <div className="text-lg font-bold text-green-400">
-            {currentPoint ? (currentPoint.distance / 1000).toFixed(2) : 0} km
+
+        <div className="text-center bg-white/5 p-4 rounded-3xl">
+          <div className="text-2xl font-black text-white">
+            {currentPoint ? (currentPoint.distance / 1000).toFixed(2) : 0}{" "}
+            <span className="text-sm text-white/40 font-bold">km</span>
           </div>
-          <div className="text-gray-300">Distance</div>
+          <div className="text-white/40 mt-1 uppercase tracking-wider text-xs font-bold">
+            Distance
+          </div>
         </div>
-        
-        <div className="text-center">
-          <div className="text-lg font-bold text-yellow-400">
-            {currentPoint ? currentPoint.time.toFixed(1) : 0}s
+
+        <div className="text-center bg-white/5 p-4 rounded-3xl">
+          <div className="text-2xl font-black text-white">
+            {currentPoint ? currentPoint.time.toFixed(1) : 0}{" "}
+            <span className="text-sm text-white/40 font-bold">s</span>
           </div>
-          <div className="text-gray-300">Elapsed Time</div>
+          <div className="text-white/40 mt-1 uppercase tracking-wider text-xs font-bold">
+            Elapsed Time
+          </div>
         </div>
-        
-        <div className="text-center">
-          <div className="text-lg font-bold text-purple-400">
-            {((currentPosition / (trackData.driver_positions.length - 1)) * 100).toFixed(1)}%
+
+        <div className="text-center bg-white/5 p-4 rounded-3xl">
+          <div className="text-2xl font-black text-white">
+            {(
+              (currentPosition / (trackData.driver_positions.length - 1)) *
+              100
+            ).toFixed(1)}{" "}
+            <span className="text-sm text-white/40 font-bold">%</span>
           </div>
-          <div className="text-gray-300">Progress</div>
+          <div className="text-white/40 mt-1 uppercase tracking-wider text-xs font-bold">
+            Progress
+          </div>
         </div>
       </div>
 
       {/* Color Legend */}
-      <div className="mt-4 p-3 bg-gray-700/30 rounded-lg">
-        <div className="text-sm font-medium text-white mb-2">Color Legend ({colorScheme}):</div>
+      <div className="mt-4 px-6 py-4 bg-white/5 rounded-full flex flex-col md:flex-row md:items-center gap-4">
+        <div className="text-xs font-bold text-white/50 uppercase tracking-widest">
+          Color Legend ({colorScheme}):
+        </div>
         <div className="flex items-center space-x-4 text-xs">
-          {colorScheme === 'speed' && (
+          {colorScheme === "speed" && (
             <>
               <div className="flex items-center space-x-1">
                 <div className="w-3 h-3 bg-red-500 rounded"></div>
@@ -600,7 +647,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
               </div>
             </>
           )}
-          {colorScheme === 'time' && (
+          {colorScheme === "time" && (
             <>
               <div className="flex items-center space-x-1">
                 <div className="w-3 h-3 bg-blue-500 rounded"></div>

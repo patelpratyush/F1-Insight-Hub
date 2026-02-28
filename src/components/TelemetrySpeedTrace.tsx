@@ -1,22 +1,22 @@
-import React from 'react';
+import useGraphCustomization from "@/hooks/useGraphCustomization";
+import React from "react";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  ReferenceLine,
-  ComposedChart,
-  Bar,
-  ReferenceArea
-} from 'recharts';
-import GraphCustomizationPanel from './GraphCustomizationPanel';
-import useGraphCustomization from '@/hooks/useGraphCustomization';
+    Area,
+    AreaChart,
+    Bar,
+    CartesianGrid,
+    ComposedChart,
+    Legend,
+    Line,
+    LineChart,
+    ReferenceArea,
+    ReferenceLine,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
+import GraphCustomizationPanel from "./GraphCustomizationPanel";
 
 interface TelemetryData {
   distance: number[];
@@ -56,7 +56,7 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
   telemetryData,
   lapInfo,
   analysis,
-  corners = []
+  corners = [],
 }) => {
   // Use graph customization hook
   const {
@@ -65,11 +65,11 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
     presetNames,
     savePreset,
     loadPreset,
-    getVariableColor
+    getVariableColor,
   } = useGraphCustomization();
   // Helper function to safely convert to number
   const safeNumber = (value: any, defaultValue: number = 0): number => {
-    const num = typeof value === 'number' ? value : parseFloat(value);
+    const num = typeof value === "number" ? value : parseFloat(value);
     return isNaN(num) ? defaultValue : num;
   };
 
@@ -80,7 +80,7 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
     const brake = safeNumber(telemetryData.brake[index]);
     const gear = safeNumber(telemetryData.gear[index]);
     const drs = safeNumber(telemetryData.drs?.[index]);
-    
+
     return {
       distance: Math.round(safeNumber(distance)),
       speed,
@@ -97,20 +97,22 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
   const formatLapTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = (seconds % 60).toFixed(3);
-    return `${minutes}:${remainingSeconds.padStart(6, '0')}`;
+    return `${minutes}:${remainingSeconds.padStart(6, "0")}`;
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
+        <div className="bg-[#111111] border border-white/10 rounded-[16px] p-4 shadow-2xl">
           <p className="text-white font-medium">{`Distance: ${label}m`}</p>
-          <p className="text-blue-400">{`Speed: ${typeof data.speed === 'number' ? data.speed.toFixed(1) : data.speed || 0} km/h`}</p>
-          <p className="text-green-400">{`Throttle: ${typeof data.throttle === 'number' ? data.throttle.toFixed(0) : data.throttle || 0}%`}</p>
-          <p className="text-red-400">{`Brake: ${typeof data.brake === 'number' ? data.brake.toFixed(0) : data.brake || 0}%`}</p>
-          <p className="text-purple-400">{`Gear: ${data.gear || 'N/A'}`}</p>
-          {data.drs && data.drs > 0 && <p className="text-yellow-400">DRS: Active</p>}
+          <p className="text-blue-400">{`Speed: ${typeof data.speed === "number" ? data.speed.toFixed(1) : data.speed || 0} km/h`}</p>
+          <p className="text-green-400">{`Throttle: ${typeof data.throttle === "number" ? data.throttle.toFixed(0) : data.throttle || 0}%`}</p>
+          <p className="text-red-400">{`Brake: ${typeof data.brake === "number" ? data.brake.toFixed(0) : data.brake || 0}%`}</p>
+          <p className="text-purple-400">{`Gear: ${data.gear || "N/A"}`}</p>
+          {data.drs && data.drs > 0 && (
+            <p className="text-yellow-400">DRS: Active</p>
+          )}
         </div>
       );
     }
@@ -130,43 +132,45 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
 
       {/* Lap Information Header */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+        <div className="bg-white/5 p-4 rounded-[24px] border border-white/5">
           <div className="text-sm text-gray-400">Driver</div>
           <div className="text-lg font-bold text-white">{lapInfo.driver}</div>
         </div>
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+        <div className="bg-white/5 p-4 rounded-[24px] border border-white/5">
           <div className="text-sm text-gray-400">Lap Time</div>
           <div className="text-lg font-bold text-green-400">
             {formatLapTime(lapInfo.lap_time)}
           </div>
         </div>
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+        <div className="bg-white/5 p-4 rounded-[24px] border border-white/5">
           <div className="text-sm text-gray-400">Max Speed</div>
           <div className="text-lg font-bold text-blue-400">
             {analysis.max_speed.toFixed(1)} km/h
           </div>
         </div>
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+        <div className="bg-white/5 p-4 rounded-[24px] border border-white/5">
           <div className="text-sm text-gray-400">Tire Compound</div>
-          <div className="text-lg font-bold text-purple-400">{lapInfo.compound}</div>
+          <div className="text-lg font-bold text-purple-400">
+            {lapInfo.compound}
+          </div>
         </div>
       </div>
 
       {/* Performance Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+        <div className="bg-white/5 p-4 rounded-[24px] border border-white/5">
           <div className="text-sm text-gray-400">Average Speed</div>
           <div className="text-xl font-bold text-blue-400">
             {analysis.avg_speed.toFixed(1)} km/h
           </div>
         </div>
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+        <div className="bg-white/5 p-4 rounded-[24px] border border-white/5">
           <div className="text-sm text-gray-400">Full Throttle</div>
           <div className="text-xl font-bold text-green-400">
             {analysis.full_throttle_pct.toFixed(1)}%
           </div>
         </div>
-        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+        <div className="bg-white/5 p-4 rounded-[24px] border border-white/5">
           <div className="text-sm text-gray-400">Braking Zones</div>
           <div className="text-xl font-bold text-red-400">
             {analysis.braking_zones}
@@ -175,7 +179,7 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
       </div>
 
       {/* Main Speed Trace with Throttle/Brake Overlay */}
-      <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+      <div className="bg-transparent border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent p-6 rounded-[40px] shadow-2xl">
         <h3 className="text-xl font-bold text-white mb-4">
           Speed Trace with Throttle/Brake Inputs
         </h3>
@@ -183,31 +187,46 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis 
-                dataKey="distance" 
+              <XAxis
+                dataKey="distance"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                label={{ value: 'Distance (m)', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                label={{
+                  value: "Distance (m)",
+                  position: "insideBottom",
+                  offset: -5,
+                  style: { textAnchor: "middle", fill: "#9CA3AF" },
+                }}
               />
-              <YAxis 
+              <YAxis
                 yAxisId="speed"
-                domain={[0, 'dataMax']}
+                domain={[0, "dataMax"]}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                label={{ value: 'Speed (km/h)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                label={{
+                  value: "Speed (km/h)",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { textAnchor: "middle", fill: "#9CA3AF" },
+                }}
               />
-              <YAxis 
+              <YAxis
                 yAxisId="inputs"
                 orientation="right"
                 domain={[-300, 300]}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                label={{ value: 'Throttle/Brake (%)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                label={{
+                  value: "Throttle/Brake (%)",
+                  angle: 90,
+                  position: "insideRight",
+                  style: { textAnchor: "middle", fill: "#9CA3AF" },
+                }}
               />
-              
+
               {/* Speed line */}
               <Line
                 yAxisId="speed"
@@ -218,7 +237,7 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 dot={false}
                 name="Speed"
               />
-              
+
               {/* Throttle area (positive) */}
               <Area
                 yAxisId="inputs"
@@ -230,7 +249,7 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 fillOpacity={0.6}
                 name="Throttle"
               />
-              
+
               {/* Brake area (negative) */}
               <Area
                 yAxisId="inputs"
@@ -242,18 +261,23 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 fillOpacity={0.6}
                 name="Brake"
               />
-              
+
               {/* Reference line at zero for throttle/brake */}
-              <ReferenceLine yAxisId="inputs" y={0} stroke="#6B7280" strokeDasharray="2 2" />
-              
+              <ReferenceLine
+                yAxisId="inputs"
+                y={0}
+                stroke="#6B7280"
+                strokeDasharray="2 2"
+              />
+
               <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                verticalAlign="top" 
+              <Legend
+                verticalAlign="top"
                 height={36}
                 iconType="line"
-                wrapperStyle={{ 
-                  paddingBottom: '20px',
-                  fontSize: '12px'
+                wrapperStyle={{
+                  paddingBottom: "20px",
+                  fontSize: "12px",
                 }}
               />
             </ComposedChart>
@@ -262,25 +286,37 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
       </div>
 
       {/* Gear Usage Chart */}
-      <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-        <h3 className="text-xl font-bold text-white mb-4">Gear Usage Throughout Lap</h3>
+      <div className="bg-transparent border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent p-6 rounded-[40px] shadow-2xl">
+        <h3 className="text-xl font-bold text-white mb-4">
+          Gear Usage Throughout Lap
+        </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis 
+              <XAxis
                 dataKey="distance"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                label={{ value: 'Distance (m)', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                label={{
+                  value: "Distance (m)",
+                  position: "insideBottom",
+                  offset: -5,
+                  style: { textAnchor: "middle", fill: "#9CA3AF" },
+                }}
               />
-              <YAxis 
+              <YAxis
                 domain={[1, 8]}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                label={{ value: 'Gear', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                label={{
+                  value: "Gear",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { textAnchor: "middle", fill: "#9CA3AF" },
+                }}
               />
               <Line
                 type="stepAfter"
@@ -298,25 +334,45 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
 
       {/* Throttle vs Brake Comparison */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-bold text-white mb-4">Throttle Application</h3>
+        <div className="bg-transparent border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent p-6 rounded-[40px] shadow-2xl">
+          <h3 className="text-lg font-bold text-white mb-4">
+            Throttle Application
+          </h3>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
+                <XAxis
                   dataKey="distance"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#9CA3AF', fontSize: 10 }}
-                  label={{ value: 'Distance (m)', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fill: '#9CA3AF', fontSize: '10px' } }}
+                  tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                  label={{
+                    value: "Distance (m)",
+                    position: "insideBottom",
+                    offset: -5,
+                    style: {
+                      textAnchor: "middle",
+                      fill: "#9CA3AF",
+                      fontSize: "10px",
+                    },
+                  }}
                 />
-                <YAxis 
+                <YAxis
                   domain={[0, 100]}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#9CA3AF', fontSize: 10 }}
-                  label={{ value: 'Throttle (%)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#9CA3AF', fontSize: '10px' } }}
+                  tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                  label={{
+                    value: "Throttle (%)",
+                    angle: -90,
+                    position: "insideLeft",
+                    style: {
+                      textAnchor: "middle",
+                      fill: "#9CA3AF",
+                      fontSize: "10px",
+                    },
+                  }}
                 />
                 <Area
                   type="monotone"
@@ -331,25 +387,43 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
           </div>
         </div>
 
-        <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+        <div className="bg-transparent border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent p-6 rounded-[40px] shadow-2xl">
           <h3 className="text-lg font-bold text-white mb-4">Brake Pressure</h3>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
+                <XAxis
                   dataKey="distance"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#9CA3AF', fontSize: 10 }}
-                  label={{ value: 'Distance (m)', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fill: '#9CA3AF', fontSize: '10px' } }}
+                  tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                  label={{
+                    value: "Distance (m)",
+                    position: "insideBottom",
+                    offset: -5,
+                    style: {
+                      textAnchor: "middle",
+                      fill: "#9CA3AF",
+                      fontSize: "10px",
+                    },
+                  }}
                 />
-                <YAxis 
+                <YAxis
                   domain={[0, 100]}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#9CA3AF', fontSize: 10 }}
-                  label={{ value: 'Brake (%)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#9CA3AF', fontSize: '10px' } }}
+                  tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                  label={{
+                    value: "Brake (%)",
+                    angle: -90,
+                    position: "insideLeft",
+                    style: {
+                      textAnchor: "middle",
+                      fill: "#9CA3AF",
+                      fontSize: "10px",
+                    },
+                  }}
                 />
                 <Area
                   type="monotone"
@@ -366,32 +440,44 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
       </div>
 
       {/* Corner-Annotated Speed Trace */}
-      <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+      <div className="bg-transparent border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent p-6 rounded-[40px] shadow-2xl">
         <h3 className="text-xl font-bold text-white mb-4">
           Speed Trace with Corner Annotations
           {corners.length > 0 && (
-            <span className="text-sm text-yellow-400 ml-2">({corners.length} corners detected)</span>
+            <span className="text-sm text-yellow-400 ml-2">
+              ({corners.length} corners detected)
+            </span>
           )}
         </h3>
         <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis 
-                dataKey="distance" 
+              <XAxis
+                dataKey="distance"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                label={{ value: 'Distance (m)', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                label={{
+                  value: "Distance (m)",
+                  position: "insideBottom",
+                  offset: -5,
+                  style: { textAnchor: "middle", fill: "#9CA3AF" },
+                }}
               />
-              <YAxis 
-                domain={['dataMin - 40', 'dataMax + 20']}
+              <YAxis
+                domain={["dataMin - 40", "dataMax + 20"]}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                label={{ value: 'Speed (km/h)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                label={{
+                  value: "Speed (km/h)",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { textAnchor: "middle", fill: "#9CA3AF" },
+                }}
               />
-              
+
               {/* Speed line */}
               <Line
                 type="monotone"
@@ -401,70 +487,69 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 dot={false}
                 name="Speed"
               />
-              
+
               {/* Corner reference lines - Yellow dashed lines */}
-              {corners.length > 0 ? (
-                corners.map((corner, index) => (
-                  <ReferenceLine 
-                    key={`corner-${index}`}
-                    x={corner.distance}
-                    stroke="#EAB308"
-                    strokeDasharray="5 5"
-                    strokeWidth={2}
-                    strokeOpacity={0.9}
-                    label={{
-                      value: `C${corner.number}${corner.letter || ''}`,
-                      position: "top",
-                      offset: 10,
-                      style: { 
-                        fill: "#EAB308", 
-                        fontSize: "11px", 
-                        fontWeight: "bold",
-                        textAnchor: "middle"
-                      }
-                    }}
-                  />
-                ))
-              ) : (
-                // Fallback: Show some estimated corner positions if no corner data
-                [1000, 2000, 3000, 4000, 5000].map((distance, index) => (
-                  <ReferenceLine 
-                    key={`fallback-corner-${index}`}
-                    x={distance}
-                    stroke="#EAB308"
-                    strokeDasharray="5 5"
-                    strokeWidth={2}
-                    strokeOpacity={0.7}
-                    label={{
-                      value: `C${index + 1}`,
-                      position: "top",
-                      offset: 10,
-                      style: { 
-                        fill: "#EAB308", 
-                        fontSize: "11px", 
-                        fontWeight: "bold",
-                        textAnchor: "middle"
-                      }
-                    }}
-                  />
-                ))
-              )}
-              
-              <Tooltip 
+              {corners.length > 0
+                ? corners.map((corner, index) => (
+                    <ReferenceLine
+                      key={`corner-${index}`}
+                      x={corner.distance}
+                      stroke="#EAB308"
+                      strokeDasharray="5 5"
+                      strokeWidth={2}
+                      strokeOpacity={0.9}
+                      label={{
+                        value: `C${corner.number}${corner.letter || ""}`,
+                        position: "top",
+                        offset: 10,
+                        style: {
+                          fill: "#EAB308",
+                          fontSize: "11px",
+                          fontWeight: "bold",
+                          textAnchor: "middle",
+                        },
+                      }}
+                    />
+                  ))
+                : // Fallback: Show some estimated corner positions if no corner data
+                  [1000, 2000, 3000, 4000, 5000].map((distance, index) => (
+                    <ReferenceLine
+                      key={`fallback-corner-${index}`}
+                      x={distance}
+                      stroke="#EAB308"
+                      strokeDasharray="5 5"
+                      strokeWidth={2}
+                      strokeOpacity={0.7}
+                      label={{
+                        value: `C${index + 1}`,
+                        position: "top",
+                        offset: 10,
+                        style: {
+                          fill: "#EAB308",
+                          fontSize: "11px",
+                          fontWeight: "bold",
+                          textAnchor: "middle",
+                        },
+                      }}
+                    />
+                  ))}
+
+              <Tooltip
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
                     // Find if we're near a corner
-                    const currentDistance = parseFloat(label);
-                    const nearbyCorner = corners.find(corner => 
-                      Math.abs(corner.distance - currentDistance) < 100
+                    const currentDistance = parseFloat(label as string);
+                    const nearbyCorner = corners.find(
+                      (corner) =>
+                        Math.abs(corner.distance - currentDistance) < 100,
                     );
-                    
+
                     return (
-                      <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
+                      <div className="bg-[#111111] border border-white/10 rounded-[16px] p-4 shadow-2xl">
                         <p className="text-white font-medium">{`Distance: ${label}m`}</p>
                         <p className="text-blue-400">{`Speed: ${payload[0]?.value?.toFixed(1)} km/h`}</p>
                         {nearbyCorner && (
-                          <p className="text-yellow-400">{`Corner ${nearbyCorner.number}${nearbyCorner.letter || ''}`}</p>
+                          <p className="text-yellow-400">{`Corner ${nearbyCorner.number}${nearbyCorner.letter || ""}`}</p>
                         )}
                       </div>
                     );
@@ -472,29 +557,30 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                   return null;
                 }}
               />
-              
-              <Legend 
-                verticalAlign="top" 
+
+              <Legend
+                verticalAlign="top"
                 height={36}
                 iconType="line"
-                wrapperStyle={{ 
-                  paddingBottom: '20px',
-                  fontSize: '12px'
+                wrapperStyle={{
+                  paddingBottom: "20px",
+                  fontSize: "12px",
                 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
-        
+
         {/* Corner legend */}
-        <div className="mt-4 p-4 bg-gray-700/30 rounded-lg">
+        <div className="mt-4 p-4 bg-white/5 rounded-[24px]">
           <h4 className="text-sm font-bold text-white mb-2">Track Corners</h4>
           {corners.length > 0 ? (
             <div className="grid grid-cols-6 md:grid-cols-12 gap-2 text-xs">
               {corners.map((corner, index) => (
                 <div key={index} className="text-center">
                   <div className="text-yellow-400 font-bold">
-                    {corner.number}{corner.letter || ''}
+                    {corner.number}
+                    {corner.letter || ""}
                   </div>
                   <div className="text-gray-400">
                     {Math.round(corner.distance)}m
@@ -505,13 +591,19 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
           ) : (
             <div className="text-center text-gray-400 text-sm">
               <p>Corner data not available for this session.</p>
-              <p className="text-yellow-400 mt-1">Showing estimated corner positions with yellow dashed lines.</p>
+              <p className="text-yellow-400 mt-1">
+                Showing estimated corner positions with yellow dashed lines.
+              </p>
             </div>
           )}
         </div>
-        
+
         <div className="mt-4 text-sm text-gray-400">
-          <span className="text-yellow-400 font-semibold">Yellow dashed lines</span> indicate corner locations. Speed typically drops before corners and increases on exit.
+          <span className="text-yellow-400 font-semibold">
+            Yellow dashed lines
+          </span>{" "}
+          indicate corner locations. Speed typically drops before corners and
+          increases on exit.
         </div>
       </div>
     </div>
