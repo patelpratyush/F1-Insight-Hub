@@ -28,6 +28,11 @@ dist-ssr
 *.sw?
 .claude
 
+# Backend cache data (SQLite + FastF1)
+backend/data/
+backend/__pycache__/
+backend/**/__pycache__/
+
 # F1 data cache and logs
 backend/cache/
 # backend/*.log

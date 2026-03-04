@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
 Centralized F1 Data Cache Manager
-Fetches metadata from Jolpica-F1 API (Ergast replacement) and caches in memory.
+Two-tier cache: In-Memory Dict → SQLite (persistent) → Jolpica-F1 API.
 Replaces all hardcoded race results, standings, schedules, and driver/team data.
 """
 
 import asyncio
 import aiohttp
+import json as json_module
 import logging
+import os
+import sqlite3
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
@@ -31,8 +34,70 @@ class CacheEntry:
         return elapsed > self.ttl_seconds
 
 
+class CacheStore:
+    """SQLite-backed persistent cache store."""
+
+    def __init__(self, db_path: str = None):
+        if db_path is None:
+            db_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'cache.db')
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        self._db_path = db_path
+        self._conn: Optional[sqlite3.Connection] = None
+
+    def connect(self):
+        self._conn = sqlite3.connect(self._db_path, check_same_thread=False)
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA synchronous=NORMAL")
+        self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS cache_entries (
+                key TEXT PRIMARY KEY,
+                data TEXT NOT NULL,
+                fetched_at TEXT NOT NULL,
+                ttl_seconds INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        self._conn.commit()
+
+    def close(self):
+        if self._conn:
+            self._conn.close()
+            self._conn = None
+
+    def get(self, key: str) -> Optional[CacheEntry]:
+        if not self._conn:
+            return None
+        row = self._conn.execute(
+            "SELECT data, fetched_at, ttl_seconds FROM cache_entries WHERE key = ?",
+            (key,)
+        ).fetchone()
+        if not row:
+            return None
+        return CacheEntry(
+            data=json_module.loads(row[0]),
+            fetched_at=datetime.fromisoformat(row[1]),
+            ttl_seconds=row[2],
+        )
+
+    def set(self, key: str, entry: CacheEntry):
+        if not self._conn:
+            return
+        self._conn.execute(
+            "INSERT OR REPLACE INTO cache_entries (key, data, fetched_at, ttl_seconds) VALUES (?, ?, ?, ?)",
+            (key, json_module.dumps(entry.data), entry.fetched_at.isoformat(), entry.ttl_seconds)
+        )
+        self._conn.commit()
+
+    def load_all(self) -> List[tuple]:
+        """Return all rows for hydration."""
+        if not self._conn:
+            return []
+        return self._conn.execute(
+            "SELECT key, data, fetched_at, ttl_seconds FROM cache_entries"
+        ).fetchall()
+
+
 class CacheManager:
-    """Centralized F1 data cache fed by Jolpica-F1 API."""
+    """Centralized F1 data cache fed by Jolpica-F1 API with SQLite persistence."""
 
     TTL_PERMANENT = 0
     TTL_STANDINGS = 3600      # 1 hour
@@ -41,6 +106,7 @@ class CacheManager:
 
     def __init__(self):
         self._cache: Dict[str, CacheEntry] = {}
+        self._store = CacheStore()
         self._refresh_task: Optional[asyncio.Task] = None
         self._session: Optional[aiohttp.ClientSession] = None
         self._initialized = False
@@ -51,20 +117,30 @@ class CacheManager:
     # ── Lifecycle ─────────────────────────────────────────────────
 
     async def initialize(self, year: int = None):
-        """Called from FastAPI startup. Fetches all data for the given year."""
+        """Called from FastAPI startup. Hydrates from SQLite, then fetches fresh data."""
         if year is None:
             year = self._current_year
         self._current_year = year
         self._session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30)
         )
+
+        # Hydrate from SQLite first (instant)
+        self._store.connect()
+        self._hydrate_from_store()
+
         try:
             await self._full_load(year)
             self._loaded_years.add(year)
             self._initialized = True
             logger.info(f"CacheManager initialized for {year}")
         except Exception as e:
-            logger.error(f"CacheManager init failed (degraded mode): {e}")
+            # If hydration loaded data, we're still functional
+            if self._loaded_years:
+                self._initialized = True
+                logger.warning(f"CacheManager API refresh failed, serving from SQLite: {e}")
+            else:
+                logger.error(f"CacheManager init failed (degraded mode): {e}")
         self._refresh_task = asyncio.create_task(self._periodic_refresh(year))
 
     async def shutdown(self):
@@ -75,6 +151,7 @@ class CacheManager:
                 await self._refresh_task
             except asyncio.CancelledError:
                 pass
+        self._store.close()
         if self._session:
             await self._session.close()
         logger.info("CacheManager shut down")
@@ -270,11 +347,34 @@ class CacheManager:
         return entry.data
 
     def _set(self, key: str, data: Any, ttl: int):
-        self._cache[key] = CacheEntry(
+        """Write to in-memory cache and persist to SQLite."""
+        entry = CacheEntry(
             data=data,
             fetched_at=datetime.now(timezone.utc),
             ttl_seconds=ttl,
         )
+        self._cache[key] = entry
+        self._store.set(key, entry)
+
+    def _hydrate_from_store(self):
+        """Load all non-expired entries from SQLite into memory on startup."""
+        rows = self._store.load_all()
+        loaded = 0
+        for key, data_json, fetched_at_str, ttl in rows:
+            entry = CacheEntry(
+                data=json_module.loads(data_json),
+                fetched_at=datetime.fromisoformat(fetched_at_str),
+                ttl_seconds=ttl,
+            )
+            # Always load permanent entries; load volatile only if not expired
+            if ttl == 0 or not entry.is_expired:
+                self._cache[key] = entry
+                loaded += 1
+                # Track which years we have data for
+                parts = key.split(":")
+                if len(parts) >= 2 and parts[1].isdigit():
+                    self._loaded_years.add(int(parts[1]))
+        logger.info(f"Hydrated {loaded} entries from SQLite ({len(self._loaded_years)} years)")
 
     # ── Private: API Fetch Methods ────────────────────────────────
 
@@ -471,17 +571,22 @@ class CacheManager:
     # ── Private: Bulk Load & Refresh ──────────────────────────────
 
     async def _full_load(self, year: int):
-        """Load everything for a year. Called on startup."""
-        logger.info(f"Starting full cache load for {year}...")
+        """Load everything for a year. Skips data already cached from SQLite."""
+        logger.info(f"Starting cache load for {year}...")
 
-        # Fetch metadata first (these are fast)
-        await self._fetch_schedule(year)
-        await self._fetch_drivers(year)
-        await self._fetch_constructors(year)
+        # Only fetch metadata if not already in memory (or expired)
+        if not self._cache.get(f"schedule:{year}") or self._cache[f"schedule:{year}"].is_expired:
+            await self._fetch_schedule(year)
+        if not self._cache.get(f"drivers:{year}") or self._cache[f"drivers:{year}"].is_expired:
+            await self._fetch_drivers(year)
+        if not self._cache.get(f"constructors:{year}") or self._cache[f"constructors:{year}"].is_expired:
+            await self._fetch_constructors(year)
+
+        # Standings: always refresh (1hr TTL, likely expired between restarts)
         await self._fetch_driver_standings(year)
         await self._fetch_constructor_standings(year)
 
-        # Fetch results for all completed rounds
+        # Race results: permanent, skip if already loaded from SQLite
         schedule = self.get_schedule(year)
         now = datetime.now(timezone.utc).date()
         for race in schedule:
@@ -489,15 +594,13 @@ class CacheManager:
                 race_date = datetime.strptime(race["date"], "%Y-%m-%d").date()
                 if race_date < now:
                     round_num = race["round"]
-                    # Only fetch if not already permanently cached
                     if not self._cache.get(f"race_result:{year}:{round_num}"):
                         await self._fetch_race_result(year, round_num)
-                        # Small delay to be nice to rate limits
                         await asyncio.sleep(0.3)
             except (KeyError, ValueError):
                 continue
 
-        logger.info(f"Full cache load complete for {year}")
+        logger.info(f"Cache load complete for {year}")
 
     async def _periodic_refresh(self, year: int):
         """Background task: refresh volatile data every 30 minutes."""
