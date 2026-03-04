@@ -23,8 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WeatherContextPanel from "@/components/WeatherContextPanel";
-import { driverCodes, drivers2025 } from "@/data/drivers2025";
-import { trackNames } from "@/data/tracks2025";
+import { useDrivers, useTracks, type Driver } from "@/hooks/useF1Metadata";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -54,7 +53,7 @@ import {
 } from "recharts";
 
 const TelemetryAnalyzer = () => {
-  const [selectedSeason, setSelectedSeason] = useState("2025");
+  const [selectedSeason, setSelectedSeason] = useState(String(new Date().getFullYear()));
   const [selectedGP, setSelectedGP] = useState("");
   const [selectedSession, setSelectedSession] = useState("Qualifying"); // Start with Qualifying as most representative
   const [selectedDriver, setSelectedDriver] = useState("");
@@ -76,7 +75,8 @@ const TelemetryAnalyzer = () => {
     setIsVisible(true);
   }, []);
 
-  const seasons = ["2024", "2025"];
+  const currentYear = new Date().getFullYear();
+  const seasons = Array.from({ length: 3 }, (_, i) => String(currentYear - 2 + i));
   const sessionMap = {
     "Practice 2": "FP2", // Most representative practice session
     "Practice 3": "FP3", // Final setup confirmation
@@ -86,8 +86,11 @@ const TelemetryAnalyzer = () => {
     Race: "R", // Full race distance
   };
 
-  // Use centralized driver codes
-  const drivers = driverCodes;
+  const { data: apiDrivers } = useDrivers();
+  const { data: apiTracks } = useTracks();
+  const driverList = apiDrivers || [];
+  const drivers = driverList.map((d) => d.code);
+  const trackNames = (apiTracks || []).map((t) => t.race_name);
 
   // Fetch available races for selected season
   const { data: availableRaces, isLoading: racesLoading } = useQuery({
@@ -463,7 +466,7 @@ const TelemetryAnalyzer = () => {
                         <SelectValue placeholder="Select driver">
                           {selectedDriver && (
                             <span>
-                              {drivers2025.find((d) => d.id === selectedDriver)
+                              {driverList.find((d) => d.id === selectedDriver)
                                 ?.name || selectedDriver}
                             </span>
                           )}
@@ -471,7 +474,7 @@ const TelemetryAnalyzer = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
                         {drivers.map((driverCode) => {
-                          const driverInfo = drivers2025.find(
+                          const driverInfo = driverList.find(
                             (d) => d.id === driverCode,
                           );
                           return (
@@ -1617,7 +1620,7 @@ const TelemetryAnalyzer = () => {
                                   <SelectValue placeholder="Select first driver">
                                     {selectedDriver && (
                                       <span>
-                                        {drivers2025.find(
+                                        {driverList.find(
                                           (d) => d.id === selectedDriver,
                                         )?.name || selectedDriver}
                                       </span>
@@ -1626,7 +1629,7 @@ const TelemetryAnalyzer = () => {
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
                                   {drivers.map((driverCode) => {
-                                    const driverInfo = drivers2025.find(
+                                    const driverInfo = driverList.find(
                                       (d) => d.id === driverCode,
                                     );
                                     return (
@@ -1662,7 +1665,7 @@ const TelemetryAnalyzer = () => {
                                   <SelectValue placeholder="Select second driver">
                                     {selectedDriver2 && (
                                       <span>
-                                        {drivers2025.find(
+                                        {driverList.find(
                                           (d) => d.id === selectedDriver2,
                                         )?.name || selectedDriver2}
                                       </span>
@@ -1673,7 +1676,7 @@ const TelemetryAnalyzer = () => {
                                   {drivers
                                     .filter((d) => d !== selectedDriver)
                                     .map((driverCode) => {
-                                      const driverInfo = drivers2025.find(
+                                      const driverInfo = driverList.find(
                                         (d) => d.id === driverCode,
                                       );
                                       return (

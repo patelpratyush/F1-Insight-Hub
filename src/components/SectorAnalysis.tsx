@@ -269,14 +269,20 @@ const SectorAnalysis: React.FC<SectorAnalysisProps> = ({
                 dataKey={driver1.driver}
                 fill={driver1.color}
                 name={driver1.driver}
-                opacity={0.8}
+                opacity={0.9}
+                radius={[4, 4, 0, 0]}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               <Bar
                 dataKey={driver2.driver}
                 fill={driver2.color}
                 name={driver2.driver}
-                opacity={0.8}
+                opacity={0.9}
+                radius={[4, 4, 0, 0]}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               <Tooltip content={<CustomTooltip />} />
@@ -330,12 +336,18 @@ const SectorAnalysis: React.FC<SectorAnalysisProps> = ({
               {/* Zero reference line */}
               <ReferenceLine y={0} stroke="#9CA3AF" strokeDasharray="2 2" />
 
-              <Bar dataKey="delta" name="Time Delta">
+              <Bar
+                dataKey="delta"
+                name="Time Delta"
+                radius={[4, 4, 4, 4]}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
+              >
                 {deltaData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.delta < 0 ? driver1.color : driver2.color}
-                    opacity={0.8}
+                    opacity={0.9}
                   />
                 ))}
               </Bar>

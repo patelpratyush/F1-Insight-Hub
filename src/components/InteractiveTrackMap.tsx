@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { Eye, EyeOff, Palette, Pause, Play, RotateCcw } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -400,151 +401,150 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
             })}
 
           {/* Current Car Position - SUPER VISIBLE */}
-          {currentPoint && (
-            <g>
-              {/* Massive outer glow effect */}
-              <circle
-                cx={currentPoint.x}
-                cy={currentPoint.y}
-                r="40"
-                fill="#FF0000"
-                opacity="0.4"
-              >
-                <animate
-                  attributeName="r"
-                  values="40;60;40"
-                  dur="2s"
-                  repeatCount="indefinite"
-                />
-                <animate
-                  attributeName="opacity"
-                  values="0.4;0.1;0.4"
-                  dur="2s"
-                  repeatCount="indefinite"
-                />
-              </circle>
+          {currentPoint &&
+            (() => {
+              const carColor =
+                colorScheme === "speed"
+                  ? getSpeedColor(currentPoint.speed, maxSpeed)
+                  : getTimeColor(
+                      Math.floor(currentPosition),
+                      trackData.driver_positions.length,
+                    );
 
-              {/* Secondary glow */}
-              <circle
-                cx={currentPoint.x}
-                cy={currentPoint.y}
-                r="25"
-                fill="#FF4444"
-                opacity="0.6"
-              >
-                <animate
-                  attributeName="r"
-                  values="25;35;25"
-                  dur="1.5s"
-                  repeatCount="indefinite"
-                />
-              </circle>
+              return (
+                <g>
+                  <defs>
+                    <filter
+                      id="carGlow"
+                      x="-50%"
+                      y="-50%"
+                      width="200%"
+                      height="200%"
+                    >
+                      <feGaussianBlur
+                        in="SourceGraphic"
+                        stdDeviation="6"
+                        result="blur1"
+                      />
+                      <feGaussianBlur
+                        in="SourceGraphic"
+                        stdDeviation="15"
+                        result="blur2"
+                      />
+                      <feMerge>
+                        <feMergeNode in="blur2" />
+                        <feMergeNode in="blur1" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
 
-              {/* Main car position - HUGE */}
-              <circle
-                cx={currentPoint.x}
-                cy={currentPoint.y}
-                r="20"
-                fill="#FF0000"
-                stroke="#FFFFFF"
-                strokeWidth="6"
-              >
-                <animate
-                  attributeName="r"
-                  values="20;28;20"
-                  dur="1s"
-                  repeatCount="indefinite"
-                />
-              </circle>
+                  {/* Massive outer glow effect via framer-motion */}
+                  <motion.circle
+                    cx={currentPoint.x}
+                    cy={currentPoint.y}
+                    fill={carColor}
+                    opacity={0.3}
+                    initial={{ r: 35 }}
+                    animate={{ r: [35, 55, 35], opacity: [0.3, 0.1, 0.3] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
 
-              {/* Inner core */}
-              <circle
-                cx={currentPoint.x}
-                cy={currentPoint.y}
-                r="12"
-                fill="#FFFF00"
-                opacity="1"
-              >
-                <animate
-                  attributeName="fill"
-                  values="#FFFF00;#FF0000;#FFFF00"
-                  dur="0.8s"
-                  repeatCount="indefinite"
-                />
-              </circle>
+                  {/* Secondary glow */}
+                  <motion.circle
+                    cx={currentPoint.x}
+                    cy={currentPoint.y}
+                    fill={carColor}
+                    opacity={0.5}
+                    initial={{ r: 25 }}
+                    animate={{ r: [25, 35, 25] }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
 
-              {/* Center dot */}
-              <circle
-                cx={currentPoint.x}
-                cy={currentPoint.y}
-                r="6"
-                fill="#FFFFFF"
-                opacity="1"
-              />
+                  {/* Main car position */}
+                  <motion.circle
+                    cx={currentPoint.x}
+                    cy={currentPoint.y}
+                    r={18}
+                    fill={carColor}
+                    stroke="#FFFFFF"
+                    strokeWidth={4}
+                    style={{ filter: "url(#carGlow)" }}
+                    layout
+                  />
 
-              {/* Speed indicator with larger background */}
-              <rect
-                x={currentPoint.x - 50}
-                y={currentPoint.y - 60}
-                width="100"
-                height="30"
-                fill="#000000"
-                opacity="0.9"
-                rx="15"
-                stroke="#FFFFFF"
-                strokeWidth="2"
-              />
-              <text
-                x={currentPoint.x}
-                y={currentPoint.y - 35}
-                textAnchor="middle"
-                fill="#FFFFFF"
-                fontSize="18"
-                fontWeight="bold"
-              >
-                🏎️ {Math.round(currentPoint.speed)} km/h
-              </text>
+                  {/* Speed indicator with larger background */}
+                  <rect
+                    x={currentPoint.x - 50}
+                    y={currentPoint.y - 60}
+                    width="100"
+                    height="30"
+                    fill="#000000"
+                    opacity="0.9"
+                    rx="15"
+                    stroke="#FFFFFF"
+                    strokeWidth="2"
+                  />
+                  <text
+                    x={currentPoint.x}
+                    y={currentPoint.y - 35}
+                    textAnchor="middle"
+                    fill="#FFFFFF"
+                    fontSize="18"
+                    fontWeight="bold"
+                  >
+                    🏎️ {Math.round(currentPoint.speed)} km/h
+                  </text>
 
-              {/* Arrow pointing to car */}
-              <polygon
-                points={`${currentPoint.x - 8},${currentPoint.y - 80} ${currentPoint.x + 8},${currentPoint.y - 80} ${currentPoint.x},${currentPoint.y - 65}`}
-                fill="#FFFF00"
-                stroke="#000000"
-                strokeWidth="2"
-              >
-                <animateTransform
-                  attributeName="transform"
-                  type="translate"
-                  values={`0,-5; 0,5; 0,-5`}
-                  dur="1s"
-                  repeatCount="indefinite"
-                />
-              </polygon>
+                  {/* Arrow pointing to car */}
+                  <polygon
+                    points={`${currentPoint.x - 8},${currentPoint.y - 80} ${currentPoint.x + 8},${currentPoint.y - 80} ${currentPoint.x},${currentPoint.y - 65}`}
+                    fill="#FFFF00"
+                    stroke="#000000"
+                    strokeWidth="2"
+                  >
+                    <animateTransform
+                      attributeName="transform"
+                      type="translate"
+                      values={`0,-5; 0,5; 0,-5`}
+                      dur="1s"
+                      repeatCount="indefinite"
+                    />
+                  </polygon>
 
-              {/* "DRIVER" label */}
-              <rect
-                x={currentPoint.x - 30}
-                y={currentPoint.y + 30}
-                width="60"
-                height="20"
-                fill="#FF0000"
-                opacity="0.9"
-                rx="10"
-                stroke="#FFFFFF"
-                strokeWidth="2"
-              />
-              <text
-                x={currentPoint.x}
-                y={currentPoint.y + 45}
-                textAnchor="middle"
-                fill="#FFFFFF"
-                fontSize="12"
-                fontWeight="bold"
-              >
-                DRIVER
-              </text>
-            </g>
-          )}
+                  {/* "DRIVER" label */}
+                  <rect
+                    x={currentPoint.x - 30}
+                    y={currentPoint.y + 30}
+                    width="60"
+                    height="20"
+                    fill="#FF0000"
+                    opacity="0.9"
+                    rx="10"
+                    stroke="#FFFFFF"
+                    strokeWidth="2"
+                  />
+                  <text
+                    x={currentPoint.x}
+                    y={currentPoint.y + 45}
+                    textAnchor="middle"
+                    fill="#FFFFFF"
+                    fontSize="12"
+                    fontWeight="bold"
+                  >
+                    DRIVER
+                  </text>
+                </g>
+              );
+            })()}
 
           {/* Corner Numbers */}
           {trackData.corners?.map((corner, index) => (

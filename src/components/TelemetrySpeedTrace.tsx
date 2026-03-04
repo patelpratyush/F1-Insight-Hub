@@ -227,15 +227,49 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 }}
               />
 
+              <defs>
+                <linearGradient id="colorThrottle" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.5} />
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorBrake" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#EF4444" stopOpacity={0} />
+                  <stop offset="95%" stopColor="#EF4444" stopOpacity={0.5} />
+                </linearGradient>
+                <filter
+                  id="glowSpeed"
+                  x="-20%"
+                  y="-20%"
+                  width="140%"
+                  height="140%"
+                >
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
               {/* Speed line */}
               <Line
                 yAxisId="speed"
                 type="monotone"
                 dataKey="speed"
                 stroke="#3B82F6"
-                strokeWidth={2}
+                strokeWidth={3}
                 dot={false}
+                activeDot={{
+                  r: 6,
+                  fill: "#3B82F6",
+                  stroke: "#FFFFFF",
+                  strokeWidth: 2,
+                  style: { filter: "drop-shadow(0px 0px 4px #3B82F6)" },
+                }}
                 name="Speed"
+                style={{ filter: "url(#glowSpeed)" }}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Throttle area (positive) */}
@@ -245,9 +279,12 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 dataKey="throttle_normalized"
                 stackId="1"
                 stroke="#10B981"
-                fill="#10B981"
-                fillOpacity={0.6}
+                strokeWidth={2}
+                fill="url(#colorThrottle)"
+                fillOpacity={1}
                 name="Throttle"
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Brake area (negative) */}
@@ -257,9 +294,12 @@ const TelemetrySpeedTrace: React.FC<SpeedTraceProps> = ({
                 dataKey="brake_negative"
                 stackId="2"
                 stroke="#EF4444"
-                fill="#EF4444"
-                fillOpacity={0.6}
+                strokeWidth={2}
+                fill="url(#colorBrake)"
+                fillOpacity={1}
                 name="Brake"
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Reference line at zero for throttle/brake */}

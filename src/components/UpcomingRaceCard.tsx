@@ -4,20 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Flag } from "lucide-react";
 import { Link } from "react-router-dom";
-import { races2025 } from "./RaceSelect";
+import { useTracks, type Track } from "@/hooks/useF1Metadata";
 
 export const UpcomingRaceCard = () => {
   const [timeLeft, setTimeLeft] = useState("");
-  const [nextRace, setNextRace] = useState(races2025[0]);
+  const { data: tracks } = useTracks();
 
-  useEffect(() => {
-    // Find the next upcoming race
+  const nextRace = (() => {
+    if (!tracks?.length) return null;
     const now = new Date();
-    const upcoming = races2025.find(race => new Date(race.date) > now) || races2025[0];
-    setNextRace(upcoming);
-  }, []);
+    return tracks.find((t) => new Date(t.date) > now) || tracks[0];
+  })();
 
   useEffect(() => {
+    if (!nextRace) return;
+
     const calculateTimeLeft = () => {
       const now = new Date();
       const raceDate = new Date(nextRace.date);
@@ -27,7 +28,6 @@ export const UpcomingRaceCard = () => {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((difference / 1000 / 60) % 60);
-        
         setTimeLeft(`${days}d ${hours}h ${minutes}m`);
       } else {
         setTimeLeft("Race in progress or completed");
@@ -35,10 +35,13 @@ export const UpcomingRaceCard = () => {
     };
 
     calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 60000); // Update every minute
-
+    const timer = setInterval(calculateTimeLeft, 60000);
     return () => clearInterval(timer);
   }, [nextRace]);
+
+  if (!nextRace) return null;
+
+  const currentYear = new Date().getFullYear();
 
   return (
     <Card className="w-full max-w-2xl mx-auto bg-gradient-to-br from-background to-muted/50">
@@ -48,12 +51,12 @@ export const UpcomingRaceCard = () => {
             <Flag className="h-5 w-5" />
             Next Race
           </CardTitle>
-          <Badge variant="secondary">2025 Season</Badge>
+          <Badge variant="secondary">{currentYear} Season</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center space-y-2">
-          <h3 className="text-2xl font-bold">{nextRace.name}</h3>
+          <h3 className="text-2xl font-bold">{nextRace.race_name}</h3>
           <div className="flex items-center justify-center gap-4 text-muted-foreground">
             <div className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />

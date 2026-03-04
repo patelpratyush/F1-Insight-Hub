@@ -18,8 +18,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { drivers2025 } from "@/data/drivers2025";
-import { getCircuitByTrackName, trackNames } from "@/data/tracks2025";
+import { useDrivers, useTracks } from "@/hooks/useF1Metadata";
 import {
     Brain,
     Clock,
@@ -66,8 +65,20 @@ const StrategySimulator = () => {
     setIsVisible(true);
   }, []);
 
-  // Use centralized track data - all 2025 F1 tracks
-  const tracks = trackNames;
+  const { data: apiDrivers } = useDrivers();
+  const { data: apiTracks } = useTracks();
+  const driverList = (apiDrivers || []).map((d) => ({
+    id: d.code,
+    name: d.name,
+    team: d.team,
+    number: Number(d.number) || 0,
+    teamColor: d.teamColor,
+  }));
+  const tracks = (apiTracks || []).map((t) => t.race_name);
+  const getCircuitByTrackName = (trackName: string) => {
+    const track = (apiTracks || []).find((t) => t.race_name === trackName);
+    return track ? track.circuit : trackName;
+  };
 
   // Strategy types for dynamic pit stop selection
   const strategyTypes = [
@@ -235,7 +246,7 @@ const StrategySimulator = () => {
     setSimulation(null);
 
     try {
-      const selectedDriverData = drivers2025.find(
+      const selectedDriverData = driverList.find(
         (d) => d.id === selectedDriver,
       );
 
@@ -329,7 +340,7 @@ const StrategySimulator = () => {
     setComparisonResults(null);
 
     try {
-      const selectedDriverData = drivers2025.find(
+      const selectedDriverData = driverList.find(
         (d) => d.id === selectedDriver,
       );
 
@@ -385,7 +396,7 @@ const StrategySimulator = () => {
     setOptimizationResults(null);
 
     try {
-      const selectedDriverData = drivers2025.find(
+      const selectedDriverData = driverList.find(
         (d) => d.id === selectedDriver,
       );
 
@@ -593,14 +604,14 @@ const StrategySimulator = () => {
                       <SelectValue placeholder="Select driver">
                         {selectedDriver && (
                           <span>
-                            {drivers2025.find((d) => d.id === selectedDriver)
+                            {driverList.find((d) => d.id === selectedDriver)
                               ?.name || selectedDriver}
                           </span>
                         )}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-[#111111] border-white/10 rounded-[24px]">
-                      {drivers2025.map((driver) => (
+                      {driverList.map((driver) => (
                         <SelectItem
                           key={driver.id}
                           value={driver.id}

@@ -84,42 +84,32 @@ class F1ResultsService:
         fastf1_cache_dir.mkdir(parents=True, exist_ok=True)
         fastf1.Cache.enable_cache(str(fastf1_cache_dir))
         
-        self.ergast_base_url = "https://ergast.com/api/f1"
-        self.current_season = 2025
+        self.jolpica_base_url = "https://api.jolpi.ca/ergast/f1"
+        self.current_season = datetime.now().year
         self.results_cache = {}
         self.standings_cache = {}
         self.cache_duration = 1800  # 30 minutes
         
-        # 2025 F1 calendar
-        self.f1_calendar_2025 = [
-            {"round": 1, "name": "Bahrain Grand Prix", "date": "2025-03-16", "circuit": "Bahrain International Circuit"},
-            {"round": 2, "name": "Saudi Arabian Grand Prix", "date": "2025-03-23", "circuit": "Jeddah Corniche Circuit"},
-            {"round": 3, "name": "Australian Grand Prix", "date": "2025-04-06", "circuit": "Albert Park Circuit"},
-            {"round": 4, "name": "Japanese Grand Prix", "date": "2025-04-13", "circuit": "Suzuka International Racing Course"},
-            {"round": 5, "name": "Chinese Grand Prix", "date": "2025-04-20", "circuit": "Shanghai International Circuit"},
-            {"round": 6, "name": "Miami Grand Prix", "date": "2025-05-04", "circuit": "Miami International Autodrome"},
-            {"round": 7, "name": "Emilia Romagna Grand Prix", "date": "2025-05-18", "circuit": "Autodromo Enzo e Dino Ferrari"},
-            {"round": 8, "name": "Monaco Grand Prix", "date": "2025-05-25", "circuit": "Circuit de Monaco"},
-            {"round": 9, "name": "Spanish Grand Prix", "date": "2025-06-01", "circuit": "Circuit de Barcelona-Catalunya"},
-            {"round": 10, "name": "Canadian Grand Prix", "date": "2025-06-15", "circuit": "Circuit Gilles Villeneuve"},
-            {"round": 11, "name": "Austrian Grand Prix", "date": "2025-06-29", "circuit": "Red Bull Ring"},
-            {"round": 12, "name": "British Grand Prix", "date": "2025-07-06", "circuit": "Silverstone Circuit"},
-            {"round": 13, "name": "Hungarian Grand Prix", "date": "2025-07-20", "circuit": "Hungaroring"},
-            {"round": 14, "name": "Belgian Grand Prix", "date": "2025-07-27", "circuit": "Circuit de Spa-Francorchamps"},
-            {"round": 15, "name": "Dutch Grand Prix", "date": "2025-08-31", "circuit": "Circuit Zandvoort"},
-            {"round": 16, "name": "Italian Grand Prix", "date": "2025-09-07", "circuit": "Autodromo Nazionale di Monza"},
-            {"round": 17, "name": "Azerbaijan Grand Prix", "date": "2025-09-21", "circuit": "Baku City Circuit"},
-            {"round": 18, "name": "Singapore Grand Prix", "date": "2025-10-05", "circuit": "Marina Bay Street Circuit"},
-            {"round": 19, "name": "United States Grand Prix", "date": "2025-10-19", "circuit": "Circuit of the Americas"},
-            {"round": 20, "name": "Mexico City Grand Prix", "date": "2025-11-02", "circuit": "Autódromo Hermanos Rodríguez"},
-            {"round": 21, "name": "São Paulo Grand Prix", "date": "2025-11-09", "circuit": "Interlagos"},
-            {"round": 22, "name": "Las Vegas Grand Prix", "date": "2025-11-22", "circuit": "Las Vegas Street Circuit"},
-            {"round": 23, "name": "Qatar Grand Prix", "date": "2025-11-30", "circuit": "Lusail International Circuit"},
-            {"round": 24, "name": "Abu Dhabi Grand Prix", "date": "2025-12-07", "circuit": "Yas Marina Circuit"}
-        ]
-        
         # Initialize with existing 2025 data if available
         self._load_cached_standings()
+
+    @property
+    def f1_calendar_2025(self) -> List[Dict]:
+        """Dynamic calendar from cache_manager (backward compatible property)."""
+        from services.cache_manager import cache_manager
+        schedule = cache_manager.get_schedule(self.current_season)
+        if schedule:
+            # Map to the old format expected by other methods
+            return [
+                {
+                    "round": r.get("round", 0),
+                    "name": r.get("race_name", ""),
+                    "date": r.get("date", ""),
+                    "circuit": r.get("circuit", ""),
+                }
+                for r in schedule
+            ]
+        return []
     
     def _is_cache_valid(self, cache_key: str, cache_dict: Dict) -> bool:
         """Check if cached data is still valid"""
@@ -293,7 +283,7 @@ class F1ResultsService:
             }
             
             endpoint = endpoint_map.get(session_type, "results")
-            url = f"{self.ergast_base_url}/{year}/{round_num}/{endpoint}.json"
+            url = f"{self.jolpica_base_url}/{year}/{round_num}/{endpoint}.json"
             
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
@@ -387,8 +377,8 @@ class F1ResultsService:
         
         try:
             # Get driver standings
-            drivers_url = f"{self.ergast_base_url}/{self.current_season}/driverStandings.json"
-            constructors_url = f"{self.ergast_base_url}/{self.current_season}/constructorStandings.json"
+            drivers_url = f"{self.jolpica_base_url}/{self.current_season}/driverStandings.json"
+            constructors_url = f"{self.jolpica_base_url}/{self.current_season}/constructorStandings.json"
             
             async with aiohttp.ClientSession() as session:
                 # Fetch both standings concurrently
@@ -453,13 +443,17 @@ class F1ResultsService:
                     constructors.append(constructor_standing)
                 
                 # Generate championship battle analysis
-                championship_battle = self._analyze_championship_battle(drivers, current_round)
-                
+                from services.cache_manager import cache_manager
+                schedule = cache_manager.get_schedule(self.current_season)
+                total_rounds = len(schedule) if schedule else 24
+
+                championship_battle = self._analyze_championship_battle(drivers, current_round, total_rounds)
+
                 standings = ChampionshipStandings(
                     season=self.current_season,
                     last_updated=datetime.now(),
                     current_round=current_round,
-                    total_rounds=24,
+                    total_rounds=total_rounds,
                     drivers=drivers,
                     constructors=constructors,
                     championship_battle=championship_battle
@@ -487,7 +481,7 @@ class F1ResultsService:
             # This would typically require multiple API calls to get comprehensive stats
             # For now, return basic stats that can be calculated from race results
             
-            results_url = f"{self.ergast_base_url}/{self.current_season}/drivers/{driver_code}/results.json"
+            results_url = f"{self.jolpica_base_url}/{self.current_season}/drivers/{driver_code}/results.json"
             
             async with aiohttp.ClientSession() as session:
                 async with session.get(results_url) as response:
@@ -534,13 +528,18 @@ class F1ResultsService:
             logger.error(f"Error getting driver stats for {driver_code}: {e}")
             return {}
     
-    def _analyze_championship_battle(self, drivers: List[DriverStanding], current_round: int) -> Dict:
+    def _analyze_championship_battle(self, drivers: List[DriverStanding], current_round: int, total_rounds: int = 0) -> Dict:
         """Analyze the championship battle situation"""
         if not drivers:
             return {}
         
+        if total_rounds <= 0:
+            from services.cache_manager import cache_manager
+            schedule = cache_manager.get_schedule(self.current_season)
+            total_rounds = len(schedule) if schedule else 24
+
         leader = drivers[0]
-        remaining_races = 24 - current_round
+        remaining_races = total_rounds - current_round
         max_remaining_points = remaining_races * 26  # 25 for win + 1 for fastest lap
         
         # Find drivers still mathematically in contention
@@ -576,41 +575,60 @@ class F1ResultsService:
             'contenders': contenders[:5]  # Top 5 contenders
         }
     
-    def _get_fallback_standings(self) -> ChampionshipStandings:
-        """Generate fallback championship standings"""
-        # Use our existing 2025 performance data to create realistic standings
-        fallback_drivers = [
-            DriverStanding(1, "PIA", "Oscar Piastri", "McLaren", 266.0, 8, 12, 4, 3, 0, 4.2, 17.7, [1, 2, 1, 3, 1]),
-            DriverStanding(2, "NOR", "Lando Norris", "McLaren", 219.0, 4, 9, 2, 2, 1, 5.8, 14.6, [2, 1, 4, 2, 3]),
-            DriverStanding(3, "VER", "Max Verstappen", "Red Bull Racing", 198.0, 3, 7, 3, 4, 0, 6.1, 13.2, [3, 4, 2, 1, 2]),
-            DriverStanding(4, "LEC", "Charles Leclerc", "Ferrari", 165.0, 2, 6, 1, 1, 2, 7.4, 11.0, [4, 3, 6, 4, 5]),
-            DriverStanding(5, "RUS", "George Russell", "Mercedes", 142.0, 1, 4, 2, 0, 1, 8.2, 9.5, [5, 6, 3, 7, 4])
-        ]
-        
-        fallback_constructors = [
-            ConstructorStanding(1, "McLaren", 485.0, 12, 21, 6, 5, 5.0, ["PIA", "NOR"]),
-            ConstructorStanding(2, "Red Bull Racing", 276.0, 4, 9, 5, 6, 7.8, ["VER", "TSU"]),
-            ConstructorStanding(3, "Ferrari", 248.0, 3, 8, 2, 2, 8.9, ["LEC", "HAM"]),
-            ConstructorStanding(4, "Mercedes", 205.0, 1, 6, 3, 1, 9.5, ["RUS", "ANT"])
-        ]
-        
+    def _get_fallback_standings(self) -> Optional[ChampionshipStandings]:
+        """Generate fallback championship standings from cache_manager."""
+        from services.cache_manager import cache_manager
+
+        year = self.current_season
+        driver_data = cache_manager.get_driver_standings(year)
+        constructor_data = cache_manager.get_constructor_standings(year)
+
+        if not driver_data:
+            return None
+
+        drivers = []
+        for s in driver_data[:20]:
+            drivers.append(DriverStanding(
+                position=s.get("position", 0),
+                driver_code=s.get("driver", ""),
+                driver_name=s.get("name", ""),
+                team=s.get("team", ""),
+                points=float(s.get("points", 0)),
+                wins=int(s.get("wins", 0)),
+                podiums=0,
+                pole_positions=0,
+                fastest_laps=0,
+                dnfs=0,
+                average_finish=0.0,
+                points_per_race=0.0,
+                form_last_5=[],
+            ))
+
+        constructors = []
+        for c in (constructor_data or []):
+            constructors.append(ConstructorStanding(
+                position=c.get("position", 0),
+                team_name=c.get("team_name", ""),
+                points=float(c.get("points", 0)),
+                wins=int(c.get("wins", 0)),
+                podiums=0,
+                pole_positions=0,
+                fastest_laps=0,
+                average_finish=0.0,
+                drivers=[],
+            ))
+
+        completed = cache_manager.get_completed_races(year)
+        schedule = cache_manager.get_schedule(year)
+
         return ChampionshipStandings(
-            season=2025,
+            season=year,
             last_updated=datetime.now(),
-            current_round=15,  # Mid-season estimate
-            total_rounds=24,
-            drivers=fallback_drivers,
-            constructors=fallback_constructors,
-            championship_battle={
-                'leader': 'Oscar Piastri',
-                'leader_points': 266.0,
-                'battle_status': 'Competitive',
-                'mathematical_contenders': 4,
-                'realistic_contenders': 3,
-                'points_gap_to_second': 47.0,
-                'remaining_races': 9,
-                'max_remaining_points': 234
-            }
+            current_round=len(completed),
+            total_rounds=len(schedule),
+            drivers=drivers,
+            constructors=constructors,
+            championship_battle=self._analyze_championship_battle(drivers, len(completed), len(schedule)) if drivers else {},
         )
     
     async def update_standings_after_race(self, circuit_name: str) -> bool:
@@ -662,7 +680,7 @@ class F1ResultsService:
             
             # Load qualifying session with FastF1
             try:
-                session = fastf1.get_session(2025, race_info['round'], 'Q')
+                session = fastf1.get_session(self.current_season, race_info['round'], 'Q')
                 session.load()
                 
                 if session.results.empty:

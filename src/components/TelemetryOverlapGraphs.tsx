@@ -286,6 +286,38 @@ const TelemetryOverlapGraphs: React.FC<TelemetryOverlapGraphsProps> = ({
           />
         ))}
 
+      <defs>
+        {enabledVariables.map((variable) => (
+          <linearGradient
+            key={`grad-${variable.key}`}
+            id={`grad-${variable.key}`}
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
+            <stop offset="5%" stopColor={variable.color} stopOpacity={0.8} />
+            <stop offset="95%" stopColor={variable.color} stopOpacity={0} />
+          </linearGradient>
+        ))}
+        {enabledVariables.map((variable) => (
+          <filter
+            key={`glow-${variable.key}`}
+            id={`glow-${variable.key}`}
+            x="-20%"
+            y="-20%"
+            width="140%"
+            height="140%"
+          >
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        ))}
+      </defs>
+
       {/* Telemetry Lines/Areas/Scatters */}
       {customization.chartType === "line" &&
         enabledVariables.map((variable) => (
@@ -296,12 +328,24 @@ const TelemetryOverlapGraphs: React.FC<TelemetryOverlapGraphsProps> = ({
             }
             dataKey={variable.key}
             stroke={variable.color}
-            strokeWidth={customization.lineThickness}
+            strokeWidth={Math.max(2, customization.lineThickness)}
             strokeOpacity={customization.opacity / 100}
             yAxisId={variable.yAxisId}
             dot={customization.displaySettings.showDataPoints}
+            activeDot={{
+              r: 6,
+              fill: variable.color,
+              stroke: "#FFFFFF",
+              strokeWidth: 2,
+              style: { filter: `drop-shadow(0px 0px 4px ${variable.color})` },
+            }}
+            style={{
+              filter: `url(#glow-${variable.key})`,
+            }}
             fill="none"
             connectNulls={false}
+            animationDuration={1500}
+            animationEasing="ease-in-out"
           />
         ))}
 
@@ -314,11 +358,20 @@ const TelemetryOverlapGraphs: React.FC<TelemetryOverlapGraphsProps> = ({
             }
             dataKey={variable.key}
             stroke={variable.color}
-            strokeWidth={customization.lineThickness}
-            fill={variable.color}
-            fillOpacity={customization.displaySettings.fillArea ? 0.3 : 0}
+            strokeWidth={Math.max(2, customization.lineThickness)}
+            fill={`url(#grad-${variable.key})`}
+            fillOpacity={customization.displaySettings.fillArea ? 1 : 0}
             yAxisId={variable.yAxisId}
             dot={customization.displaySettings.showDataPoints}
+            activeDot={{
+              r: 6,
+              fill: variable.color,
+              stroke: "#FFFFFF",
+              strokeWidth: 2,
+              style: { filter: `drop-shadow(0px 0px 4px ${variable.color})` },
+            }}
+            animationDuration={1500}
+            animationEasing="ease-in-out"
           />
         ))}
 

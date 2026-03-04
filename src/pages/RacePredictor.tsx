@@ -12,8 +12,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { trackOptions } from "@/data/tracks2025";
 import useApiCall from "@/hooks/useApiCall";
+import { useTracks } from "@/hooks/useF1Metadata";
 import { motion } from "framer-motion";
 import {
     Flag,
@@ -36,7 +36,13 @@ const RacePredictor = () => {
     setIsVisible(true);
   }, []);
 
-  const tracks = trackOptions;
+  const { data: apiTracks } = useTracks();
+  const tracks = (apiTracks || []).map((t) => ({
+    name: t.race_name,
+    circuit: t.circuit,
+    location: t.location,
+    country: t.country,
+  }));
 
   const weatherConditions = [
     {

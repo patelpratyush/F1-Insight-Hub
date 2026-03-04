@@ -15,6 +15,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import useApiCall from "@/hooks/useApiCall";
+import { useDrivers } from "@/hooks/useF1Metadata";
 import { motion } from "framer-motion";
 import {
     Activity,
@@ -51,6 +52,8 @@ import {
     YAxis,
 } from "recharts";
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 const Dashboard = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedDrivers, setSelectedDrivers] = useState([
@@ -67,15 +70,17 @@ const Dashboard = () => {
   const [liveDataLastUpdate, setLiveDataLastUpdate] = useState(null);
 
   // API calls
+  const [dataYear, setDataYear] = useState(CURRENT_YEAR);
   const dashboardApi = useApiCall(
     async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/f1/dashboard/2025`);
+      const response = await fetch(`${apiUrl}/api/f1/dashboard/${CURRENT_YEAR}`);
       if (!response.ok)
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
       if (!data.success)
         throw new Error(data.message || "Failed to fetch dashboard data");
+      if (data.data_year) setDataYear(data.data_year);
       return data.data;
     },
     { maxRetries: 3, retryDelay: 2000 },
@@ -85,7 +90,7 @@ const Dashboard = () => {
     async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(
-        `${apiUrl}/api/f1/dashboard-trends/2025?all_races=false`,
+        `${apiUrl}/api/f1/dashboard-trends/${CURRENT_YEAR}?all_races=false`,
       );
       if (!response.ok)
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -101,7 +106,7 @@ const Dashboard = () => {
     async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(
-        `${apiUrl}/api/f1/dashboard-trends/2025?all_races=true`,
+        `${apiUrl}/api/f1/dashboard-trends/${CURRENT_YEAR}?all_races=true`,
       );
       if (!response.ok)
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -184,7 +189,7 @@ const Dashboard = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          circuit_name: nextRace.name,
+          circuit_name: nextRace.race_name || nextRace.name,
           race_date: nextRace.date,
         }),
       });
@@ -198,28 +203,24 @@ const Dashboard = () => {
     { maxRetries: 2, retryDelay: 1000 },
   );
 
-  const availableDrivers = [
-    { code: "VER", name: "Verstappen", color: "#EF4444", strokeDasharray: "" },
-    { code: "LEC", name: "Leclerc", color: "#DC143C", strokeDasharray: "" },
-    { code: "NOR", name: "Norris", color: "#FF8700", strokeDasharray: "" },
-    { code: "RUS", name: "Russell", color: "#00D2BE", strokeDasharray: "" },
-    { code: "PIA", name: "Piastri", color: "#FF8700", strokeDasharray: "5 5" },
-    { code: "HAM", name: "Hamilton", color: "#DC143C", strokeDasharray: "3 3" },
-    {
-      code: "ANT",
-      name: "Antonelli",
-      color: "#00D2BE",
-      strokeDasharray: "2 2",
-    },
-    { code: "ALB", name: "Albon", color: "#0066CC", strokeDasharray: "" },
-    { code: "STR", name: "Stroll", color: "#006F62", strokeDasharray: "" },
-    { code: "HUL", name: "Hulkenberg", color: "#52E252", strokeDasharray: "" },
-    { code: "GAS", name: "Gasly", color: "#0090FF", strokeDasharray: "" },
-    { code: "ALO", name: "Alonso", color: "#006F62", strokeDasharray: "4 4" },
-    { code: "SAI", name: "Sainz", color: "#0066CC", strokeDasharray: "4 4" },
-    { code: "TSU", name: "Tsunoda", color: "#6692FF", strokeDasharray: "" },
-    { code: "OCO", name: "Ocon", color: "#FFFFFF", strokeDasharray: "" },
-  ];
+  const { data: apiDrivers } = useDrivers(dataYear);
+
+  const availableDrivers = (() => {
+    if (!apiDrivers?.length) return [];
+    const teamDriverIndex: Record<string, number> = {};
+    const dashPatterns = ["", "5 5", "3 3", "2 2"];
+    return apiDrivers.map((d) => {
+      const idx = teamDriverIndex[d.team] || 0;
+      teamDriverIndex[d.team] = idx + 1;
+      const lastName = d.name.split(" ").pop() || d.code;
+      return {
+        code: d.code,
+        name: lastName,
+        color: d.teamColor,
+        strokeDasharray: dashPatterns[idx] || "",
+      };
+    });
+  })();
 
   const toggleDriver = (driverCode) => {
     setSelectedDrivers((prev) =>
@@ -321,8 +322,8 @@ const Dashboard = () => {
   const weatherData = dashboardApi.data?.weather_analysis || [];
   const upcomingRace = dashboardApi.data?.upcoming_race || null;
   const seasonStats = dashboardApi.data?.season_statistics || {
-    completedRaces: 15,
-    totalRaces: 24,
+    completed_races: 0,
+    total_races: 24,
   };
 
   const liveWeatherData = liveWeatherApi.data;
@@ -374,7 +375,7 @@ const Dashboard = () => {
             <div className="flex flex-col">
               <span className="text-red-500 font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                2025 Season Hub
+                {dataYear} Season Hub
               </span>
               <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-md">
                 COMMAND <br /> CENTER
@@ -424,7 +425,7 @@ const Dashboard = () => {
               <Trophy className="w-4 h-4 text-red-500" /> Prev Winner
             </span>
             <span className="text-4xl md:text-5xl font-black tracking-tighter truncate">
-              {recentRaceData?.podium[0]?.name.split(" ")[1] || "N/A"}
+              {recentRaceData?.podium?.[0]?.name?.split(" ")[1] || "N/A"}
             </span>
             <span className="text-white/60 font-mono mt-2 truncate w-full">
               {recentRaceData?.raceName || "Unknown"}
@@ -437,11 +438,11 @@ const Dashboard = () => {
             </span>
             <span className="text-4xl md:text-5xl font-black tracking-tighter truncate">
               {nextRaceData?.next_race
-                ? nextRaceData.next_race.name.replace(" Grand Prix", "")
+                ? (nextRaceData.next_race.race_name || nextRaceData.next_race.name || "").replace(" Grand Prix", "")
                 : "TBD"}
             </span>
             <span className="text-white/60 font-mono mt-2">
-              {nextRaceData?.next_race
+              {nextRaceData?.next_race?.date
                 ? new Date(nextRaceData.next_race.date).toLocaleDateString()
                 : "N/A"}
             </span>
@@ -453,10 +454,10 @@ const Dashboard = () => {
             </span>
             <div className="flex items-end gap-2">
               <span className="text-4xl md:text-5xl font-black tracking-tighter">
-                {seasonStats?.completedRaces || 15}
+                {seasonStats?.completed_races ?? 0}
               </span>
               <span className="text-xl text-white/40 font-black tracking-tighter mb-1">
-                / {seasonStats?.totalRaces || 24}
+                / {seasonStats?.total_races ?? 24}
               </span>
             </div>
             <span className="text-white/60 font-mono mt-2">ROUND</span>

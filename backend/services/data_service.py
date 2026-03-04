@@ -1,5 +1,6 @@
 import fastf1
 import pandas as pd
+import json
 from typing import Dict, List, Optional
 import os
 from datetime import datetime
@@ -7,6 +8,16 @@ from datetime import datetime
 class DataService:
     def __init__(self):
         fastf1.Cache.enable_cache(os.path.join(os.path.dirname(__file__), '..', 'cache'))
+        self._track_characteristics = self._load_track_characteristics()
+
+    def _load_track_characteristics(self) -> Dict:
+        """Load track characteristics from JSON config file."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'track_characteristics.json')
+        try:
+            with open(config_path, 'r') as f:
+                return json.load(f)
+        except Exception:
+            return {}
     
     def get_driver_historical_data(self, driver: str, seasons: List[int] = None) -> pd.DataFrame:
         """Get driver historical data from cached CSV file only - no API calls"""
@@ -38,20 +49,10 @@ class DataService:
             return pd.DataFrame()
     
     def get_track_characteristics(self, track_name: str) -> Dict:
-        track_map = {
-            'Silverstone': {'type': 'high_speed', 'difficulty': 8, 'weather_factor': 0.8},
-            'Monaco': {'type': 'street', 'difficulty': 10, 'weather_factor': 0.9},
-            'Spa': {'type': 'high_speed', 'difficulty': 9, 'weather_factor': 0.7},
-            'Monza': {'type': 'power', 'difficulty': 6, 'weather_factor': 0.6},
-            'Singapore': {'type': 'street', 'difficulty': 9, 'weather_factor': 0.3},
-            'Suzuka': {'type': 'technical', 'difficulty': 9, 'weather_factor': 0.8},
-            'Interlagos': {'type': 'technical', 'difficulty': 8, 'weather_factor': 0.7},
-            'Austin': {'type': 'mixed', 'difficulty': 7, 'weather_factor': 0.6},
-            'Bahrain': {'type': 'mixed', 'difficulty': 6, 'weather_factor': 0.2},
-            'Jeddah': {'type': 'street', 'difficulty': 8, 'weather_factor': 0.1},
-        }
-        
-        return track_map.get(track_name, {'type': 'mixed', 'difficulty': 7, 'weather_factor': 0.5})
+        return self._track_characteristics.get(
+            track_name,
+            {'type': 'mixed', 'difficulty': 7, 'weather_factor': 0.5}
+        )
     
     def get_team_performance_data(self, team: str, seasons: List[int] = None) -> Dict:
         """Get team performance data from cached CSV file only - no API calls"""

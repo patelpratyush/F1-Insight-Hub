@@ -5,7 +5,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { drivers2025 } from "@/data/drivers2025";
+import { useDrivers, type Driver } from "@/hooks/useF1Metadata";
 
 interface DriverSelectProps {
   value?: string;
@@ -13,6 +13,8 @@ interface DriverSelectProps {
   placeholder?: string;
   className?: string;
   dark?: boolean;
+  drivers?: Driver[];
+  year?: number;
 }
 
 export const DriverSelect = ({
@@ -21,7 +23,12 @@ export const DriverSelect = ({
   placeholder = "Select a driver",
   className = "",
   dark = false,
+  drivers: driversProp,
+  year,
 }: DriverSelectProps) => {
+  const { data: fetchedDrivers } = useDrivers(year);
+  const drivers = driversProp || fetchedDrivers || [];
+
   const triggerClass = dark
     ? "w-full bg-[#111111] border-white/10 text-white rounded-full h-12"
     : "w-full";
@@ -36,18 +43,20 @@ export const DriverSelect = ({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className={contentClass}>
-        {drivers2025.map((driver) => (
+        {drivers.map((driver) => (
           <SelectItem key={driver.id} value={driver.id} className={itemClass}>
             <div className="flex items-center space-x-2">
               <span className="font-medium">{driver.id}</span>
               <span className={dark ? "text-gray-400" : "text-gray-600"}>
                 - {driver.name}
               </span>
-              <span
-                className={`text-xs ${dark ? "text-gray-500" : "text-gray-500"}`}
-              >
-                #{driver.number} - {driver.team}
-              </span>
+              {driver.team && (
+                <span
+                  className={`text-xs ${dark ? "text-gray-500" : "text-gray-500"}`}
+                >
+                  {driver.number ? `#${driver.number} - ` : ""}{driver.team}
+                </span>
+              )}
             </div>
           </SelectItem>
         ))}

@@ -12,9 +12,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { drivers2025 } from "@/data/drivers2025";
-import { trackNames } from "@/data/tracks2025";
 import useApiCall from "@/hooks/useApiCall";
+import { useDrivers, useTracks } from "@/hooks/useF1Metadata";
 import { motion } from "framer-motion";
 import {
     AlertCircle,
@@ -38,8 +37,16 @@ const DriverPredictor = () => {
     setIsVisible(true);
   }, []);
 
-  const drivers = drivers2025;
-  const tracks = trackNames;
+  const { data: apiDrivers } = useDrivers();
+  const { data: apiTracks } = useTracks();
+  const drivers = (apiDrivers || []).map((d) => ({
+    id: d.code,
+    name: d.name,
+    team: d.team,
+    number: Number(d.number) || 0,
+    teamColor: d.teamColor,
+  }));
+  const tracks = (apiTracks || []).map((t) => t.race_name);
 
   const predictionApi = useApiCall(
     async () => {

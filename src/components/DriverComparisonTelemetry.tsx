@@ -347,6 +347,59 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
               {/* Zero reference line */}
               <ReferenceLine y={0} stroke="#9CA3AF" strokeDasharray="2 2" />
 
+              <defs>
+                <linearGradient id="colorD1" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor={driver1.color}
+                    stopOpacity={0.6}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={driver1.color}
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+                <linearGradient id="colorD2" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor={driver2.color}
+                    stopOpacity={0.6}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={driver2.color}
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+                <filter
+                  id="glowD1"
+                  x="-20%"
+                  y="-20%"
+                  width="140%"
+                  height="140%"
+                >
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <filter
+                  id="glowD2"
+                  x="-20%"
+                  y="-20%"
+                  width="140%"
+                  height="140%"
+                >
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
               {/* Speed delta line */}
               <Line
                 type="monotone"
@@ -362,11 +415,13 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
                 type="monotone"
                 dataKey="speed_delta_positive"
                 stroke={driver1.color}
-                fill={driver1.color}
-                fillOpacity={0.3}
+                fill="url(#colorD1)"
+                fillOpacity={1}
                 strokeWidth={0}
                 name={`${driver1.driver} faster`}
                 connectNulls={false}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Negative delta area (Driver2 faster) */}
@@ -374,11 +429,13 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
                 type="monotone"
                 dataKey="speed_delta_negative"
                 stroke={driver2.color}
-                fill={driver2.color}
-                fillOpacity={0.3}
+                fill="url(#colorD2)"
+                fillOpacity={1}
                 strokeWidth={0}
                 name={`${driver2.driver} faster`}
                 connectNulls={false}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Corner reference lines */}
@@ -477,18 +534,38 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
                 type="monotone"
                 dataKey={`${driver1.driver}_speed`}
                 stroke={driver1.color}
-                strokeWidth={2}
+                strokeWidth={3}
                 dot={false}
                 name={`${driver1.driver} Speed`}
+                style={{ filter: "url(#glowD1)" }}
+                activeDot={{
+                  r: 6,
+                  fill: driver1.color,
+                  stroke: "#FFF",
+                  strokeWidth: 2,
+                  style: { filter: `drop-shadow(0 0 4px ${driver1.color})` },
+                }}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               <Line
                 type="monotone"
                 dataKey={`${driver2.driver}_speed`}
                 stroke={driver2.color}
-                strokeWidth={2}
+                strokeWidth={3}
                 dot={false}
                 name={`${driver2.driver} Speed`}
+                style={{ filter: "url(#glowD2)" }}
+                activeDot={{
+                  r: 6,
+                  fill: driver2.color,
+                  stroke: "#FFF",
+                  strokeWidth: 2,
+                  style: { filter: `drop-shadow(0 0 4px ${driver2.color})` },
+                }}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Corner reference lines (only for distance mode) */}
@@ -552,15 +629,56 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
                 }}
               />
 
+              <defs>
+                <linearGradient
+                  id="colorD1Throttle"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="5%"
+                    stopColor={driver1.color}
+                    stopOpacity={0.6}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={driver1.color}
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+                <linearGradient
+                  id="colorD2Throttle"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="5%"
+                    stopColor={driver2.color}
+                    stopOpacity={0.6}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={driver2.color}
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
+
               {/* Throttle areas */}
               <Area
                 type="monotone"
                 dataKey={`${driver1.driver}_throttle`}
                 stackId="1"
                 stroke={driver1.color}
-                fill={driver1.color}
-                fillOpacity={0.3}
+                fill="url(#colorD1Throttle)"
+                fillOpacity={1}
                 name={`${driver1.driver} Throttle`}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               <Area
@@ -568,9 +686,11 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
                 dataKey={`${driver2.driver}_throttle`}
                 stackId="2"
                 stroke={driver2.color}
-                fill={driver2.color}
-                fillOpacity={0.3}
+                fill="url(#colorD2Throttle)"
+                fillOpacity={1}
                 name={`${driver2.driver} Throttle`}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Brake lines */}
@@ -578,20 +698,36 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
                 type="monotone"
                 dataKey={`${driver1.driver}_brake`}
                 stroke={driver1.color}
-                strokeWidth={2}
+                strokeWidth={3}
                 strokeDasharray="5 5"
                 dot={false}
                 name={`${driver1.driver} Brake`}
+                activeDot={{
+                  r: 6,
+                  fill: driver1.color,
+                  stroke: "#FFF",
+                  strokeWidth: 2,
+                }}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               <Line
                 type="monotone"
                 dataKey={`${driver2.driver}_brake`}
                 stroke={driver2.color}
-                strokeWidth={2}
+                strokeWidth={3}
                 strokeDasharray="5 5"
                 dot={false}
                 name={`${driver2.driver} Brake`}
+                activeDot={{
+                  r: 6,
+                  fill: driver2.color,
+                  stroke: "#FFF",
+                  strokeWidth: 2,
+                }}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Corner reference lines */}
@@ -662,6 +798,14 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
                 strokeWidth={3}
                 dot={false}
                 name={`${driver1.driver} Gear`}
+                activeDot={{
+                  r: 6,
+                  fill: driver1.color,
+                  stroke: "#FFF",
+                  strokeWidth: 2,
+                }}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               <Line
@@ -671,6 +815,14 @@ const DriverComparisonTelemetry: React.FC<DriverComparisonProps> = ({
                 strokeWidth={3}
                 dot={false}
                 name={`${driver2.driver} Gear`}
+                activeDot={{
+                  r: 6,
+                  fill: driver2.color,
+                  stroke: "#FFF",
+                  strokeWidth: 2,
+                }}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
 
               {/* Corner reference lines */}

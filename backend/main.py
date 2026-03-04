@@ -23,7 +23,9 @@ from services.telemetry_analyzer_service import TelemetryAnalyzerService
 from services.strategy_simulation_service import strategy_simulator
 from services.live_weather_service import get_live_weather_service
 from services.f1_results_service import get_f1_results_service
+from services.cache_manager import cache_manager
 from api.fastf1_routes import router as fastf1_router
+from api.metadata_routes import router as metadata_router
 
 app = FastAPI(
     title="F1 Enhanced Prediction API", 
@@ -39,8 +41,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include FastF1 routes
+# Include routers
 app.include_router(fastf1_router)
+app.include_router(metadata_router)
 
 # Use enhanced prediction service for individual driver predictions
 enhanced_prediction_service = EnhancedPredictionService()
@@ -93,7 +96,19 @@ async def startup_event():
         print(f"Error initializing enhanced ensemble service: {e}")
         print("Using fallback prediction models")
     
+    # Initialize the cache manager (fetches from Jolpica-F1 API)
+    try:
+        await cache_manager.initialize()
+        print("Cache manager initialized with live F1 data from Jolpica API")
+    except Exception as e:
+        print(f"Cache manager init error (degraded mode): {e}")
+
     print("API ready for predictions!")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up resources on shutdown"""
+    await cache_manager.shutdown()
 
 class PredictionRequest(BaseModel):
     driver: str
@@ -231,79 +246,74 @@ async def predict_driver_performance(request: PredictionRequest):
             }
         }
         
-        # Get model performance metrics
         model_performance = {
-            "qualifying_mae": 0.359,  # From your enhanced model training
+            "qualifying_mae": 0.359,
             "race_mae": 1.638,
             "model_accuracy": "Excellent" if (qualifying_conf + race_conf) / 2 > 0.8 else "Good",
             "training_data_size": 718,
-            "seasons_trained": "2024-2025"
         }
         
-        # Generate intelligent prediction factors based on available data
         prediction_factors = []
-        
-        # Weather-based factors
-        wet_weather_specialists = ['VER', 'HAM', 'RUS', 'NOR', 'GAS', 'OCO']  # Known wet weather performers
+
+        current_year = datetime.now().year
+        standings = cache_manager.get_driver_standings(current_year)
+        constructor_standings = cache_manager.get_constructor_standings(current_year)
+
+        top_driver_codes = [s["driver"] for s in (standings or [])[:5]]
+        top_team_names = [c["team_name"] for c in (constructor_standings or [])[:4]]
+
         if request.weather.lower() in ['light_rain', 'heavy_rain', 'wet']:
-            if request.driver in wet_weather_specialists:
-                prediction_factors.append(f"Weather conditions favor {request.driver} (proven wet weather specialist)")
-            else:
-                prediction_factors.append(f"Wet conditions create uncertainty for {request.driver}")
-        
-        # Track-specific factors
-        street_circuit_specialists = ['VER', 'LEC', 'RUS', 'PIA']  # Monaco, Singapore performers
+            prediction_factors.append(f"Wet conditions create uncertainty for {request.driver}")
+
         if "Monaco" in request.track or "Singapore" in request.track:
-            if request.driver in street_circuit_specialists:
-                prediction_factors.append(f"{request.driver} excels on street circuits")
-        
-        # Team performance factors  
-        top_teams = ['McLaren', 'Red Bull Racing', 'Ferrari', 'Mercedes']
-        if request.team in top_teams:
+            prediction_factors.append(f"Street circuit characteristics affect {request.driver}'s performance")
+
+        if request.team in top_team_names:
             prediction_factors.append(f"{request.team} has strong car performance this season")
-        
-        # Championship pressure factors
-        title_contenders = ['PIA', 'NOR', 'VER', 'LEC', 'RUS']
-        if request.driver in title_contenders:
+
+        if request.driver in top_driver_codes:
             prediction_factors.append(f"Championship pressure could impact {request.driver}'s performance")
-        
-        # Recent form factors (based on 2025 season performance)
-        in_form_drivers = ['PIA', 'NOR', 'VER', 'RUS', 'LEC']  # Based on 2025 championship standings
-        if request.driver in in_form_drivers:
             prediction_factors.append(f"{request.driver} is in excellent form this season")
         
         # Get driver and car ratings from the race service (correct 2025 data)
         driver_ratings = result.get('driver_ratings', {})
         car_ratings = result.get('car_ratings', {})
         
-        # Use the actual 2025 ratings from the backend logs (the correct ones!)
-        if not driver_ratings:
-            actual_2025_driver_ratings = {
-                'PIA': {'skill_rating': 0.902, 'average_position': 5.15, 'form_status': 'Excellent', 'championship_leader': True},
-                'NOR': {'skill_rating': 0.86, 'average_position': 6.92, 'form_status': 'Excellent', 'championship_contender': True},
-                'VER': {'skill_rating': 0.858, 'average_position': 7.0, 'form_status': 'Strong', 'defending_champion': True},
-                'LEC': {'skill_rating': 0.854, 'average_position': 7.15, 'form_status': 'Strong', 'ferrari_leader': True},
-                'RUS': {'skill_rating': 0.841, 'average_position': 7.69, 'form_status': 'Good', 'mercedes_leader': True}
-            }
-            driver_ratings = actual_2025_driver_ratings.get(request.driver, {})
-        
-        if not car_ratings:
-            actual_2025_car_ratings = {
-                'McLaren': {'pace_rating': 0.881, 'average_position': 6.04, 'competitiveness': 'Dominant', 'championship_leader': True},
-                'Mercedes': {'pace_rating': 0.834, 'average_position': 8.0, 'competitiveness': 'Strong', 'improving': True},
-                'Ferrari': {'pace_rating': 0.834, 'average_position': 8.0, 'competitiveness': 'Strong', 'consistent': True},
-                'Red Bull Racing': {'pace_rating': 0.806, 'average_position': 9.21, 'competitiveness': 'Good', 'declining': True}
-            }
+        if not driver_ratings and standings:
+            for s in standings:
+                if s.get("driver") == request.driver:
+                    pos = s.get("position", 10)
+                    pts = s.get("points", 0)
+                    skill = max(0.5, 1.0 - (pos - 1) * 0.02)
+                    form = "Excellent" if pos <= 3 else "Strong" if pos <= 6 else "Good" if pos <= 10 else "Average"
+                    driver_ratings = {
+                        "skill_rating": round(skill, 3),
+                        "championship_position": pos,
+                        "points": pts,
+                        "form_status": form,
+                    }
+                    break
+
+        if not car_ratings and constructor_standings:
             team_key = request.team.replace(' Honda RBPT', '').replace(' Mercedes', '').replace('Scuderia ', '')
-            car_ratings = actual_2025_car_ratings.get(team_key, {})
+            for c in constructor_standings:
+                if team_key in c.get("team_name", ""):
+                    cpos = c.get("position", 5)
+                    pace = max(0.5, 1.0 - (cpos - 1) * 0.04)
+                    competitiveness = "Dominant" if cpos == 1 else "Strong" if cpos <= 3 else "Good" if cpos <= 5 else "Midfield"
+                    car_ratings = {
+                        "pace_rating": round(pace, 3),
+                        "championship_position": cpos,
+                        "points": c.get("points", 0),
+                        "competitiveness": competitiveness,
+                    }
+                    break
         
-        # Enhanced weather impact analysis
         weather_impact = {
             "condition": request.weather,
-            "impact_factor": 0.75 if request.weather.lower() in ['heavy_rain', 'wet'] else 
+            "impact_factor": 0.75 if request.weather.lower() in ['heavy_rain', 'wet'] else
                            0.85 if request.weather.lower() in ['light_rain', 'mixed'] else 0.95,
-            "driver_adaptation": "Excellent" if request.driver in wet_weather_specialists else
-                               "Good" if request.driver in ['LEC', 'SAI', 'ALO'] else "Average",
+            "driver_adaptation": "Good" if request.driver in top_driver_codes else "Average",
             "grid_shuffle_potential": "Very High" if request.weather.lower() in ['heavy_rain', 'wet'] else
                                     "High" if request.weather.lower() in ['light_rain', 'mixed'] else "Low",
             "strategy_complexity": "Maximum" if request.weather.lower() in ['mixed', 'variable'] else
@@ -431,22 +441,22 @@ async def predict_race_grid(request: RacePredictionRequest):
             "safety_car_probability": "35%" if request.weather != "Dry" else "25%"
         }
         
-        # Weather analysis
         weather_analysis = {
             "condition": request.weather,
             "impact_on_grid": "Significant" if request.weather != "Dry" else "Minimal",
-            "wet_weather_specialists": ["VER", "HAM", "RUS", "NOR"] if "rain" in request.weather.lower() else [],
             "temperature_effect": "Optimal" if 20 <= request.temperature <= 28 else "Challenging"
         }
-        
-        # Championship impact analysis
-        top_3_predictions = result['predictions'][:3]
+
+        current_year = datetime.now().year
+        cm_standings = cache_manager.get_driver_standings(current_year)
+        contender_codes = [s["driver"] for s in (cm_standings or [])[:5]]
+
         championship_impact = {
-            "points_implications": f"Potential swing of 15-25 championship points",
-            "title_contenders_positions": {p['driver_code']: p['predicted_position'] for p in result['predictions'] 
-                                         if p['driver_code'] in ['VER', 'PIA', 'NOR', 'LEC', 'RUS']},
-            "championship_momentum": "Could shift" if any(p['predicted_position'] <= 3 for p in result['predictions'] 
-                                                        if p['driver_code'] in ['PIA', 'NOR']) else "Maintains status quo"
+            "points_implications": "Potential swing of 15-25 championship points",
+            "title_contenders_positions": {p['driver_code']: p['predicted_position'] for p in result['predictions']
+                                         if p['driver_code'] in contender_codes},
+            "championship_momentum": "Could shift" if any(p['predicted_position'] <= 3 for p in result['predictions']
+                                                        if p['driver_code'] in contender_codes[:2]) else "Maintains status quo"
         }
         
         return RacePredictionResponse(
@@ -982,26 +992,43 @@ async def get_available_circuits():
 # F1 Results and Championship API Endpoints
 
 @app.get("/api/championship/standings")
-async def get_championship_standings():
-    """
-    Get current championship standings with detailed analysis
-    Returns driver and constructor standings with championship battle insights
-    """
+async def get_championship_standings(year: Optional[int] = None):
+    """Get current championship standings with detailed analysis."""
+    if year is None:
+        year = datetime.now().year
     try:
-        results_service = get_f1_results_service()
-        standings = await results_service.get_current_championship_standings()
-        
-        if not standings:
-            raise HTTPException(status_code=404, detail="Championship standings not available")
-        
-        # Convert dataclass to dict for JSON response
-        from dataclasses import asdict
-        response_data = asdict(standings)
-        response_data['success'] = True
-        response_data['last_updated'] = standings.last_updated.isoformat()
-        
-        return response_data
-        
+        await cache_manager.ensure_year_loaded(year)
+        driver_standings = cache_manager.get_driver_standings(year)
+        constructor_standings = cache_manager.get_constructor_standings(year)
+
+        # If no standings for the requested year, fall back to previous year
+        data_year = year
+        if not driver_standings:
+            data_year = year - 1
+            await cache_manager.ensure_year_loaded(data_year)
+            driver_standings = cache_manager.get_driver_standings(data_year)
+            constructor_standings = cache_manager.get_constructor_standings(data_year)
+
+        if driver_standings:
+            schedule = cache_manager.get_schedule(data_year)
+            completed = cache_manager.get_completed_races(data_year)
+            current_round = len(completed)
+            total_rounds = len(schedule)
+
+            return {
+                'success': True,
+                'season': data_year,
+                'last_updated': datetime.now().isoformat(),
+                'current_round': current_round,
+                'total_rounds': total_rounds,
+                'drivers': driver_standings,
+                'constructors': constructor_standings,
+            }
+
+        raise HTTPException(status_code=404, detail="Championship standings not available")
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Championship standings retrieval failed: {str(e)}")
 
@@ -1057,60 +1084,58 @@ async def update_standings_after_race(circuit_name: str):
         raise HTTPException(status_code=500, detail=f"Standings update failed: {str(e)}")
 
 @app.get("/api/results/calendar")
-async def get_f1_calendar():
-    """
-    Get 2025 F1 race calendar with dates and circuit information
-    """
+async def get_f1_calendar(year: Optional[int] = None):
+    """Get F1 race calendar with dates and circuit information."""
+    if year is None:
+        year = datetime.now().year
     try:
-        results_service = get_f1_results_service()
-        calendar = results_service.f1_calendar_2025
-        
+        await cache_manager.ensure_year_loaded(year)
+        calendar = cache_manager.get_schedule(year)
+        if not calendar:
+            # Fallback to results service
+            results_service = get_f1_results_service()
+            calendar = getattr(results_service, 'f1_calendar_2025', [])
+
         return {
             'success': True,
-            'season': 2025,
+            'season': year,
             'total_rounds': len(calendar),
             'calendar': calendar
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"F1 calendar retrieval failed: {str(e)}")
 
 @app.get("/api/results/next-race")
-async def get_next_upcoming_race():
-    """
-    Get the next upcoming F1 race based on current date
-    """
+async def get_next_upcoming_race(year: Optional[int] = None):
+    """Get the next upcoming F1 race based on current date."""
+    if year is None:
+        year = datetime.now().year
     try:
-        from datetime import datetime
         current_date = datetime.now().date()
-        
-        # Get the F1 calendar
-        results_service = get_f1_results_service()
-        calendar = results_service.f1_calendar_2025
-        
-        # Find the next race after current date
-        upcoming_race = None
-        for race in calendar:
-            race_date = datetime.strptime(race['date'], '%Y-%m-%d').date()
-            if race_date > current_date:
-                upcoming_race = race
-                break
-        
+
+        await cache_manager.ensure_year_loaded(year)
+        upcoming_race = cache_manager.get_next_race(year)
+
         if not upcoming_race:
-            # If no upcoming races, return the last race of the season
-            upcoming_race = calendar[-1] if calendar else None
-            if upcoming_race:
+            # Season ended - return last race from schedule
+            schedule = cache_manager.get_schedule(year)
+            if schedule:
+                upcoming_race = dict(schedule[-1])
                 upcoming_race['status'] = 'season_ended'
+            else:
+                upcoming_race = None
         else:
+            upcoming_race = dict(upcoming_race)
             upcoming_race['status'] = 'upcoming'
-        
+
         return {
             'success': True,
             'next_race': upcoming_race,
             'current_date': current_date.isoformat(),
             'timestamp': datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Next race retrieval failed: {str(e)}")
 
@@ -1120,13 +1145,14 @@ async def get_available_sessions(year: int):
     Get list of available race sessions for telemetry analysis (2024-2025 only)
     """
     try:
-        # Only allow 2024 and 2025 seasons
-        if year not in [2024, 2025]:
+        # Allow recent seasons (FastF1 telemetry data typically available from 2018+)
+        current_year = datetime.now().year
+        if year < 2018 or year > current_year:
             return {
                 'year': year,
                 'available_races': [],
                 'total_races': 0,
-                'error': 'Only 2024 and 2025 seasons are supported'
+                'error': f'Only seasons from 2018 to {current_year} are supported'
             }
         
         # Get races from existing cache directory
