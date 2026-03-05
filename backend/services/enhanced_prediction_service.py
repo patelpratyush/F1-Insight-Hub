@@ -297,7 +297,8 @@ class EnhancedPredictionService:
             historical_data = pd.DataFrame()
         
         # Create base features similar to training data
-        current_season = 2025
+        from datetime import datetime, timezone
+        current_season = datetime.now(timezone.utc).year
         
         # Get historical performance
         driver_history = historical_data[historical_data['driver'] == driver_normalized]

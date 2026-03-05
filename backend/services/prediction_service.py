@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import json
+import os
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
@@ -7,7 +9,6 @@ from sklearn.metrics import mean_absolute_error
 import xgboost as xgb
 from typing import Dict, List, Optional
 import joblib
-import os
 
 from .data_service import DataService
 
@@ -22,78 +23,37 @@ class PredictionService:
         self.model_path = os.path.join(os.path.dirname(__file__), '..', 'models')
         os.makedirs(self.model_path, exist_ok=True)
         
-        self.driver_mapping = {
-            'VER': 'Max Verstappen',
-            'HAM': 'Lewis Hamilton',
-            'RUS': 'George Russell',
-            'LEC': 'Charles Leclerc',
-            'SAI': 'Carlos Sainz',
-            'NOR': 'Lando Norris',
-            'PIA': 'Oscar Piastri',
-            'ALO': 'Fernando Alonso',
-            'STR': 'Lance Stroll',
-            'TSU': 'Yuki Tsunoda',
-            'RIC': 'Daniel Ricciardo',
-            'GAS': 'Pierre Gasly',
-            'OCO': 'Esteban Ocon',
-            'ALB': 'Alexander Albon',
-            'SAR': 'Logan Sargeant',
-            'MAG': 'Kevin Magnussen',
-            'HUL': 'Nico Hulkenberg',
-            'BOT': 'Valtteri Bottas',
-            'ZHO': 'Guanyu Zhou',
-            'PER': 'Sergio Perez'
-        }
-        
-        self.team_mapping = {
-            'Red Bull': 'Red Bull Racing',
-            'Mercedes': 'Mercedes',
-            'Ferrari': 'Ferrari',
-            'McLaren': 'McLaren',
-            'Aston Martin': 'Aston Martin',
-            'Alpine': 'Alpine',
-            'AlphaTauri': 'RB',
-            'Williams': 'Williams',
-            'Haas': 'Haas F1 Team',
-            'Alfa Romeo': 'Kick Sauber'
-        }
-    
-    def get_2025_driver_transfers(self):
-        """Map of drivers who changed teams for 2025"""
-        return {
-            'HAM': {'2024_team': 'Mercedes', '2025_team': 'Ferrari'},
-            # Add more transfers as they happen
-        }
-    
+        self.driver_mapping = self._get_driver_mapping()
+        self.team_mapping = self._get_team_mapping()
+
+    def _get_driver_mapping(self) -> Dict[str, str]:
+        """Get driver code->name map from cache, fallback to config."""
+        from services.cache_manager import cache_manager
+        from datetime import datetime, timezone
+        year = datetime.now(timezone.utc).year
+        code_map = cache_manager.get_driver_code_map(year)
+        if code_map:
+            return code_map
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_driver_roster.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f).get("drivers", {})
+                return {code: info["name"] for code, info in data.items()}
+        except Exception:
+            return {}
+
+    def _get_team_mapping(self) -> Dict[str, str]:
+        """Get team name mapping from config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'team_name_mapping.json')
+        try:
+            with open(config_path) as f:
+                return json.load(f).get("teams", {})
+        except Exception:
+            return {}
+
     def _normalize_track_name(self, track: str) -> str:
-        """Normalize track names to match data format"""
-        track_mapping = {
-            'Monaco Grand Prix': 'Monaco',
-            'British Grand Prix': 'British',
-            'Italian Grand Prix': 'Italian',
-            'Bahrain Grand Prix': 'Bahrain',
-            'Saudi Arabian Grand Prix': 'Saudi Arabian',
-            'Australian Grand Prix': 'Australian',
-            'Japanese Grand Prix': 'Japanese',
-            'Chinese Grand Prix': 'Chinese',
-            'Miami Grand Prix': 'Miami',
-            'Emilia Romagna Grand Prix': 'Emilia Romagna',
-            'Spanish Grand Prix': 'Spanish',
-            'Canadian Grand Prix': 'Canadian',
-            'Austrian Grand Prix': 'Austrian',
-            'Hungarian Grand Prix': 'Hungarian',
-            'Belgian Grand Prix': 'Belgian',
-            'Dutch Grand Prix': 'Dutch',
-            'Singapore Grand Prix': 'Singapore',
-            'United States Grand Prix': 'United States',
-            'Mexico City Grand Prix': 'Mexico City',
-            'São Paulo Grand Prix': 'São Paulo',
-            'Las Vegas Grand Prix': 'Las Vegas',
-            'Qatar Grand Prix': 'Qatar',
-            'Abu Dhabi Grand Prix': 'Abu Dhabi',
-            'Azerbaijan Grand Prix': 'Azerbaijan'
-        }
-        return track_mapping.get(track, track.replace(' Grand Prix', ''))
+        """Normalize track names by stripping common suffixes."""
+        return track.replace(' Grand Prix', '').strip()
     
     def create_features(self, driver: str, track: str, weather: str, team: str, historical_data: pd.DataFrame = None) -> Dict:
         # Normalize track name for consistent lookups
@@ -117,20 +77,15 @@ class PredictionService:
         # Championship standing simulation
         championship_position = self._estimate_championship_position(driver)
         
-        # 2025 specific features
-        transfers = self.get_2025_driver_transfers()
-        current_season = 2025  # Assuming current predictions are for 2025
-        
-        # Handle driver transfers
-        has_transfer = driver in transfers and current_season == 2025
-        
+        from datetime import datetime, timezone
+        current_season = datetime.now(timezone.utc).year
+
         features = {
             'driver': driver,
             'team': team,
-            'track': self._normalize_track_name(track),  # Normalize track names
+            'track': self._normalize_track_name(track),
             'season': current_season,
-            'is_2025': 1 if current_season == 2025 else 0,
-            'has_transfer': 1 if has_transfer else 0,
+            'has_transfer': 0,
             
             # Driver overall performance
             'driver_avg_quali': driver_track_performance['avg_qualifying'],

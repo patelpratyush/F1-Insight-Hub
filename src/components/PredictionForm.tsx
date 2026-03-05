@@ -66,7 +66,7 @@ export const PredictionForm = ({ title, onPredict, isLoading = false }: Predicti
             <RaceSelect 
               value={race} 
               onValueChange={setRace}
-              placeholder="Select a 2025 Grand Prix"
+              placeholder="Select a Grand Prix"
             />
           </div>
 

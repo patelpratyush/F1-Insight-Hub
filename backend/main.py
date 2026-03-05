@@ -768,7 +768,7 @@ class RaceWeekendWeatherRequest(BaseModel):
     race_date: str  # ISO format: "2025-08-31"
 
 class ChampionshipStandingsRequest(BaseModel):
-    season: Optional[int] = 2025
+    season: Optional[int] = None
 
 class SessionResultsRequest(BaseModel):
     circuit_name: str

@@ -94,7 +94,7 @@ class F1ResultsService:
         self._load_cached_standings()
 
     @property
-    def f1_calendar_2025(self) -> List[Dict]:
+    def f1_calendar(self) -> List[Dict]:
         """Dynamic calendar from cache_manager (backward compatible property)."""
         from services.cache_manager import cache_manager
         schedule = cache_manager.get_schedule(self.current_season)
@@ -155,7 +155,7 @@ class F1ResultsService:
         try:
             # Find the most recent race weekend for this circuit
             race_info = None
-            for race in self.f1_calendar_2025:
+            for race in self.f1_calendar:
                 if circuit_name.lower() in race['name'].lower():
                     race_info = race
                     break
@@ -445,7 +445,7 @@ class F1ResultsService:
                 # Generate championship battle analysis
                 from services.cache_manager import cache_manager
                 schedule = cache_manager.get_schedule(self.current_season)
-                total_rounds = len(schedule) if schedule else 24
+                total_rounds = len(schedule) if schedule else 0
 
                 championship_battle = self._analyze_championship_battle(drivers, current_round, total_rounds)
 
@@ -536,7 +536,7 @@ class F1ResultsService:
         if total_rounds <= 0:
             from services.cache_manager import cache_manager
             schedule = cache_manager.get_schedule(self.current_season)
-            total_rounds = len(schedule) if schedule else 24
+            total_rounds = len(schedule) if schedule else 0
 
         leader = drivers[0]
         remaining_races = total_rounds - current_round
@@ -665,7 +665,7 @@ class F1ResultsService:
         try:
             # Find the circuit in our calendar
             race_info = None
-            for race in self.f1_calendar_2025:
+            for race in self.f1_calendar:
                 if circuit_name.lower() in race['name'].lower():
                     race_info = race
                     break
@@ -765,7 +765,7 @@ class F1ResultsService:
             
             # Find recent completed races
             completed_races = []
-            for race_info in self.f1_calendar_2025:
+            for race_info in self.f1_calendar:
                 race_date = datetime.strptime(race_info['date'], '%Y-%m-%d')
                 if race_date < current_date:
                     completed_races.append((race_info, race_date))

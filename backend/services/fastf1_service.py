@@ -27,8 +27,11 @@ logger = logging.getLogger(__name__)
 class FastF1Service:
     """Service for weather-based F1 analysis using FastF1 session data."""
 
-    def get_driver_weather_performance(self, year: int = 2025) -> List[Dict]:
+    def get_driver_weather_performance(self, year: int = None) -> List[Dict]:
         """Analyze driver performance in different weather conditions using FastF1 session data."""
+        if year is None:
+            from datetime import datetime, timezone
+            year = datetime.now(timezone.utc).year
         try:
             logger.info(f"Analyzing weather performance for {year} from FastF1 session data...")
 

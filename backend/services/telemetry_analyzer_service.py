@@ -1303,8 +1303,8 @@ class TelemetryAnalyzerService:
     def get_weather_context(self, race_name: str, session_type: str) -> WeatherContext:
         """Get comprehensive weather context for a session"""
         try:
-            # Use 2024 as default year, could be parameterized
-            year = 2024
+            from datetime import datetime, timezone
+            year = datetime.now(timezone.utc).year
             
             # Normalize race name for FastF1 (remove " Grand Prix" suffix)
             normalized_race = self._normalize_race_name(race_name)

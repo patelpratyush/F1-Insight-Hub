@@ -136,33 +136,8 @@ class F1DataDownloader:
             'Abu Dhabi Grand Prix'
         ]
         
-        # 2025 F1 Calendar (will download available races)
-        self.race_calendar_2025 = [
-            'Australian Grand Prix',
-            'Chinese Grand Prix', 
-            'Japanese Grand Prix',
-            'Bahrain Grand Prix',
-            'Saudi Arabian Grand Prix',
-            'Miami Grand Prix',
-            'Emilia Romagna Grand Prix',
-            'Monaco Grand Prix',
-            'Spanish Grand Prix',
-            'Canadian Grand Prix',
-            'Austrian Grand Prix',
-            'British Grand Prix',
-            'Belgian Grand Prix',
-            'Hungarian Grand Prix',
-            'Dutch Grand Prix',
-            'Italian Grand Prix',
-            'Azerbaijan Grand Prix',
-            'Singapore Grand Prix',
-            'United States Grand Prix',
-            'Mexico City Grand Prix',
-            'São Paulo Grand Prix',
-            'Las Vegas Grand Prix',
-            'Qatar Grand Prix',
-            'Abu Dhabi Grand Prix'
-        ]
+        # Current season calendar loaded dynamically from FastF1
+        self.race_calendar = self._load_race_calendar()
         
         # Sessions to download for telemetry analysis - comprehensive set
         self.sessions_to_download = ['FP2', 'FP3', 'SQ', 'Q', 'S', 'R']  # Added Sprint Qualifying
@@ -175,6 +150,17 @@ class F1DataDownloader:
             'R': 'Race'
         }
     
+    def _load_race_calendar(self) -> List[str]:
+        """Load race calendar dynamically from FastF1 event schedule."""
+        try:
+            from datetime import datetime
+            year = datetime.now().year
+            schedule = fastf1.get_event_schedule(year, include_testing=False)
+            return [row['EventName'] for _, row in schedule.iterrows()]
+        except Exception:
+            logger.warning("Could not load dynamic calendar from FastF1")
+            return []
+
     def is_session_cached(self, season: int, race_name: str, session_type: str) -> bool:
         """Check if session data is already cached"""
         try:
@@ -372,7 +358,7 @@ class F1DataDownloader:
     
     def check_cache_status(self, season: int) -> None:
         """Check and report cache status for a season"""
-        race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar_2025
+        race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar
         logger.info(f"\n📊 Cache Status for {season} Season:")
         logger.info("-" * 50)
         
@@ -408,7 +394,7 @@ class F1DataDownloader:
         # Check cache status first
         self.check_cache_status(season)
         
-        race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar_2025
+        race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar
         all_season_data = []
         
         for i, race_name in enumerate(race_calendar):
@@ -444,7 +430,7 @@ class F1DataDownloader:
         logger.info("="*60)
         
         all_data = []
-        total_races = sum(len(self.race_calendar_2024 if season == 2024 else self.race_calendar_2025) for season in seasons)
+        total_races = sum(len(self.race_calendar_2024 if season == 2024 else self.race_calendar) for season in seasons)
         
         for season in seasons:
             logger.info(f"\n🏁 Starting {season} season download...")
@@ -524,8 +510,8 @@ def main():
         for season in seasons:
             if season == 2024:
                 downloader.race_calendar_2024 = args.races
-            elif season == 2025:
-                downloader.race_calendar_2025 = args.races
+            else:
+                downloader.race_calendar = args.races
 
     if downloader.cache_ready and not args.force_download:
         print("\n✅ Google Drive cache detected.")

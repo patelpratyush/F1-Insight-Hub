@@ -15,6 +15,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import joblib
 import logging
 import os
+import json
 import pickle
 from typing import Dict, Tuple, List, Optional
 import warnings
@@ -158,33 +159,25 @@ class EnhancedF1MLModel:
             
         return pd.DataFrame(all_data)
     
+    def _load_drivers_by_number(self) -> Dict:
+        """Load driver roster keyed by car number from config."""
+        config_path = os.path.join(os.path.dirname(__file__), 'config', 'fallback_driver_roster.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f).get("drivers", {})
+                return {
+                    str(info["number"]): {"code": code, "name": info["name"], "team": info["team"]}
+                    for code, info in data.items()
+                }
+        except Exception:
+            return {}
+
     def _process_race_sessions_for_ml(self, race_path: str, season: str, race_name: str) -> List[Dict]:
         """Process race sessions to extract ML training data"""
         import pickle
         
-        # 2025 season driver mapping
-        drivers_2025 = {
-            '1': {'code': 'VER', 'name': 'Max Verstappen', 'team': 'Red Bull Racing Honda RBPT'},
-            '22': {'code': 'TSU', 'name': 'Yuki Tsunoda', 'team': 'Red Bull Racing Honda RBPT'},
-            '44': {'code': 'HAM', 'name': 'Lewis Hamilton', 'team': 'Scuderia Ferrari'},
-            '16': {'code': 'LEC', 'name': 'Charles Leclerc', 'team': 'Scuderia Ferrari'},
-            '63': {'code': 'RUS', 'name': 'George Russell', 'team': 'Mercedes'},
-            '12': {'code': 'ANT', 'name': 'Kimi Antonelli', 'team': 'Mercedes'},
-            '4': {'code': 'NOR', 'name': 'Lando Norris', 'team': 'McLaren Mercedes'},
-            '81': {'code': 'PIA', 'name': 'Oscar Piastri', 'team': 'McLaren Mercedes'},
-            '14': {'code': 'ALO', 'name': 'Fernando Alonso', 'team': 'Aston Martin Aramco Mercedes'},
-            '18': {'code': 'STR', 'name': 'Lance Stroll', 'team': 'Aston Martin Aramco Mercedes'},
-            '10': {'code': 'GAS', 'name': 'Pierre Gasly', 'team': 'BWT Alpine F1 Team'},
-            '43': {'code': 'COL', 'name': 'Franco Colapinto', 'team': 'BWT Alpine F1 Team'},
-            '30': {'code': 'LAW', 'name': 'Liam Lawson', 'team': 'Racing Bulls F1 Team'},
-            '6': {'code': 'HAD', 'name': 'Isack Hadjar', 'team': 'Racing Bulls F1 Team'},
-            '55': {'code': 'SAI', 'name': 'Carlos Sainz', 'team': 'Williams Mercedes'},
-            '23': {'code': 'ALB', 'name': 'Alexander Albon', 'team': 'Williams Mercedes'},
-            '31': {'code': 'OCO', 'name': 'Esteban Ocon', 'team': 'MoneyGram Haas F1 Team'},
-            '38': {'code': 'BEA', 'name': 'Oliver Bearman', 'team': 'MoneyGram Haas F1 Team'},
-            '27': {'code': 'HUL', 'name': 'Nico Hülkenberg', 'team': 'Kick Sauber F1 Team'},
-            '5': {'code': 'BOR', 'name': 'Gabriel Bortoleto', 'team': 'Kick Sauber F1 Team'}
-        }
+        # Driver roster keyed by car number, loaded from config
+        drivers_2025 = self._load_drivers_by_number()
         
         race_data = []
         qualifying_data = {}
