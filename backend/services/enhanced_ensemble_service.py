@@ -9,9 +9,13 @@ import numpy as np
 import joblib
 import os
 import logging
+import json
 from typing import Dict, List, Optional, Tuple
+from datetime import datetime, timezone
 import warnings
 warnings.filterwarnings('ignore')
+
+from .season_utils import load_driver_code_map, load_team_name_mapping
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +24,7 @@ logger = logging.getLogger(__name__)
 class EnhancedEnsembleF1PredictionService:
     def __init__(self):
         """Initialize the enhanced ensemble prediction service"""
+        self.current_season = datetime.now(timezone.utc).year
         self.models_dir = os.path.join(os.path.dirname(__file__), '..', 'enhanced_models')
         self.qualifying_models = None
         self.race_models = None
@@ -62,43 +67,8 @@ class EnhancedEnsembleF1PredictionService:
             'Abu Dhabi Grand Prix': {'type': 'mixed', 'difficulty': 7, 'speed': 'medium', 'overtaking': 'medium', 'elevation_change': 'low', 'tire_deg': 'medium'}
         }
         
-        # Driver mappings for consistency
-        self.driver_mapping = {
-            'VER': 'Max Verstappen',
-            'NOR': 'Lando Norris', 
-            'LEC': 'Charles Leclerc',
-            'HAM': 'Lewis Hamilton',
-            'RUS': 'George Russell',
-            'PIA': 'Oscar Piastri',
-            'SAI': 'Carlos Sainz',
-            'ALO': 'Fernando Alonso',
-            'STR': 'Lance Stroll',
-            'GAS': 'Pierre Gasly',
-            'OCO': 'Esteban Ocon',
-            'TSU': 'Yuki Tsunoda',
-            'ALB': 'Alexander Albon',
-            'HUL': 'Nico Hulkenberg',
-            'BEA': 'Oliver Bearman',
-            'ANT': 'Kimi Antonelli',
-            'LAW': 'Liam Lawson',
-            'COL': 'Franco Colapinto',
-            'BOR': 'Gabriel Bortoleto',
-            'HAD': 'Isack Hadjar'
-        }
-        
-        # Team mappings for 2025
-        self.team_mapping = {
-            'Red Bull': 'Red Bull Racing Honda RBPT',
-            'McLaren': 'McLaren Mercedes',
-            'Ferrari': 'Scuderia Ferrari',
-            'Mercedes': 'Mercedes',
-            'Aston Martin': 'Aston Martin Aramco Mercedes',
-            'Alpine': 'BWT Alpine F1 Team',
-            'AlphaTauri': 'Visa Cash App RB F1 Team',
-            'Williams': 'Williams Mercedes',
-            'Haas': 'MoneyGram Haas F1 Team',
-            'Kick Sauber': 'Kick Sauber F1 Team'
-        }
+        self.driver_mapping = load_driver_code_map()
+        self.team_mapping = load_team_name_mapping()
         
         # Load models on initialization
         self.load_models()
@@ -164,7 +134,7 @@ class EnhancedEnsembleF1PredictionService:
         
         # Create base feature set with reasonable defaults
         features = {
-            'season': 2025,
+            'season': self.current_season,
             'season_race_number': 15,  # Mid-season default
             'grid_position': 10,  # Will be updated with qualifying prediction
             'avg_lap_time': 90.0,  # Default lap time

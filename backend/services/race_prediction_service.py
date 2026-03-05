@@ -10,8 +10,10 @@ import os
 import json
 import logging
 import pickle
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 from .enhanced_ensemble_service import enhanced_ensemble_service
+from .season_utils import get_current_season_year
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
 class RacePredictionService:
     def __init__(self):
         """Initialize the race prediction service"""
+        self.current_season = get_current_season_year()
         self.ensemble_service = enhanced_ensemble_service
         self.data_file = os.path.join(os.path.dirname(__file__), '..', 'f1_data.csv')
         self.fastf1_cache_dir = os.path.join(os.path.dirname(__file__), '..', 'cache')
@@ -91,7 +94,7 @@ class RacePredictionService:
         self._load_historical_data()
         
         # Load current-season FastF1 cache data for accurate performance ratings
-        self._load_2025_fastf1_data()
+        self._load_current_season_fastf1_data()
 
     def _load_fallback_roster(self) -> Dict:
         """Load fallback driver roster from JSON config."""
@@ -107,8 +110,7 @@ class RacePredictionService:
         """Get driver roster: cache_manager first, fallback JSON second."""
         from services.cache_manager import cache_manager
         if year is None:
-            from datetime import datetime, timezone
-            year = datetime.now(timezone.utc).year
+            year = self.current_season
         drivers = cache_manager.get_drivers(year)
         if drivers:
             return {
@@ -129,16 +131,16 @@ class RacePredictionService:
                 self._calculate_driver_performance_ratings()
                 
             else:
-                logger.warning("Historical data file not found - will rely on 2025 FastF1 data")
+                logger.warning("Historical data file not found - will rely on current-season FastF1 data")
                 self.historical_data = pd.DataFrame()
-                # Don't set fallback ratings here - let 2025 data take priority
+                # Don't set fallback ratings here - let current-season data take priority
         except Exception as e:
             logger.error(f"Error loading historical data: {e}")
             self.historical_data = pd.DataFrame()
-            # Don't set fallback ratings here - let 2025 data take priority
+            # Don't set fallback ratings here - let current-season data take priority
     
-    def _load_2025_fastf1_data(self):
-        """Load and analyze 2025 FastF1 cache data for accurate performance ratings"""
+    def _load_current_season_fastf1_data(self):
+        """Load and analyze current-season FastF1 cache data for accurate performance ratings."""
         try:
             # Use the standardized cache directory
             cache_dir = self.fastf1_cache_dir
@@ -147,18 +149,17 @@ class RacePredictionService:
                 logger.warning(f"FastF1 cache directory not found: {cache_dir}")
                 return
             
-            # Look for 2025 race data
-            year_2025_dir = os.path.join(cache_dir, '2025')
-            if not os.path.exists(year_2025_dir):
-                logger.warning("No 2025 FastF1 data found")
+            season_dir = os.path.join(cache_dir, str(self.current_season))
+            if not os.path.exists(season_dir):
+                logger.warning(f"No {self.current_season} FastF1 data found")
                 return
             
             race_results = []
             races_processed = 0
             
-            # Process each 2025 race
-            for race_folder in sorted(os.listdir(year_2025_dir)):
-                race_path = os.path.join(year_2025_dir, race_folder)
+            # Process each race from the current season cache
+            for race_folder in sorted(os.listdir(season_dir)):
+                race_path = os.path.join(season_dir, race_folder)
                 if not os.path.isdir(race_path):
                     continue
                     
@@ -176,13 +177,13 @@ class RacePredictionService:
                                 
                                 if 'data' in cache_data:
                                     timing_data = cache_data['data']
-                                    race_name = race_folder.replace('2025-', '').replace('_', ' ')
+                                    race_name = race_folder.replace(f'{self.current_season}-', '').replace('_', ' ')
                                     race_date = race_folder.split('_')[0]
                                     
                                     # Process timing data to extract race results
                                     self._process_fastf1_timing_data(timing_data, race_name, race_date, race_results)
                                     races_processed += 1
-                                    logger.info(f"Loaded 2025 race data: {race_name}")
+                                    logger.info(f"Loaded {self.current_season} race data: {race_name}")
                                     
                             except Exception as e:
                                 logger.warning(f"Could not load timing data from {timing_file}: {e}")
@@ -190,17 +191,21 @@ class RacePredictionService:
                         break  # Only process main race, not sprint
             
             if race_results:
-                self.race_2025_results = pd.DataFrame(race_results)
-                logger.info(f"Successfully loaded {len(race_results)} driver results from {races_processed} 2025 races")
+                self.current_season_results = pd.DataFrame(race_results)
+                logger.info(
+                    f"Successfully loaded {len(race_results)} driver results from "
+                    f"{races_processed} races in {self.current_season}"
+                )
                 
-                # Calculate 2025-specific performance ratings
-                self._calculate_2025_performance_ratings()
+                self._calculate_current_season_performance_ratings()
             else:
-                logger.warning("No 2025 race results found in FastF1 cache - using fallback ratings")
+                logger.warning(
+                    f"No {self.current_season} race results found in FastF1 cache - using fallback ratings"
+                )
                 self._set_fallback_ratings()
                 
         except Exception as e:
-            logger.error(f"Error loading 2025 FastF1 data: {e}")
+            logger.error(f"Error loading current-season FastF1 data: {e}")
     
     def _process_fastf1_timing_data(self, timing_data, race_name, race_date, race_results):
         """Process FastF1 timing app data to extract race results"""
@@ -244,7 +249,7 @@ class RacePredictionService:
             final_results = []
             for driver_num, data in driver_results.items():
                 if data['lap_times']:  # Only include drivers who completed laps
-                    # Find driver code from our 2025 roster
+                    # Find driver code from the current roster
                     driver_code = None
                     driver_name = None
                     team = None
@@ -351,21 +356,21 @@ class RacePredictionService:
         }
         return points_map.get(position, 0)
     
-    def _calculate_2025_performance_ratings(self):
-        """Calculate performance ratings from actual 2025 race results"""
-        if not hasattr(self, 'race_2025_results') or self.race_2025_results.empty:
-            logger.warning("No 2025 results available for performance calculation")
+    def _calculate_current_season_performance_ratings(self):
+        """Calculate performance ratings from current-season race results."""
+        if not hasattr(self, 'current_season_results') or self.current_season_results.empty:
+            logger.warning(f"No {self.current_season} results available for performance calculation")
             return
         
         try:
-            # Calculate team performance from 2025 results
+            # Calculate team performance from current-season results
             team_stats = {}
             
-            for team in self.race_2025_results['team'].unique():
+            for team in self.current_season_results['team'].unique():
                 if pd.isna(team) or team == '':
                     continue
                     
-                team_data = self.race_2025_results[self.race_2025_results['team'] == team]
+                team_data = self.current_season_results[self.current_season_results['team'] == team]
                 
                 # Basic performance metrics
                 avg_position = team_data['position'].mean()
@@ -395,22 +400,22 @@ class RacePredictionService:
                 }
             
             self.car_performance = team_stats
-            logger.info(f"Calculated 2025 performance ratings for {len(team_stats)} teams")
+            logger.info(f"Calculated {self.current_season} performance ratings for {len(team_stats)} teams")
             
             # Log top teams
             sorted_teams = sorted(team_stats.items(), key=lambda x: x[1]['dry_pace'], reverse=True)[:5]
-            logger.info("Top 5 teams by 2025 performance:")
+            logger.info(f"Top 5 teams by {self.current_season} performance:")
             for i, (team, stats) in enumerate(sorted_teams):
                 logger.info(f"  {i+1}. {team}: {stats['dry_pace']} pace (avg pos: {stats['avg_position']})")
             
-            # Calculate driver performance from 2025 results
+            # Calculate driver performance from current-season results
             driver_stats = {}
             
-            for driver in self.race_2025_results['driver_name'].unique():
+            for driver in self.current_season_results['driver_name'].unique():
                 if pd.isna(driver) or driver == '':
                     continue
                     
-                driver_data = self.race_2025_results[self.race_2025_results['driver_name'] == driver]
+                driver_data = self.current_season_results[self.current_season_results['driver_name'] == driver]
                 
                 # Basic performance metrics
                 avg_position = driver_data['position'].mean()
@@ -436,16 +441,16 @@ class RacePredictionService:
                 }
             
             self.driver_performance = driver_stats
-            logger.info(f"Calculated 2025 performance ratings for {len(driver_stats)} drivers")
+            logger.info(f"Calculated {self.current_season} performance ratings for {len(driver_stats)} drivers")
             
             # Log top drivers
             sorted_drivers = sorted(driver_stats.items(), key=lambda x: x[1]['overall_skill'], reverse=True)[:5]
-            logger.info("Top 5 drivers by 2025 performance:")
+            logger.info(f"Top 5 drivers by {self.current_season} performance:")
             for i, (driver, stats) in enumerate(sorted_drivers):
                 logger.info(f"  {i+1}. {driver}: {stats['overall_skill']} skill (avg pos: {stats['avg_position']})")
                 
         except Exception as e:
-            logger.error(f"Error calculating 2025 performance ratings: {e}")
+            logger.error(f"Error calculating {self.current_season} performance ratings: {e}")
             self._set_fallback_ratings()
     
     def _calculate_car_performance_ratings(self):
@@ -454,8 +459,9 @@ class RacePredictionService:
             return
         
         try:
-            # Focus on recent performance (2024-2025 seasons)
-            recent_data = self.historical_data[self.historical_data['season'] >= 2024].copy()
+            # Focus on the most recent two seasons of available data
+            recent_cutoff = self.current_season - 1
+            recent_data = self.historical_data[self.historical_data['season'] >= recent_cutoff].copy()
             
             if recent_data.empty:
                 logger.warning("No recent data found, using all available data")
@@ -519,8 +525,9 @@ class RacePredictionService:
             return
         
         try:
-            # Focus on recent performance (2024-2025 seasons)
-            recent_data = self.historical_data[self.historical_data['season'] >= 2024].copy()
+            # Focus on the most recent two seasons of available data
+            recent_cutoff = self.current_season - 1
+            recent_data = self.historical_data[self.historical_data['season'] >= recent_cutoff].copy()
             
             if recent_data.empty:
                 logger.warning("No recent data found for drivers, using all available data")
@@ -610,7 +617,7 @@ class RacePredictionService:
         logger.warning("Using fallback driver performance ratings from config")
     
     def _get_field_average_performance(self) -> float:
-        """Calculate field average performance from actual 2025 data"""
+        """Calculate field average performance from current-season data."""
         if hasattr(self, 'car_performance') and self.car_performance:
             car_performances = [stats.get('dry_pace', 0.75) for stats in self.car_performance.values()]
             return sum(car_performances) / len(car_performances)
@@ -749,18 +756,18 @@ class RacePredictionService:
                 'race': race,
                 'qualifying_position': float(quali_pos),
                 'weather': weather,
-                'season': 2025,
+                'season': self.current_season,
                 'points': 0,  # Default for prediction
                 'grid_position': float(quali_pos),
                 'status': 'Finished'  # Assume finish for prediction
             }
             
-            # Use calculated 2025 performance data - prioritize actual results over fallbacks
+            # Use current-season performance data when available.
             car_stats = self.car_performance.get(team, {})
             driver_full_name = self._get_driver_roster().get(driver, {}).get('name', driver)
             driver_stats = self.driver_performance.get(driver_full_name, {})
             
-            # If no 2025 data exists, use realistic fallback based on known 2025 performance
+            # If no live data exists, use fallback config ratings.
             if not car_stats:
                 logger.warning(f"No car performance data for {team}, using fallback")
                 car_stats = self._get_team_fallback_rating(team)
@@ -768,23 +775,23 @@ class RacePredictionService:
                 logger.warning(f"No driver performance data for {driver_full_name}, using fallback")
                 driver_stats = self._get_driver_fallback_rating(driver_full_name)
             
-            # Get car pace rating (most important factor - 80% weight based on 2025 data showing car dominance)
+            # Get car pace rating (most important factor in the model).
             car_pace = car_stats.get('dry_pace', 0.75) if weather == 'Dry' else car_stats.get('wet_pace', 0.75)
             car_reliability = car_stats.get('reliability', 0.85)
             car_strategy = car_stats.get('strategy', 0.75)
             
-            # Get driver skill rating (20% weight - driver less important than car in 2025)
+            # Get driver skill rating.
             driver_skill = driver_stats.get('overall_skill', 0.75) if weather == 'Dry' else driver_stats.get('wet_skill', 0.75)
             driver_race_craft = driver_stats.get('race_craft', 0.75)
             
             # Log actual ratings being used for debugging
             logger.debug(f"{driver} ({team}): car_pace={car_pace:.3f}, driver_skill={driver_skill:.3f}")
             
-            # Combined performance score (car is dominant factor in 2025)
+            # Combined performance score.
             combined_performance = (car_pace * 0.8) + (driver_skill * 0.2)
             
             # Calculate expected position based on performance vs field average
-            # Use dynamic field average based on actual 2025 data
+            # Use the dynamic field average based on live/current ratings.
             field_average = self._get_field_average_performance()
             performance_advantage = combined_performance - field_average
             
@@ -809,7 +816,7 @@ class RacePredictionService:
             
             predicted_pos = max(1, min(20, quali_pos + total_position_change))
             
-            # Apply 2025 season boost for top performers to ensure they finish near the front
+            # Apply a front-running bias for the strongest current-season performers.
             if combined_performance > 0.87:  # Top tier (McLaren level)
                 predicted_pos = min(predicted_pos, 5)  # Cap at P5
             elif combined_performance > 0.84:  # Second tier (Mercedes/Ferrari level)
@@ -914,8 +921,8 @@ class RacePredictionService:
         
         # Get driver's recent races (last 5)
         driver_recent = self.historical_data[
-            (self.historical_data['driver'] == driver) & 
-            (self.historical_data['season'] >= 2024)
+            (self.historical_data['driver'] == driver) &
+            (self.historical_data['season'] >= self.current_season - 1)
         ].tail(5)
         
         if driver_recent.empty:

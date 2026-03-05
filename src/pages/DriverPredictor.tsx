@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import useApiCall from "@/hooks/useApiCall";
 import { useDrivers, useTracks } from "@/hooks/useF1Metadata";
+import { getCurrentSeasonYear } from "@/lib/season";
 import { motion } from "framer-motion";
 import {
     AlertCircle,
@@ -27,6 +28,7 @@ import {
 import { useEffect, useState } from "react";
 
 const DriverPredictor = () => {
+  const currentSeasonYear = getCurrentSeasonYear();
   const [selectedDriver, setSelectedDriver] = useState("");
   const [selectedTrack, setSelectedTrack] = useState("");
   const [weather, setWeather] = useState("");
@@ -37,8 +39,8 @@ const DriverPredictor = () => {
     setIsVisible(true);
   }, []);
 
-  const { data: apiDrivers } = useDrivers();
-  const { data: apiTracks } = useTracks();
+  const { data: apiDrivers } = useDrivers(currentSeasonYear);
+  const { data: apiTracks } = useTracks(currentSeasonYear);
   const drivers = (apiDrivers || []).map((d) => ({
     id: d.code,
     name: d.name,
@@ -142,7 +144,8 @@ const DriverPredictor = () => {
               PREDICTOR
             </h1>
             <p className="text-white/50 text-xl font-light max-w-2xl mt-4">
-              Gradient Boosting ML model trained on 2024-2025 F1 data. Forecasts
+              Gradient Boosting ML model trained on recent F1 data. Forecasts
+              {` ${currentSeasonYear} `}
               race results utilizing historic qualifying times, live weather,
               and dynamic track features.
             </p>

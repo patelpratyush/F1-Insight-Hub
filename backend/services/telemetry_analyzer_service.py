@@ -92,33 +92,24 @@ class TelemetryAnalyzerService:
         """Initialize the telemetry analyzer"""
         self.cache_enabled = True
         self.track_characteristics = self._load_track_characteristics()
-        self.driver_mapping = {
-            # 2024 Season
-            '1': 'VER',   # Max Verstappen - Red Bull
-            '11': 'PER',  # Sergio Perez - Red Bull
-            '16': 'LEC',  # Charles Leclerc - Ferrari
-            '55': 'SAI',  # Carlos Sainz - Ferrari (2024)
-            '44': 'HAM',  # Lewis Hamilton - Mercedes (2024) / Ferrari (2025)
-            '63': 'RUS',  # George Russell - Mercedes
-            '4': 'NOR',   # Lando Norris - McLaren
-            '81': 'PIA',  # Oscar Piastri - McLaren
-            '14': 'ALO',  # Fernando Alonso - Aston Martin
-            '18': 'STR',  # Lance Stroll - Aston Martin
-            '10': 'GAS',  # Pierre Gasly - Alpine
-            '31': 'OCO',  # Esteban Ocon - Alpine (2024)
-            '22': 'TSU',  # Yuki Tsunoda - RB
-            '3': 'RIC',   # Daniel Ricciardo - RB (2024)
-            '23': 'ALB',  # Alexander Albon - Williams
-            '2': 'SAR',   # Logan Sargeant - Williams (2024)
-            '20': 'MAG',  # Kevin Magnussen - Haas
-            '27': 'HUL',  # Nico Hulkenberg - Haas
-            '77': 'BOT',  # Valtteri Bottas - Kick Sauber
-            '24': 'ZHO',  # Guanyu Zhou - Kick Sauber
-            # 2025 additions
-            '38': 'BEA',  # Oliver Bearman - Haas (2025)
-            '43': 'COL',  # Franco Colapinto - Williams (2025)
-            '12': 'ANT'   # Andrea Kimi Antonelli - Mercedes (2025)
-        }
+        
+    def _resolve_driver_reference(self, session_data, driver_reference: str) -> tuple[str, str]:
+        """Resolve a driver code or number to the best FastF1 identifier and abbreviation."""
+        driver_str = str(driver_reference)
+
+        try:
+            results = getattr(session_data, "results", None)
+            if results is not None and not results.empty:
+                for _, row in results.iterrows():
+                    number = str(row.get("DriverNumber", "") or row.get("Driver", "")).strip()
+                    abbreviation = str(row.get("Abbreviation", "")).strip()
+
+                    if driver_str in {number, abbreviation}:
+                        return (number or driver_str, abbreviation or driver_str)
+        except Exception as exc:
+            logger.debug(f"Could not resolve driver reference {driver_reference}: {exc}")
+
+        return driver_str, driver_str
         
     def _load_track_characteristics(self) -> Dict[str, Dict[str, Any]]:
         """Load track characteristics for analysis"""
@@ -184,7 +175,7 @@ class TelemetryAnalyzerService:
                         continue
                     
                     # Map driver number to abbreviation for frontend compatibility
-                    driver_key = self.driver_mapping.get(str(driver), str(driver))
+                    _, driver_key = self._resolve_driver_reference(session_data, driver)
                         
                     # Performance metrics
                     results['performance_metrics'][driver_key] = self._analyze_performance_metrics(
@@ -677,15 +668,7 @@ class TelemetryAnalyzerService:
             # Function to get driver telemetry
             def get_driver_telemetry(driver_code, driver_name):
                 try:
-                    # Find driver number from abbreviation mapping
-                    driver_number = None
-                    for num, abbr in self.driver_mapping.items():
-                        if abbr == driver_code:
-                            driver_number = num
-                            break
-                    
-                    # Use driver number if found, otherwise try the original driver string
-                    driver_to_search = driver_number if driver_number else driver_code
+                    driver_to_search, _ = self._resolve_driver_reference(session_data, driver_code)
                     driver_laps = session_data.laps.pick_driver(driver_to_search)
                     
                     if driver_laps.empty:
@@ -822,15 +805,7 @@ class TelemetryAnalyzerService:
             session_data = fastf1.get_session(year, race, session)
             session_data.load()
             
-            # Find driver number from abbreviation mapping
-            driver_number = None
-            for num, abbr in self.driver_mapping.items():
-                if abbr == driver:
-                    driver_number = num
-                    break
-            
-            # Use driver number if found, otherwise try the original driver string
-            driver_to_search = driver_number if driver_number else driver
+            driver_to_search, _ = self._resolve_driver_reference(session_data, driver)
             driver_laps = session_data.laps.pick_driver(driver_to_search)
             
             if driver_laps.empty:
@@ -998,15 +973,7 @@ class TelemetryAnalyzerService:
             session_data = fastf1.get_session(year, race, session)
             session_data.load()
             
-            # Find driver number from abbreviation mapping
-            driver_number = None
-            for num, abbr in self.driver_mapping.items():
-                if abbr == driver:
-                    driver_number = num
-                    break
-            
-            # Use driver number if found, otherwise try the original driver string
-            driver_to_search = driver_number if driver_number else driver
+            driver_to_search, _ = self._resolve_driver_reference(session_data, driver)
             driver_laps = session_data.laps.pick_driver(driver_to_search)
             
             if lap_number:

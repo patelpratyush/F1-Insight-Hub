@@ -16,6 +16,14 @@ import {
 } from "@/components/ui/select";
 import useApiCall from "@/hooks/useApiCall";
 import { useDrivers } from "@/hooks/useF1Metadata";
+import {
+  formatRaceDate,
+  getCurrentSeasonYear,
+  getDefaultCircuitName,
+  getNextSelectedDrivers,
+  getRaceDisplayName,
+  getSeasonDataStatus,
+} from "@/lib/season";
 import { motion } from "framer-motion";
 import {
     Activity,
@@ -52,29 +60,21 @@ import {
     YAxis,
 } from "recharts";
 
-const CURRENT_YEAR = new Date().getFullYear();
-
 const Dashboard = () => {
+  const seasonYear = getCurrentSeasonYear();
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedDrivers, setSelectedDrivers] = useState([
-    "VER",
-    "LEC",
-    "NOR",
-    "RUS",
-    "PIA",
-    "HAM",
-  ]);
+  const [selectedDrivers, setSelectedDrivers] = useState<string[]>([]);
   const [showAllRaces, setShowAllRaces] = useState(false);
   const [showDriverDropdown, setShowDriverDropdown] = useState(false);
-  const [selectedCircuit, setSelectedCircuit] = useState("Monaco Grand Prix");
+  const [selectedCircuit, setSelectedCircuit] = useState("");
   const [liveDataLastUpdate, setLiveDataLastUpdate] = useState(null);
 
   // API calls
-  const [dataYear, setDataYear] = useState(CURRENT_YEAR);
+  const [dataYear, setDataYear] = useState(seasonYear);
   const dashboardApi = useApiCall(
     async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/f1/dashboard/${CURRENT_YEAR}`);
+      const response = await fetch(`${apiUrl}/api/f1/dashboard/${seasonYear}`);
       if (!response.ok)
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
@@ -90,7 +90,7 @@ const Dashboard = () => {
     async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(
-        `${apiUrl}/api/f1/dashboard-trends/${CURRENT_YEAR}?all_races=false`,
+        `${apiUrl}/api/f1/dashboard-trends/${seasonYear}?all_races=false`,
       );
       if (!response.ok)
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -106,7 +106,7 @@ const Dashboard = () => {
     async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(
-        `${apiUrl}/api/f1/dashboard-trends/${CURRENT_YEAR}?all_races=true`,
+        `${apiUrl}/api/f1/dashboard-trends/${seasonYear}?all_races=true`,
       );
       if (!response.ok)
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -165,7 +165,7 @@ const Dashboard = () => {
   const nextRaceApi = useApiCall(
     async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/results/next-race`);
+      const response = await fetch(`${apiUrl}/api/results/next-race?year=${seasonYear}`);
       if (!response.ok)
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
@@ -178,7 +178,9 @@ const Dashboard = () => {
   const raceWeekendForecastApi = useApiCall(
     async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const nextRaceResponse = await fetch(`${apiUrl}/api/results/next-race`);
+      const nextRaceResponse = await fetch(
+        `${apiUrl}/api/results/next-race?year=${seasonYear}`,
+      );
       if (!nextRaceResponse.ok) throw new Error("Failed to get next race");
       const nextRaceData = await nextRaceResponse.json();
       if (!nextRaceData.success || !nextRaceData.next_race)
@@ -203,7 +205,7 @@ const Dashboard = () => {
     { maxRetries: 2, retryDelay: 1000 },
   );
 
-  const { data: apiDrivers } = useDrivers(dataYear);
+  const { data: apiDrivers } = useDrivers(seasonYear);
 
   const availableDrivers = (() => {
     if (!apiDrivers?.length) return [];
@@ -221,6 +223,23 @@ const Dashboard = () => {
       };
     });
   })();
+  const availableDriverCodes = apiDrivers?.map((driver) => driver.code) || [];
+
+  const championshipData = dashboardApi.data?.championship_standings || [];
+  const recentRaceData = dashboardApi.data?.latest_race || null;
+  const weatherData = dashboardApi.data?.weather_analysis || [];
+  const upcomingRace = dashboardApi.data?.upcoming_race || null;
+  const seasonStats = dashboardApi.data?.season_statistics || {
+    completed_races: 0,
+    total_races: 24,
+  };
+
+  const liveWeatherData = liveWeatherApi.data;
+  const liveChampionshipData = liveChampionshipApi.data;
+  const nextRaceData = nextRaceApi.data;
+  const availableCircuits = availableCircuitsApi.data || [];
+  const raceWeekendForecastData = raceWeekendForecastApi.data;
+  const seasonDataStatus = getSeasonDataStatus(seasonYear, dataYear);
 
   const toggleDriver = (driverCode) => {
     setSelectedDrivers((prev) =>
@@ -270,7 +289,7 @@ const Dashboard = () => {
   };
 
   const refreshLiveData = () => {
-    liveWeatherApi.execute();
+    if (selectedCircuit) liveWeatherApi.execute();
     liveChampionshipApi.execute();
     nextRaceApi.execute();
     raceWeekendForecastApi.execute();
@@ -284,7 +303,6 @@ const Dashboard = () => {
     else performanceTrendsLast5Api.execute();
 
     availableCircuitsApi.execute();
-    liveWeatherApi.execute();
     liveChampionshipApi.execute();
     nextRaceApi.execute();
     raceWeekendForecastApi.execute();
@@ -301,9 +319,33 @@ const Dashboard = () => {
   }, [selectedCircuit]);
 
   useEffect(() => {
+    const defaultCircuit = getDefaultCircuitName({
+      nextRaceName:
+        nextRaceApi.data?.next_race?.race_name || nextRaceApi.data?.next_race?.name,
+      dashboardUpcomingRaceName:
+        dashboardApi.data?.upcoming_race?.raceName ||
+        dashboardApi.data?.upcoming_race?.race_name ||
+        dashboardApi.data?.upcoming_race?.name,
+      availableCircuits,
+    });
+
+    if (defaultCircuit && defaultCircuit !== selectedCircuit) {
+      setSelectedCircuit(defaultCircuit);
+    }
+  }, [availableCircuits, dashboardApi.data, nextRaceApi.data, selectedCircuit]);
+
+  useEffect(() => {
     const interval = setInterval(() => refreshLiveData(), 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!availableDriverCodes.length) return;
+
+    setSelectedDrivers((prev) =>
+      getNextSelectedDrivers(prev, availableDriverCodes),
+    );
+  }, [availableDriverCodes]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -316,21 +358,6 @@ const Dashboard = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showDriverDropdown]);
-
-  const championshipData = dashboardApi.data?.championship_standings || [];
-  const recentRaceData = dashboardApi.data?.latest_race || null;
-  const weatherData = dashboardApi.data?.weather_analysis || [];
-  const upcomingRace = dashboardApi.data?.upcoming_race || null;
-  const seasonStats = dashboardApi.data?.season_statistics || {
-    completed_races: 0,
-    total_races: 24,
-  };
-
-  const liveWeatherData = liveWeatherApi.data;
-  const liveChampionshipData = liveChampionshipApi.data;
-  const nextRaceData = nextRaceApi.data;
-  const availableCircuits = availableCircuitsApi.data || [];
-  const raceWeekendForecastData = raceWeekendForecastApi.data;
 
   const getPositionChange = (driver) => {
     const changes = [-2, -1, 0, 0, 0, 1, 2];
@@ -375,11 +402,16 @@ const Dashboard = () => {
             <div className="flex flex-col">
               <span className="text-red-500 font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                {dataYear} Season Hub
+                {seasonYear} Season Hub
               </span>
               <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-md">
                 COMMAND <br /> CENTER
               </h1>
+              {seasonDataStatus.hasHistoricalFallback && (
+                <span className="mt-4 text-sm text-white/50 max-w-xl">
+                  Historical race data is currently sourced from {seasonDataStatus.dataYear} while upcoming events stay on the {seasonDataStatus.requestedYear} calendar.
+                </span>
+              )}
             </div>
 
             <div className="flex gap-4 items-center">
@@ -438,12 +470,14 @@ const Dashboard = () => {
             </span>
             <span className="text-4xl md:text-5xl font-black tracking-tighter truncate">
               {nextRaceData?.next_race
-                ? (nextRaceData.next_race.race_name || nextRaceData.next_race.name || "").replace(" Grand Prix", "")
+                ? getRaceDisplayName(
+                    nextRaceData.next_race.race_name || nextRaceData.next_race.name,
+                  )
                 : "TBD"}
             </span>
             <span className="text-white/60 font-mono mt-2">
               {nextRaceData?.next_race?.date
-                ? new Date(nextRaceData.next_race.date).toLocaleDateString()
+                ? formatRaceDate(nextRaceData.next_race.date)
                 : "N/A"}
             </span>
           </div>
@@ -724,6 +758,13 @@ const Dashboard = () => {
               <h4 className="text-2xl font-black tracking-tighter">
                 {recentRaceData?.raceName}
               </h4>
+              <p className="text-sm text-white/40 mt-2">
+                {recentRaceData?.date
+                  ? formatRaceDate(recentRaceData.date)
+                  : seasonDataStatus.hasHistoricalFallback
+                    ? `Using ${seasonDataStatus.dataYear} results until ${seasonDataStatus.requestedYear} races are completed`
+                    : "Awaiting latest completed race"}
+              </p>
             </div>
 
             <div className="flex flex-col gap-4 mb-8">

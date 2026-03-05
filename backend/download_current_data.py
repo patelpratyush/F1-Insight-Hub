@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-F1 Data Download Script for 2024-2025 Seasons
-Downloads comprehensive F1 session data and telemetry using Fast-F1.
+F1 Data Download Script for recent F1 seasons.
+Downloads comprehensive F1 session data and telemetry using FastF1.
 Includes FP2, FP3, Qualifying, and Race sessions for telemetry analysis.
 """
 
@@ -15,6 +15,8 @@ import logging
 from typing import List, Dict, Optional
 import time
 import sys
+
+from services.season_utils import get_current_season_year, load_driver_team_map_by_name
 
 # Load environment variables from .env file
 try:
@@ -36,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 class F1DataDownloader:
     def __init__(self, cache_dir: str = "cache"):
+        self.current_season = get_current_season_year()
         self.cache_dir = os.path.join(os.path.dirname(__file__), cache_dir)
         os.makedirs(self.cache_dir, exist_ok=True)
         self.output_file = os.path.join(os.path.dirname(__file__), 'f1_data.csv')
@@ -60,7 +63,7 @@ class F1DataDownloader:
         # Output CSV file
         self.output_file = os.path.join(os.path.dirname(__file__), 'f1_data.csv')
         
-        # Driver team mappings for 2024-2025 (using exact FastF1 driver names)
+        # Driver team mappings for historical/current rosters.
         self.driver_teams = {
             2024: {
                 'Lewis Hamilton': 'Mercedes',  # #44
@@ -83,30 +86,9 @@ class F1DataDownloader:
                 'Guanyu Zhou': 'Alfa Romeo F1 Team Stake',  # #24
                 'George Russell': 'Mercedes',  # #63
                 'Pierre Gasly': 'BWT Alpine F1 Team'  # #10
-            },
-            2025: {
-                'Lando Norris': 'McLaren Mercedes',  # #4
-                'Oscar Piastri': 'McLaren Mercedes',  # #81
-                'Nico Hulkenberg': 'MoneyGram Haas F1 Team',  # #27
-                'Lewis Hamilton': 'Scuderia Ferrari',  # #44
-                'Max Verstappen': 'Red Bull Racing Honda RBPT',  # #1
-                'Pierre Gasly': 'BWT Alpine F1 Team',  # #10
-                'Lance Stroll': 'Aston Martin Aramco Mercedes',  # #18
-                'Alexander Albon': 'Williams Mercedes',  # #23
-                'Fernando Alonso': 'Aston Martin Aramco Mercedes',  # #14
-                'George Russell': 'Mercedes',  # #63
-                'Oliver Bearman': 'MoneyGram Haas F1 Team',  # #87
-                'Carlos Sainz': 'Williams Mercedes',  # #55
-                'Esteban Ocon': 'BWT Alpine F1 Team',  # #31
-                'Charles Leclerc': 'Scuderia Ferrari',  # #16
-                'Yuki Tsunoda': 'Visa Cash App RB F1 Team',  # #22
-                'Kimi Antonelli': 'Mercedes',  # #12
-                'Isack Hadjar': 'Kick Sauber F1 Team',  # #6
-                'Gabriel Bortoleto': 'Kick Sauber F1 Team',  # #5
-                'Liam Lawson': 'Visa Cash App RB F1 Team',  # #30
-                'Franco Colapinto': 'Williams Mercedes'  # #43
             }
         }
+        self.driver_teams[self.current_season] = self._load_current_driver_teams()
         
         # 2024 F1 Calendar (completed races)
         self.race_calendar_2024 = [
@@ -137,7 +119,8 @@ class F1DataDownloader:
         ]
         
         # Current season calendar loaded dynamically from FastF1
-        self.race_calendar = self._load_race_calendar()
+        self.race_calendar = self._load_race_calendar(self.current_season)
+        self.custom_race_calendars: Dict[int, List[str]] = {}
         
         # Sessions to download for telemetry analysis - comprehensive set
         self.sessions_to_download = ['FP2', 'FP3', 'SQ', 'Q', 'S', 'R']  # Added Sprint Qualifying
@@ -150,16 +133,28 @@ class F1DataDownloader:
             'R': 'Race'
         }
     
-    def _load_race_calendar(self) -> List[str]:
-        """Load race calendar dynamically from FastF1 event schedule."""
+    def _load_current_driver_teams(self) -> Dict[str, str]:
+        """Load current-season driver/team mapping from the fallback roster config."""
+        return load_driver_team_map_by_name()
+
+    def _load_race_calendar(self, season: int) -> List[str]:
+        """Load a race calendar dynamically from FastF1 event schedule."""
         try:
-            from datetime import datetime
-            year = datetime.now().year
-            schedule = fastf1.get_event_schedule(year, include_testing=False)
+            schedule = fastf1.get_event_schedule(season, include_testing=False)
             return [row['EventName'] for _, row in schedule.iterrows()]
         except Exception:
-            logger.warning("Could not load dynamic calendar from FastF1")
+            logger.warning(f"Could not load dynamic calendar from FastF1 for {season}")
             return []
+
+    def _get_race_calendar(self, season: int) -> List[str]:
+        """Return the configured race calendar for a season."""
+        if season in self.custom_race_calendars:
+            return self.custom_race_calendars[season]
+        if season == 2024:
+            return self.race_calendar_2024
+        if season == self.current_season:
+            return self.race_calendar
+        return self._load_race_calendar(season)
 
     def is_session_cached(self, season: int, race_name: str, session_type: str) -> bool:
         """Check if session data is already cached"""
@@ -358,7 +353,7 @@ class F1DataDownloader:
     
     def check_cache_status(self, season: int) -> None:
         """Check and report cache status for a season"""
-        race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar
+        race_calendar = self._get_race_calendar(season)
         logger.info(f"\n📊 Cache Status for {season} Season:")
         logger.info("-" * 50)
         
@@ -394,7 +389,7 @@ class F1DataDownloader:
         # Check cache status first
         self.check_cache_status(season)
         
-        race_calendar = self.race_calendar_2024 if season == 2024 else self.race_calendar
+        race_calendar = self._get_race_calendar(season)
         all_season_data = []
         
         for i, race_name in enumerate(race_calendar):
@@ -418,10 +413,14 @@ class F1DataDownloader:
         logger.info(f"Season {season} download complete: {len(all_season_data)} total records")
         return all_season_data
     
-    def download_all_data(self, seasons: List[int] = [2024, 2025]) -> None:
+    def download_all_data(self, seasons: Optional[List[int]] = None) -> None:
         """Download comprehensive data for all specified seasons with full telemetry caching"""
+        if seasons is None:
+            previous_season = max(2024, self.current_season - 1)
+            seasons = sorted(set([previous_season, self.current_season]))
+
         logger.info("="*60)
-        logger.info("F1 COMPREHENSIVE DATA DOWNLOAD - 2024-2025 SEASONS")
+        logger.info("F1 COMPREHENSIVE DATA DOWNLOAD")
         logger.info("="*60)
         logger.info(f"Seasons to download: {seasons}")
         logger.info("Sessions per race: FP2, FP3, Qualifying, Sprint (if available), Race")
@@ -430,7 +429,7 @@ class F1DataDownloader:
         logger.info("="*60)
         
         all_data = []
-        total_races = sum(len(self.race_calendar_2024 if season == 2024 else self.race_calendar) for season in seasons)
+        total_races = sum(len(self._get_race_calendar(season)) for season in seasons)
         
         for season in seasons:
             logger.info(f"\n🏁 Starting {season} season download...")
@@ -483,8 +482,8 @@ class F1DataDownloader:
 def main():
     """Main function to run F1 data download or skip if cache is ready"""
     parser = argparse.ArgumentParser(description='F1 Comprehensive Data Downloader')
-    parser.add_argument('seasons', nargs='*', type=int, default=[2024, 2025], 
-                       help='Seasons to download (default: 2024 2025)')
+    parser.add_argument('seasons', nargs='*', type=int, default=None,
+                       help='Seasons to download (default: previous season and current season)')
     parser.add_argument('--races', nargs='+', 
                        help='Specific races to download (e.g. "Las Vegas Grand Prix" "Qatar Grand Prix")')
     parser.add_argument('--force-download', action='store_true',
@@ -492,7 +491,7 @@ def main():
     
     args = parser.parse_args()
     
-    print("🏎️  F1 COMPREHENSIVE DATA DOWNLOADER - 2024-2025 SEASONS")
+    print("🏎️  F1 COMPREHENSIVE DATA DOWNLOADER")
     print("="*60)
     print("This script will download or use cached data for:")
     print("• Race weekend sessions (FP2, FP3, Q, S, R)")
@@ -508,10 +507,7 @@ def main():
     if args.races:
         print(f"\n🎯 Downloading specific races: {', '.join(args.races)}")
         for season in seasons:
-            if season == 2024:
-                downloader.race_calendar_2024 = args.races
-            else:
-                downloader.race_calendar = args.races
+            downloader.custom_race_calendars[season] = args.races
 
     if downloader.cache_ready and not args.force_download:
         print("\n✅ Google Drive cache detected.")

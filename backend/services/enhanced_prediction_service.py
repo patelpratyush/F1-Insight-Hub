@@ -12,9 +12,9 @@ import json
 import joblib
 import logging
 from typing import Dict, List, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 
-# Import enhanced ensemble service and race prediction service for 2025 ratings
+# Import enhanced ensemble service and race prediction service for current-season ratings
 from .enhanced_ensemble_service import enhanced_ensemble_service
 from .race_prediction_service import race_prediction_service
 
@@ -23,11 +23,12 @@ logger = logging.getLogger(__name__)
 class EnhancedPredictionService:
     def __init__(self):
         """Initialize the enhanced prediction service"""
+        self.current_season = datetime.now(timezone.utc).year
         self.ensemble_service = enhanced_ensemble_service
         self.models_loaded = True  # Ensemble service handles model loading
         self.data_file = os.path.join(os.path.dirname(__file__), '..', 'f1_data.csv')
         
-        # Use the correct 2025 performance ratings from race_prediction_service
+        # Use the current-season performance ratings from race_prediction_service
         self.race_service = race_prediction_service
         
         # Current season driver and team mappings (loaded dynamically)
@@ -95,8 +96,7 @@ class EnhancedPredictionService:
             return
         
         try:
-            # Focus on recent performance (2024-2025 seasons)
-            recent_data = self.historical_data[self.historical_data['season'] >= 2024].copy()
+            recent_data = self.historical_data[self.historical_data['season'] >= self.current_season - 1].copy()
             
             if recent_data.empty:
                 logger.warning("No recent data found, using all available data")
@@ -151,8 +151,7 @@ class EnhancedPredictionService:
             return
         
         try:
-            # Focus on recent performance (2024-2025 seasons)
-            recent_data = self.historical_data[self.historical_data['season'] >= 2024].copy()
+            recent_data = self.historical_data[self.historical_data['season'] >= self.current_season - 1].copy()
             
             if recent_data.empty:
                 logger.warning("No recent data found for drivers, using all available data")
@@ -428,8 +427,7 @@ class EnhancedPredictionService:
                         team=team
                     )
                     
-                    # Use data-driven prediction heavily (85%) when we have quality 2025 ratings
-                    # The data-driven approach with actual 2025 ratings is more accurate than ML on old data
+                    # Weight current-season data more heavily when live ratings are available.
                     final_quali = int((base_prediction['qualifying_position'] * 0.85) + 
                                     (ml_predictions['predicted_qualifying_position'] * 0.15))
                     final_race = int((base_prediction['race_position'] * 0.85) + 
@@ -468,12 +466,12 @@ class EnhancedPredictionService:
     def _get_data_driven_prediction(self, driver: str, track: str, weather: str, team: str) -> Dict:
         """Generate prediction using calculated car and driver ratings"""
         try:
-            # Use the correct 2025 performance ratings from race_prediction_service
+            # Use the current-season performance ratings from race_prediction_service
             team_normalized = self._normalize_team_name(team)
             driver_normalized = self._normalize_driver_name(driver)
             logger.info(f"Looking for team '{team}' normalized to '{team_normalized}'")
             
-            # Get actual 2025 car performance ratings (from race_prediction_service!)
+            # Get current-season car performance ratings from race_prediction_service.
             car_stats = {}
             if hasattr(self.race_service, 'car_performance') and self.race_service.car_performance:
                 logger.info(f"Available teams: {list(self.race_service.car_performance.keys())}")
@@ -491,7 +489,7 @@ class EnhancedPredictionService:
                 if not car_stats:
                     logger.warning(f"No car ratings found for '{team_normalized}'")
             
-            # Get actual 2025 driver performance ratings (from race_prediction_service!)  
+            # Get current-season driver performance ratings from race_prediction_service.
             driver_stats = {}
             if hasattr(self.race_service, 'driver_performance') and self.race_service.driver_performance:
                 for driver_key, driver_data in self.race_service.driver_performance.items():
@@ -591,12 +589,24 @@ class EnhancedPredictionService:
         """Fallback prediction when all other methods fail"""
         logger.warning("Using basic fallback prediction method")
         
-        # Basic driver rankings for 2025
+        ranked_driver_codes = []
+        if getattr(self.race_service, "driver_performance", None):
+            for driver_name, _ in sorted(
+                self.race_service.driver_performance.items(),
+                key=lambda item: item[1].get("overall_skill", 0),
+                reverse=True,
+            ):
+                for code, name in self.current_drivers.items():
+                    if name == driver_name and code not in ranked_driver_codes:
+                        ranked_driver_codes.append(code)
+                        break
+
+        if driver not in ranked_driver_codes:
+            ranked_driver_codes.append(driver)
+
         driver_rankings = {
-            'VER': 1, 'NOR': 2, 'LEC': 3, 'HAM': 4, 'RUS': 5, 'PIA': 6,
-            'ALO': 7, 'SAI': 8, 'TSU': 9, 'ALB': 10, 'GAS': 11, 'OCO': 12,
-            'HUL': 13, 'LAW': 14, 'STR': 15, 'BEA': 16, 'ANT': 17, 'COL': 18,
-            'BOR': 19, 'HAD': 20
+            code: position
+            for position, code in enumerate(ranked_driver_codes, start=1)
         }
         
         # Team performance adjustments

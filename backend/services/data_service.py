@@ -5,6 +5,8 @@ from typing import Dict, List, Optional
 import os
 from datetime import datetime
 
+from .season_utils import get_recent_seasons
+
 class DataService:
     def __init__(self):
         fastf1.Cache.enable_cache(os.path.join(os.path.dirname(__file__), '..', 'cache'))
@@ -22,7 +24,7 @@ class DataService:
     def get_driver_historical_data(self, driver: str, seasons: List[int] = None) -> pd.DataFrame:
         """Get driver historical data from cached CSV file only - no API calls"""
         if seasons is None:
-            seasons = [2024, 2025]
+            seasons = get_recent_seasons()
         
         # Only use cached CSV data
         csv_file = os.path.join(os.path.dirname(__file__), '..', 'f1_data.csv')
@@ -57,7 +59,7 @@ class DataService:
     def get_team_performance_data(self, team: str, seasons: List[int] = None) -> Dict:
         """Get team performance data from cached CSV file only - no API calls"""
         if seasons is None:
-            seasons = [2024, 2025]
+            seasons = get_recent_seasons()
         
         team_stats = {
             'avg_qualifying_position': 10.0,

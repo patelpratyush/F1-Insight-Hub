@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useDrivers, useTracks } from "@/hooks/useF1Metadata";
+import { getCurrentSeasonYear } from "@/lib/season";
 import {
     Brain,
     Clock,
@@ -34,6 +35,7 @@ import {
 import { useEffect, useState } from "react";
 
 const StrategySimulator = () => {
+  const currentSeasonYear = getCurrentSeasonYear();
   const [selectedDriver, setSelectedDriver] = useState("");
   const [selectedTrack, setSelectedTrack] = useState("");
   const [strategyType, setStrategyType] = useState(""); // "one_stop", "two_stop", "three_stop"
@@ -65,8 +67,8 @@ const StrategySimulator = () => {
     setIsVisible(true);
   }, []);
 
-  const { data: apiDrivers } = useDrivers();
-  const { data: apiTracks } = useTracks();
+  const { data: apiDrivers } = useDrivers(currentSeasonYear);
+  const { data: apiTracks } = useTracks(currentSeasonYear);
   const driverList = (apiDrivers || []).map((d) => ({
     id: d.code,
     name: d.name,

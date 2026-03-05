@@ -205,7 +205,7 @@ class F1StrategySimulator:
         }
     
     def _load_driver_ratings(self) -> Dict[str, Dict]:
-        """Load driver-specific ratings and characteristics for 2025 F1 grid"""
+        """Load driver-specific ratings and characteristics for the current grid."""
         return {
             # Red Bull Racing - Max + Yuki (Pérez replaced by Tsunoda)
             "VER": {"skill": 0.98, "consistency": 0.95, "tire_management": 0.92, "wet_weather": 0.96},
@@ -249,7 +249,7 @@ class F1StrategySimulator:
         }
     
     def _initialize_pit_stop_data(self) -> Dict[str, Dict]:
-        """Initialize team-specific pit stop performance for 2025 F1 season"""
+        """Initialize team-specific pit stop performance for the current grid."""
         return {
             "Red Bull Racing": {"avg_time": 2.3, "consistency": 0.95, "error_rate": 0.02},
             "Ferrari": {"avg_time": 2.5, "consistency": 0.88, "error_rate": 0.05},

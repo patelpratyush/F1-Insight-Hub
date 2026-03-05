@@ -200,8 +200,7 @@ async def predict_driver_performance(request: PredictionRequest):
             team=request.team
         )
         
-        # The enhanced_prediction_service should now use the correct 2025 ratings automatically
-        # No need for hardcoded overrides if the ratings are properly connected
+        # The enhanced prediction service now uses live/current-season ratings automatically.
         
         # Get enhanced model breakdown if available
         ensemble_breakdown = {}
@@ -275,7 +274,7 @@ async def predict_driver_performance(request: PredictionRequest):
             prediction_factors.append(f"Championship pressure could impact {request.driver}'s performance")
             prediction_factors.append(f"{request.driver} is in excellent form this season")
         
-        # Get driver and car ratings from the race service (correct 2025 data)
+        # Get driver and car ratings from the race service.
         driver_ratings = result.get('driver_ratings', {})
         car_ratings = result.get('car_ratings', {})
         
@@ -765,7 +764,7 @@ class LiveWeatherRequest(BaseModel):
 
 class RaceWeekendWeatherRequest(BaseModel):
     circuit_name: str
-    race_date: str  # ISO format: "2025-08-31"
+    race_date: str  # ISO format: "YYYY-MM-DD"
 
 class ChampionshipStandingsRequest(BaseModel):
     season: Optional[int] = None
@@ -1094,7 +1093,7 @@ async def get_f1_calendar(year: Optional[int] = None):
         if not calendar:
             # Fallback to results service
             results_service = get_f1_results_service()
-            calendar = getattr(results_service, 'f1_calendar_2025', [])
+            calendar = getattr(results_service, 'f1_calendar', [])
 
         return {
             'success': True,
@@ -1142,7 +1141,7 @@ async def get_next_upcoming_race(year: Optional[int] = None):
 @app.get("/api/telemetry/available-sessions/{year}")
 async def get_available_sessions(year: int):
     """
-    Get list of available race sessions for telemetry analysis (2024-2025 only)
+    Get list of available race sessions for telemetry analysis.
     """
     try:
         # Allow recent seasons (FastF1 telemetry data typically available from 2018+)

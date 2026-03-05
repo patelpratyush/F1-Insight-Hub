@@ -90,7 +90,7 @@ class F1ResultsService:
         self.standings_cache = {}
         self.cache_duration = 1800  # 30 minutes
         
-        # Initialize with existing 2025 data if available
+        # Initialize with existing cached standings if available
         self._load_cached_standings()
 
     @property
@@ -468,7 +468,7 @@ class F1ResultsService:
                 # Save to file cache
                 self._save_standings_to_cache(standings)
                 
-                logger.info(f"Updated championship standings - Round {current_round}/24")
+                logger.info(f"Updated championship standings - Round {current_round}/{total_rounds}")
                 return standings
                 
         except Exception as e:

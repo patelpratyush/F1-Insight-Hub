@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { getCurrentSeasonYear } from "@/lib/season";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = getCurrentSeasonYear();
 
 export interface Driver {
   id: string;

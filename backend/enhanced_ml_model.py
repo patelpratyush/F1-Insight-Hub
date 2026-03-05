@@ -23,6 +23,8 @@ import optuna
 from scipy import stats
 warnings.filterwarnings('ignore')
 
+from services.season_utils import get_recent_seasons, load_driver_numbers_map
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -127,7 +129,7 @@ class EnhancedF1MLModel:
         import pickle
         
         all_data = []
-        seasons = ['2024', '2025']
+        seasons = [str(season) for season in get_recent_seasons()]
         
         for season in seasons:
             season_dir = os.path.join(self.cache_dir, season)
@@ -161,23 +163,14 @@ class EnhancedF1MLModel:
     
     def _load_drivers_by_number(self) -> Dict:
         """Load driver roster keyed by car number from config."""
-        config_path = os.path.join(os.path.dirname(__file__), 'config', 'fallback_driver_roster.json')
-        try:
-            with open(config_path) as f:
-                data = json.load(f).get("drivers", {})
-                return {
-                    str(info["number"]): {"code": code, "name": info["name"], "team": info["team"]}
-                    for code, info in data.items()
-                }
-        except Exception:
-            return {}
+        return load_driver_numbers_map()
 
     def _process_race_sessions_for_ml(self, race_path: str, season: str, race_name: str) -> List[Dict]:
         """Process race sessions to extract ML training data"""
         import pickle
         
         # Driver roster keyed by car number, loaded from config
-        drivers_2025 = self._load_drivers_by_number()
+        drivers_by_number = self._load_drivers_by_number()
         
         race_data = []
         qualifying_data = {}
@@ -212,9 +205,9 @@ class EnhancedF1MLModel:
                     
                     # Determine session type and process
                     if 'Qualifying' in session_folder:
-                        qualifying_data = self._extract_qualifying_results(timing_data, drivers_2025)
+                        qualifying_data = self._extract_qualifying_results(timing_data, drivers_by_number)
                     elif 'Race' in session_folder:
-                        race_results = self._extract_race_results(timing_data, drivers_2025)
+                        race_results = self._extract_race_results(timing_data, drivers_by_number)
                         
                 except Exception as e:
                     logger.warning(f"Error processing session {session_folder}: {e}")
@@ -249,7 +242,7 @@ class EnhancedF1MLModel:
         
         return race_data
     
-    def _extract_qualifying_results(self, timing_data, drivers_2025) -> Dict:
+    def _extract_qualifying_results(self, timing_data, drivers_by_number) -> Dict:
         """Extract qualifying positions from timing data"""
         driver_best_times = {}
         
@@ -273,7 +266,7 @@ class EnhancedF1MLModel:
         
         qualifying_results = {}
         for position, (driver_num, data) in enumerate(sorted_drivers, 1):
-            driver_info = drivers_2025.get(driver_num, {
+            driver_info = drivers_by_number.get(driver_num, {
                 'code': f'D{driver_num}', 'name': f'Driver {driver_num}', 'team': 'Unknown Team'
             })
             
@@ -286,7 +279,7 @@ class EnhancedF1MLModel:
         
         return qualifying_results
     
-    def _extract_race_results(self, timing_data, drivers_2025) -> Dict:
+    def _extract_race_results(self, timing_data, drivers_by_number) -> Dict:
         """Extract race positions from timing data"""
         driver_lap_times = {}
         

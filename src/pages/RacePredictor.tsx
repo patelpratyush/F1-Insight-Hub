@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import useApiCall from "@/hooks/useApiCall";
 import { useTracks } from "@/hooks/useF1Metadata";
+import { getCurrentSeasonYear } from "@/lib/season";
 import { motion } from "framer-motion";
 import {
     Flag,
@@ -32,11 +33,12 @@ const RacePredictor = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [inputError, setInputError] = useState("");
 
+  const currentSeasonYear = getCurrentSeasonYear();
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const { data: apiTracks } = useTracks();
+  const { data: apiTracks } = useTracks(currentSeasonYear);
   const tracks = (apiTracks || []).map((t) => ({
     name: t.race_name,
     circuit: t.circuit,
@@ -179,7 +181,7 @@ const RacePredictor = () => {
               PREDICTOR
             </h1>
             <p className="text-white/50 text-xl font-light max-w-2xl mt-4">
-              Simulate final positions for the entire 2025 grid based on
+              Simulate final positions for the current {currentSeasonYear} grid based on
               qualifying results, historical team performance, and dynamic race
               conditions via continuous machine learning.
             </p>

@@ -4,11 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Flag } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useTracks, type Track } from "@/hooks/useF1Metadata";
+import { useTracks } from "@/hooks/useF1Metadata";
+import {
+  formatRaceDate,
+  getCurrentSeasonYear,
+} from "@/lib/season";
 
 export const UpcomingRaceCard = () => {
   const [timeLeft, setTimeLeft] = useState("");
-  const { data: tracks } = useTracks();
+  const currentYear = getCurrentSeasonYear();
+  const { data: tracks } = useTracks(currentYear);
 
   const nextRace = (() => {
     if (!tracks?.length) return null;
@@ -41,8 +46,6 @@ export const UpcomingRaceCard = () => {
 
   if (!nextRace) return null;
 
-  const currentYear = new Date().getFullYear();
-
   return (
     <Card className="w-full max-w-2xl mx-auto bg-gradient-to-br from-background to-muted/50">
       <CardHeader>
@@ -64,7 +67,7 @@ export const UpcomingRaceCard = () => {
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              <span>{new Date(nextRace.date).toLocaleDateString()}</span>
+              <span>{formatRaceDate(nextRace.date)}</span>
             </div>
           </div>
         </div>

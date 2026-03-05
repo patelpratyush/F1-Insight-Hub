@@ -24,6 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WeatherContextPanel from "@/components/WeatherContextPanel";
 import { useDrivers, useTracks, type Driver } from "@/hooks/useF1Metadata";
+import { getCurrentSeasonYear } from "@/lib/season";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -53,7 +54,8 @@ import {
 } from "recharts";
 
 const TelemetryAnalyzer = () => {
-  const [selectedSeason, setSelectedSeason] = useState(String(new Date().getFullYear()));
+  const currentYear = getCurrentSeasonYear();
+  const [selectedSeason, setSelectedSeason] = useState(String(currentYear));
   const [selectedGP, setSelectedGP] = useState("");
   const [selectedSession, setSelectedSession] = useState("Qualifying"); // Start with Qualifying as most representative
   const [selectedDriver, setSelectedDriver] = useState("");
@@ -75,7 +77,6 @@ const TelemetryAnalyzer = () => {
     setIsVisible(true);
   }, []);
 
-  const currentYear = new Date().getFullYear();
   const seasons = Array.from({ length: 3 }, (_, i) => String(currentYear - 2 + i));
   const sessionMap = {
     "Practice 2": "FP2", // Most representative practice session
@@ -86,8 +87,9 @@ const TelemetryAnalyzer = () => {
     Race: "R", // Full race distance
   };
 
-  const { data: apiDrivers } = useDrivers();
-  const { data: apiTracks } = useTracks();
+  const selectedSeasonYear = parseInt(selectedSeason, 10) || currentYear;
+  const { data: apiDrivers } = useDrivers(selectedSeasonYear);
+  const { data: apiTracks } = useTracks(selectedSeasonYear);
   const driverList = apiDrivers || [];
   const drivers = driverList.map((d) => d.code);
   const trackNames = (apiTracks || []).map((t) => t.race_name);
@@ -285,7 +287,7 @@ const TelemetryAnalyzer = () => {
   };
 
   // Get race options from API data
-  // Hybrid approach: Filter API races against standard 2025 track list for consistency
+  // Filter API races against the selected season schedule for a consistent race list
   const apiRaces = availableRaces?.available_races || [];
   const raceOptions = apiRaces.filter((race) =>
     trackNames.some(
