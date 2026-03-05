@@ -1,0 +1,29 @@
+{
+  "_comment": "Fallback driver skill ratings. 2025 values used as pre-season estimates until 2026 race data is available. Update once season starts.",
+  "drivers": {
+    "Max Verstappen": {"overall_skill": 0.95, "wet_skill": 0.95, "race_craft": 0.93, "strategy_execution": 0.90},
+    "Oscar Piastri": {"overall_skill": 0.94, "wet_skill": 0.88, "race_craft": 0.92, "strategy_execution": 0.90},
+    "Lando Norris": {"overall_skill": 0.92, "wet_skill": 0.86, "race_craft": 0.89, "strategy_execution": 0.88},
+    "Lewis Hamilton": {"overall_skill": 0.88, "wet_skill": 0.93, "race_craft": 0.90, "strategy_execution": 0.85},
+    "George Russell": {"overall_skill": 0.86, "wet_skill": 0.84, "race_craft": 0.85, "strategy_execution": 0.87},
+    "Charles Leclerc": {"overall_skill": 0.85, "wet_skill": 0.82, "race_craft": 0.84, "strategy_execution": 0.80},
+    "Fernando Alonso": {"overall_skill": 0.84, "wet_skill": 0.88, "race_craft": 0.87, "strategy_execution": 0.85},
+    "Carlos Sainz": {"overall_skill": 0.82, "wet_skill": 0.79, "race_craft": 0.83, "strategy_execution": 0.82},
+    "Yuki Tsunoda": {"overall_skill": 0.79, "wet_skill": 0.76, "race_craft": 0.78, "strategy_execution": 0.75},
+    "Isack Hadjar": {"overall_skill": 0.74, "wet_skill": 0.71, "race_craft": 0.73, "strategy_execution": 0.70},
+    "Alexander Albon": {"overall_skill": 0.78, "wet_skill": 0.75, "race_craft": 0.79, "strategy_execution": 0.80},
+    "Nico Hülkenberg": {"overall_skill": 0.78, "wet_skill": 0.80, "race_craft": 0.77, "strategy_execution": 0.82},
+    "Pierre Gasly": {"overall_skill": 0.77, "wet_skill": 0.79, "race_craft": 0.76, "strategy_execution": 0.78},
+    "Esteban Ocon": {"overall_skill": 0.76, "wet_skill": 0.74, "race_craft": 0.75, "strategy_execution": 0.77},
+    "Liam Lawson": {"overall_skill": 0.74, "wet_skill": 0.71, "race_craft": 0.73, "strategy_execution": 0.70},
+    "Andrea Kimi Antonelli": {"overall_skill": 0.73, "wet_skill": 0.70, "race_craft": 0.71, "strategy_execution": 0.68},
+    "Oliver Bearman": {"overall_skill": 0.71, "wet_skill": 0.68, "race_craft": 0.70, "strategy_execution": 0.67},
+    "Gabriel Bortoleto": {"overall_skill": 0.70, "wet_skill": 0.67, "race_craft": 0.69, "strategy_execution": 0.66},
+    "Franco Colapinto": {"overall_skill": 0.72, "wet_skill": 0.69, "race_craft": 0.71, "strategy_execution": 0.68},
+    "Arvid Lindblad": {"overall_skill": 0.68, "wet_skill": 0.65, "race_craft": 0.67, "strategy_execution": 0.65},
+    "Lance Stroll": {"overall_skill": 0.68, "wet_skill": 0.65, "race_craft": 0.66, "strategy_execution": 0.67},
+    "Valtteri Bottas": {"overall_skill": 0.76, "wet_skill": 0.75, "race_craft": 0.74, "strategy_execution": 0.78},
+    "Sergio Pérez": {"overall_skill": 0.74, "wet_skill": 0.72, "race_craft": 0.73, "strategy_execution": 0.76}
+  },
+  "default": {"overall_skill": 0.70, "wet_skill": 0.68, "race_craft": 0.68, "strategy_execution": 0.68}
+}

@@ -7,6 +7,7 @@ Provides full grid race predictions using enhanced ensemble models with weather 
 import pandas as pd
 import numpy as np
 import os
+import json
 import logging
 import pickle
 from typing import Dict, List, Optional, Tuple
@@ -25,48 +26,8 @@ class RacePredictionService:
         self.data_file = os.path.join(os.path.dirname(__file__), '..', 'f1_data.csv')
         self.fastf1_cache_dir = os.path.join(os.path.dirname(__file__), '..', 'cache')
         
-        # Driver roster for 2025 season
-        self.drivers_2025 = {
-            # Red Bull Racing - Max + Yuki (Pérez replaced by Tsunoda)
-            'VER': {'name': 'Max Verstappen', 'team': 'Red Bull Racing Honda RBPT', 'number': 1},
-            'TSU': {'name': 'Yuki Tsunoda', 'team': 'Red Bull Racing Honda RBPT', 'number': 22},
-            
-            # Ferrari - Lewis Hamilton joins Ferrari!
-            'HAM': {'name': 'Lewis Hamilton', 'team': 'Scuderia Ferrari', 'number': 44},
-            'LEC': {'name': 'Charles Leclerc', 'team': 'Scuderia Ferrari', 'number': 16},
-            
-            # Mercedes - Kimi Antonelli debuts
-            'RUS': {'name': 'George Russell', 'team': 'Mercedes', 'number': 63},
-            'ANT': {'name': 'Kimi Antonelli', 'team': 'Mercedes', 'number': 12},
-            
-            # McLaren
-            'NOR': {'name': 'Lando Norris', 'team': 'McLaren Mercedes', 'number': 4},
-            'PIA': {'name': 'Oscar Piastri', 'team': 'McLaren Mercedes', 'number': 81},
-            
-            # Aston Martin
-            'ALO': {'name': 'Fernando Alonso', 'team': 'Aston Martin Aramco Mercedes', 'number': 14},
-            'STR': {'name': 'Lance Stroll', 'team': 'Aston Martin Aramco Mercedes', 'number': 18},
-            
-            # Alpine - Pierre + Franco (Ocon moved to Haas)
-            'GAS': {'name': 'Pierre Gasly', 'team': 'BWT Alpine F1 Team', 'number': 10},
-            'COL': {'name': 'Franco Colapinto', 'team': 'BWT Alpine F1 Team', 'number': 43},
-            
-            # Racing Bulls (formerly RB) - Liam + Isack
-            'LAW': {'name': 'Liam Lawson', 'team': 'Racing Bulls F1 Team', 'number': 30},
-            'HAD': {'name': 'Isack Hadjar', 'team': 'Racing Bulls F1 Team', 'number': 6},
-            
-            # Williams - Carlos Sainz joins
-            'SAI': {'name': 'Carlos Sainz', 'team': 'Williams Mercedes', 'number': 55},
-            'ALB': {'name': 'Alexander Albon', 'team': 'Williams Mercedes', 'number': 23},
-            
-            # Haas - Esteban + Oliver (Ocon joins, Hülkenberg to Kick Sauber)
-            'OCO': {'name': 'Esteban Ocon', 'team': 'MoneyGram Haas F1 Team', 'number': 31},
-            'BEA': {'name': 'Oliver Bearman', 'team': 'MoneyGram Haas F1 Team', 'number': 38},
-            
-            # Kick Sauber - Nico + Gabriel (Hülkenberg joins)
-            'HUL': {'name': 'Nico Hülkenberg', 'team': 'Kick Sauber F1 Team', 'number': 27},
-            'BOR': {'name': 'Gabriel Bortoleto', 'team': 'Kick Sauber F1 Team', 'number': 5}
-        }
+        # Driver roster loaded from config with cache_manager fallback
+        self._fallback_roster = self._load_fallback_roster()
         
         # Weather impact factors for different conditions
         self.weather_effects = {
@@ -129,9 +90,33 @@ class RacePredictionService:
         # Load historical data for driver form analysis
         self._load_historical_data()
         
-        # Load 2025 FastF1 cache data for accurate performance ratings
+        # Load current-season FastF1 cache data for accurate performance ratings
         self._load_2025_fastf1_data()
-    
+
+    def _load_fallback_roster(self) -> Dict:
+        """Load fallback driver roster from JSON config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_driver_roster.json')
+        try:
+            with open(config_path) as f:
+                return json.load(f).get("drivers", {})
+        except Exception:
+            logger.warning("Could not load fallback_driver_roster.json")
+            return {}
+
+    def _get_driver_roster(self, year: int = None) -> Dict:
+        """Get driver roster: cache_manager first, fallback JSON second."""
+        from services.cache_manager import cache_manager
+        if year is None:
+            from datetime import datetime, timezone
+            year = datetime.now(timezone.utc).year
+        drivers = cache_manager.get_drivers(year)
+        if drivers:
+            return {
+                d["code"]: {"name": d["name"], "team": cache_manager.get_driver_team(d["code"], year), "number": int(d.get("number", 0)) if str(d.get("number", "")).isdigit() else 0}
+                for d in drivers if d.get("code")
+            }
+        return self._fallback_roster
+
     def _load_historical_data(self):
         """Load historical F1 data and calculate performance ratings"""
         try:
@@ -264,7 +249,7 @@ class RacePredictionService:
                     driver_name = None
                     team = None
                     
-                    for code, info in self.drivers_2025.items():
+                    for code, info in self._get_driver_roster().items():
                         if str(info['number']) == driver_num:
                             driver_code = code
                             driver_name = info['name']
@@ -326,8 +311,8 @@ class RacePredictionService:
                             'race_name': race_name,
                             'race_date': race_date,
                             'driver': driver_code,
-                            'driver_name': self.drivers_2025.get(driver_code, {}).get('name', driver_code),
-                            'team': self.drivers_2025.get(driver_code, {}).get('team', 'Unknown'),
+                            'driver_name': self._get_driver_roster().get(driver_code, {}).get('name', driver_code),
+                            'team': self._get_driver_roster().get(driver_code, {}).get('team', 'Unknown'),
                             'position': int(position),
                             'grid_position': int(position),  # Approximation
                             'points': self._calculate_points_for_position(int(position)),
@@ -349,8 +334,8 @@ class RacePredictionService:
                                 'race_name': race_name,
                                 'race_date': race_date,
                                 'driver': driver_code,
-                                'driver_name': self.drivers_2025.get(driver_code, {}).get('name', driver_code),
-                                'team': self.drivers_2025.get(driver_code, {}).get('team', 'Unknown'),
+                                'driver_name': self._get_driver_roster().get(driver_code, {}).get('name', driver_code),
+                                'team': self._get_driver_roster().get(driver_code, {}).get('team', 'Unknown'),
                                 'position': int(position),
                                 'grid_position': driver_timing.get('GridPosition', int(position)),
                                 'points': self._calculate_points_for_position(int(position)),
@@ -603,76 +588,26 @@ class RacePredictionService:
         self._set_fallback_driver_ratings()
     
     def _set_fallback_car_ratings(self):
-        """Set realistic 2025 season fallback car ratings based on current championship"""
-        self.car_performance = {
-            # McLaren - Currently dominating 2025 season (Piastri P1, Norris P2)
-            'McLaren Mercedes': {'dry_pace': 0.94, 'wet_pace': 0.91, 'strategy': 0.88, 'reliability': 0.87},
-            
-            # Red Bull - Still competitive but not dominant anymore
-            'Red Bull Racing Honda RBPT': {'dry_pace': 0.89, 'wet_pace': 0.92, 'strategy': 0.90, 'reliability': 0.85},
-            
-            # Mercedes - Competitive midfield with Russell and Antonelli
-            'Mercedes': {'dry_pace': 0.85, 'wet_pace': 0.88, 'strategy': 0.83, 'reliability': 0.86},
-            
-            # Ferrari - Midfield struggles despite Hamilton joining
-            'Scuderia Ferrari': {'dry_pace': 0.82, 'wet_pace': 0.80, 'strategy': 0.75, 'reliability': 0.78},
-            
-            # Williams - Decent midfield with Sainz upgrade
-            'Williams Mercedes': {'dry_pace': 0.78, 'wet_pace': 0.76, 'strategy': 0.74, 'reliability': 0.80},
-            
-            # Haas - Improved with Ocon
-            'MoneyGram Haas F1 Team': {'dry_pace': 0.76, 'wet_pace': 0.74, 'strategy': 0.72, 'reliability': 0.77},
-            
-            # Kick Sauber - Midfield with Hulkenberg experience
-            'Kick Sauber F1 Team': {'dry_pace': 0.75, 'wet_pace': 0.73, 'strategy': 0.70, 'reliability': 0.75},
-            
-            # Alpine - Struggling midfield
-            'BWT Alpine F1 Team': {'dry_pace': 0.73, 'wet_pace': 0.72, 'strategy': 0.68, 'reliability': 0.74},
-            
-            # Racing Bulls - Lower midfield
-            'Racing Bulls F1 Team': {'dry_pace': 0.72, 'wet_pace': 0.71, 'strategy': 0.67, 'reliability': 0.73},
-            
-            # Aston Martin - STRUGGLING (realistic for 2025 - their car is ass)
-            'Aston Martin Aramco Mercedes': {'dry_pace': 0.68, 'wet_pace': 0.66, 'strategy': 0.65, 'reliability': 0.70},
-        }
-        logger.warning("Using realistic 2025 season fallback car performance ratings")
+        """Load fallback car ratings from JSON config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_team_ratings.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f)
+                self.car_performance = data.get("teams", {})
+        except Exception:
+            self.car_performance = {}
+        logger.warning("Using fallback car performance ratings from config")
     
     def _set_fallback_driver_ratings(self):
-        """Set realistic 2025 season fallback driver ratings based on current performance"""
-        self.driver_performance = {
-            # McLaren drivers - Currently leading championship
-            'Oscar Piastri': {'overall_skill': 0.94, 'wet_skill': 0.88, 'race_craft': 0.92, 'strategy_execution': 0.90},
-            'Lando Norris': {'overall_skill': 0.92, 'wet_skill': 0.86, 'race_craft': 0.89, 'strategy_execution': 0.88},
-            
-            # Top tier drivers
-            'Max Verstappen': {'overall_skill': 0.95, 'wet_skill': 0.95, 'race_craft': 0.93, 'strategy_execution': 0.90},
-            'Lewis Hamilton': {'overall_skill': 0.88, 'wet_skill': 0.93, 'race_craft': 0.90, 'strategy_execution': 0.85},
-            'George Russell': {'overall_skill': 0.86, 'wet_skill': 0.84, 'race_craft': 0.85, 'strategy_execution': 0.87},
-            
-            # Second tier
-            'Charles Leclerc': {'overall_skill': 0.85, 'wet_skill': 0.82, 'race_craft': 0.84, 'strategy_execution': 0.80},
-            'Carlos Sainz': {'overall_skill': 0.82, 'wet_skill': 0.79, 'race_craft': 0.83, 'strategy_execution': 0.82},
-            'Fernando Alonso': {'overall_skill': 0.84, 'wet_skill': 0.88, 'race_craft': 0.87, 'strategy_execution': 0.85},
-            'Yuki Tsunoda': {'overall_skill': 0.79, 'wet_skill': 0.76, 'race_craft': 0.78, 'strategy_execution': 0.75},
-            
-            # Experienced midfield
-            'Alexander Albon': {'overall_skill': 0.78, 'wet_skill': 0.75, 'race_craft': 0.79, 'strategy_execution': 0.80},
-            'Pierre Gasly': {'overall_skill': 0.77, 'wet_skill': 0.79, 'race_craft': 0.76, 'strategy_execution': 0.78},
-            'Esteban Ocon': {'overall_skill': 0.76, 'wet_skill': 0.74, 'race_craft': 0.75, 'strategy_execution': 0.77},
-            'Nico Hülkenberg': {'overall_skill': 0.78, 'wet_skill': 0.80, 'race_craft': 0.77, 'strategy_execution': 0.82},
-            
-            # Rising stars / Rookies
-            'Kimi Antonelli': {'overall_skill': 0.73, 'wet_skill': 0.70, 'race_craft': 0.71, 'strategy_execution': 0.68},
-            'Oliver Bearman': {'overall_skill': 0.71, 'wet_skill': 0.68, 'race_craft': 0.70, 'strategy_execution': 0.67},
-            'Gabriel Bortoleto': {'overall_skill': 0.70, 'wet_skill': 0.67, 'race_craft': 0.69, 'strategy_execution': 0.66},
-            'Franco Colapinto': {'overall_skill': 0.72, 'wet_skill': 0.69, 'race_craft': 0.71, 'strategy_execution': 0.68},
-            'Liam Lawson': {'overall_skill': 0.74, 'wet_skill': 0.71, 'race_craft': 0.73, 'strategy_execution': 0.70},
-            'Isack Hadjar': {'overall_skill': 0.72, 'wet_skill': 0.69, 'race_craft': 0.71, 'strategy_execution': 0.68},
-            
-            # Pay drivers / Struggling
-            'Lance Stroll': {'overall_skill': 0.68, 'wet_skill': 0.65, 'race_craft': 0.66, 'strategy_execution': 0.67},
-        }
-        logger.warning("Using realistic 2025 season fallback driver performance ratings")
+        """Load fallback driver ratings from JSON config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_driver_ratings.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f)
+                self.driver_performance = data.get("drivers", {})
+        except Exception:
+            self.driver_performance = {}
+        logger.warning("Using fallback driver performance ratings from config")
     
     def _get_field_average_performance(self) -> float:
         """Calculate field average performance from actual 2025 data"""
@@ -682,49 +617,25 @@ class RacePredictionService:
         return 0.75  # Default if no data
     
     def _get_team_fallback_rating(self, team: str) -> Dict:
-        """Get fallback rating for a specific team"""
-        # Create temporary fallback ratings dict
-        fallback_car_ratings = {
-            'McLaren Mercedes': {'dry_pace': 0.94, 'wet_pace': 0.91, 'strategy': 0.88, 'reliability': 0.87},
-            'Red Bull Racing Honda RBPT': {'dry_pace': 0.89, 'wet_pace': 0.92, 'strategy': 0.90, 'reliability': 0.85},
-            'Mercedes': {'dry_pace': 0.85, 'wet_pace': 0.88, 'strategy': 0.83, 'reliability': 0.86},
-            'Scuderia Ferrari': {'dry_pace': 0.82, 'wet_pace': 0.80, 'strategy': 0.75, 'reliability': 0.78},
-            'Williams Mercedes': {'dry_pace': 0.78, 'wet_pace': 0.76, 'strategy': 0.74, 'reliability': 0.80},
-            'MoneyGram Haas F1 Team': {'dry_pace': 0.76, 'wet_pace': 0.74, 'strategy': 0.72, 'reliability': 0.77},
-            'Kick Sauber F1 Team': {'dry_pace': 0.75, 'wet_pace': 0.73, 'strategy': 0.70, 'reliability': 0.75},
-            'BWT Alpine F1 Team': {'dry_pace': 0.73, 'wet_pace': 0.72, 'strategy': 0.68, 'reliability': 0.74},
-            'Racing Bulls F1 Team': {'dry_pace': 0.72, 'wet_pace': 0.71, 'strategy': 0.67, 'reliability': 0.73},
-            'Aston Martin Aramco Mercedes': {'dry_pace': 0.68, 'wet_pace': 0.66, 'strategy': 0.65, 'reliability': 0.70},
-        }
-        return fallback_car_ratings.get(team, {'dry_pace': 0.70, 'wet_pace': 0.70, 'strategy': 0.70, 'reliability': 0.75})
-    
+        """Get fallback rating for a specific team from config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_team_ratings.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f)
+                return data["teams"].get(team, data.get("default", {}))
+        except Exception:
+            return {'dry_pace': 0.70, 'wet_pace': 0.70, 'strategy': 0.70, 'reliability': 0.75}
+
     def _get_driver_fallback_rating(self, driver_name: str) -> Dict:
-        """Get fallback rating for a specific driver"""
-        # Create temporary fallback ratings dict based on 2025 performance
-        fallback_driver_ratings = {
-            'Oscar Piastri': {'overall_skill': 0.94, 'wet_skill': 0.88, 'race_craft': 0.92, 'strategy_execution': 0.90},
-            'Lando Norris': {'overall_skill': 0.92, 'wet_skill': 0.86, 'race_craft': 0.89, 'strategy_execution': 0.88},
-            'Max Verstappen': {'overall_skill': 0.95, 'wet_skill': 0.95, 'race_craft': 0.93, 'strategy_execution': 0.90},
-            'Lewis Hamilton': {'overall_skill': 0.88, 'wet_skill': 0.93, 'race_craft': 0.90, 'strategy_execution': 0.85},
-            'George Russell': {'overall_skill': 0.86, 'wet_skill': 0.84, 'race_craft': 0.85, 'strategy_execution': 0.87},
-            'Charles Leclerc': {'overall_skill': 0.85, 'wet_skill': 0.82, 'race_craft': 0.84, 'strategy_execution': 0.80},
-            'Carlos Sainz': {'overall_skill': 0.82, 'wet_skill': 0.79, 'race_craft': 0.83, 'strategy_execution': 0.82},
-            'Fernando Alonso': {'overall_skill': 0.84, 'wet_skill': 0.88, 'race_craft': 0.87, 'strategy_execution': 0.85},
-            'Yuki Tsunoda': {'overall_skill': 0.79, 'wet_skill': 0.76, 'race_craft': 0.78, 'strategy_execution': 0.75},
-            'Alexander Albon': {'overall_skill': 0.78, 'wet_skill': 0.75, 'race_craft': 0.79, 'strategy_execution': 0.80},
-            'Pierre Gasly': {'overall_skill': 0.77, 'wet_skill': 0.79, 'race_craft': 0.76, 'strategy_execution': 0.78},
-            'Esteban Ocon': {'overall_skill': 0.76, 'wet_skill': 0.74, 'race_craft': 0.75, 'strategy_execution': 0.77},
-            'Nico Hülkenberg': {'overall_skill': 0.78, 'wet_skill': 0.80, 'race_craft': 0.77, 'strategy_execution': 0.82},
-            'Kimi Antonelli': {'overall_skill': 0.73, 'wet_skill': 0.70, 'race_craft': 0.71, 'strategy_execution': 0.68},
-            'Oliver Bearman': {'overall_skill': 0.71, 'wet_skill': 0.68, 'race_craft': 0.70, 'strategy_execution': 0.67},
-            'Gabriel Bortoleto': {'overall_skill': 0.70, 'wet_skill': 0.67, 'race_craft': 0.69, 'strategy_execution': 0.66},
-            'Franco Colapinto': {'overall_skill': 0.72, 'wet_skill': 0.69, 'race_craft': 0.71, 'strategy_execution': 0.68},
-            'Liam Lawson': {'overall_skill': 0.74, 'wet_skill': 0.71, 'race_craft': 0.73, 'strategy_execution': 0.70},
-            'Isack Hadjar': {'overall_skill': 0.72, 'wet_skill': 0.69, 'race_craft': 0.71, 'strategy_execution': 0.68},
-            'Lance Stroll': {'overall_skill': 0.68, 'wet_skill': 0.65, 'race_craft': 0.66, 'strategy_execution': 0.67},
-        }
-        return fallback_driver_ratings.get(driver_name, {'overall_skill': 0.72, 'wet_skill': 0.70, 'race_craft': 0.70, 'strategy_execution': 0.68})
-    
+        """Get fallback rating for a specific driver from config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_driver_ratings.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f)
+                return data["drivers"].get(driver_name, data.get("default", {}))
+        except Exception:
+            return {'overall_skill': 0.70, 'wet_skill': 0.68, 'race_craft': 0.68, 'strategy_execution': 0.68}
+
     def predict_race_grid(self, race_name: str, weather: str = "Dry", 
                          qualifying_results: Optional[Dict[str, int]] = None,
                          temperature: float = 25.0) -> Dict:
@@ -746,7 +657,7 @@ class RacePredictionService:
             # Generate baseline predictions for all drivers
             race_predictions = []
             
-            for driver_code, driver_info in self.drivers_2025.items():
+            for driver_code, driver_info in self._get_driver_roster().items():
                 try:
                     # Get qualifying position (default to random if not provided)
                     quali_pos = qualifying_results.get(driver_code, np.random.randint(1, 21)) if qualifying_results else np.random.randint(1, 21)
@@ -846,7 +757,7 @@ class RacePredictionService:
             
             # Use calculated 2025 performance data - prioritize actual results over fallbacks
             car_stats = self.car_performance.get(team, {})
-            driver_full_name = self.drivers_2025.get(driver, {}).get('name', driver)
+            driver_full_name = self._get_driver_roster().get(driver, {}).get('name', driver)
             driver_stats = self.driver_performance.get(driver_full_name, {})
             
             # If no 2025 data exists, use realistic fallback based on known 2025 performance
@@ -953,7 +864,7 @@ class RacePredictionService:
         variance = weather_data['driver_variance']
         
         # Get data-driven driver and car performance
-        driver_full_name = self.drivers_2025.get(driver, {}).get('name', driver)
+        driver_full_name = self._get_driver_roster().get(driver, {}).get('name', driver)
         driver_stats = self.driver_performance.get(driver_full_name, {})
         car_stats = self.car_performance.get(team, {})
         
@@ -1022,13 +933,13 @@ class RacePredictionService:
     
     def _get_driver_skill_rating(self, driver: str) -> float:
         """Get data-driven driver skill rating (0-1 scale)"""
-        driver_full_name = self.drivers_2025.get(driver, {}).get('name', driver)
+        driver_full_name = self._get_driver_roster().get(driver, {}).get('name', driver)
         driver_stats = self.driver_performance.get(driver_full_name, {})
         return driver_stats.get('overall_skill', 0.70)  # Default to 0.70 for unknown drivers
     
     def _get_strategy_skill(self, driver: str) -> float:
         """Get data-driven driver/team strategy skill rating (0-1 scale)"""
-        driver_full_name = self.drivers_2025.get(driver, {}).get('name', driver)
+        driver_full_name = self._get_driver_roster().get(driver, {}).get('name', driver)
         driver_stats = self.driver_performance.get(driver_full_name, {})
         return driver_stats.get('strategy_execution', 0.65)  # Default for unknown drivers
     

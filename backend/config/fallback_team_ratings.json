@@ -1,0 +1,17 @@
+{
+  "_comment": "Fallback team car performance ratings. 2025 values used as pre-season estimates until 2026 race data is available. Update once season starts.",
+  "teams": {
+    "McLaren": {"dry_pace": 0.94, "wet_pace": 0.91, "strategy": 0.88, "reliability": 0.87},
+    "Red Bull": {"dry_pace": 0.89, "wet_pace": 0.92, "strategy": 0.90, "reliability": 0.85},
+    "Mercedes": {"dry_pace": 0.85, "wet_pace": 0.88, "strategy": 0.83, "reliability": 0.86},
+    "Ferrari": {"dry_pace": 0.82, "wet_pace": 0.80, "strategy": 0.75, "reliability": 0.78},
+    "Williams": {"dry_pace": 0.78, "wet_pace": 0.76, "strategy": 0.74, "reliability": 0.80},
+    "Haas F1 Team": {"dry_pace": 0.76, "wet_pace": 0.74, "strategy": 0.72, "reliability": 0.77},
+    "Audi": {"dry_pace": 0.75, "wet_pace": 0.73, "strategy": 0.70, "reliability": 0.75},
+    "Alpine F1 Team": {"dry_pace": 0.73, "wet_pace": 0.72, "strategy": 0.68, "reliability": 0.74},
+    "RB F1 Team": {"dry_pace": 0.72, "wet_pace": 0.71, "strategy": 0.67, "reliability": 0.73},
+    "Aston Martin": {"dry_pace": 0.68, "wet_pace": 0.66, "strategy": 0.65, "reliability": 0.70},
+    "Cadillac F1 Team": {"dry_pace": 0.65, "wet_pace": 0.63, "strategy": 0.62, "reliability": 0.68}
+  },
+  "default": {"dry_pace": 0.70, "wet_pace": 0.70, "strategy": 0.70, "reliability": 0.75}
+}

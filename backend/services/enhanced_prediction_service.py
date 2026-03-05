@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import os
 import sys
+import json
 import joblib
 import logging
 from typing import Dict, List, Optional, Tuple
@@ -29,42 +30,9 @@ class EnhancedPredictionService:
         # Use the correct 2025 performance ratings from race_prediction_service
         self.race_service = race_prediction_service
         
-        # Current season driver and team mappings
-        self.current_drivers = {
-            'VER': 'Max Verstappen',
-            'NOR': 'Lando Norris', 
-            'BOR': 'Gabriel Bortoleto',
-            'HAD': 'Isack Hadjar',
-            'GAS': 'Pierre Gasly',
-            'ANT': 'Andrea Kimi Antonelli',
-            'ALO': 'Fernando Alonso',
-            'LEC': 'Charles Leclerc',
-            'STR': 'Lance Stroll',
-            'TSU': 'Yuki Tsunoda',
-            'ALB': 'Alexander Albon',
-            'HUL': 'Nico Hulkenberg',
-            'LAW': 'Liam Lawson',
-            'OCO': 'Esteban Ocon',
-            'COL': 'Franco Colapinto',
-            'HAM': 'Lewis Hamilton',
-            'SAI': 'Carlos Sainz',
-            'RUS': 'George Russell',
-            'PIA': 'Oscar Piastri',
-            'BEA': 'Oliver Bearman'
-        }
-        
-        self.current_teams = {
-            'Red Bull': 'Red Bull Racing Honda RBPT',
-            'Ferrari': 'Scuderia Ferrari',
-            'Mercedes': 'Mercedes',
-            'McLaren': 'McLaren Mercedes',
-            'Aston Martin': 'Aston Martin Aramco Mercedes',
-            'Alpine': 'BWT Alpine F1 Team',
-            'AlphaTauri': 'Visa Cash App RB F1 Team',
-            'Williams': 'Williams Mercedes',
-            'Haas': 'MoneyGram Haas F1 Team',
-            'Kick Sauber': 'Kick Sauber F1 Team'
-        }
+        # Current season driver and team mappings (loaded dynamically)
+        self.current_drivers = self._get_current_drivers()
+        self.current_teams = self._get_current_teams()
         
         # Car and driver performance ratings (calculated from data)
         self.car_performance = {}
@@ -76,6 +44,31 @@ class EnhancedPredictionService:
         # Enhanced ensemble models are ready via ensemble_service
         logger.info("Using enhanced ensemble models for improved predictions")
     
+    def _get_current_drivers(self) -> Dict[str, str]:
+        """Get driver code->name mapping from cache, fallback to config."""
+        from services.cache_manager import cache_manager
+        from datetime import datetime, timezone
+        year = datetime.now(timezone.utc).year
+        code_map = cache_manager.get_driver_code_map(year)
+        if code_map:
+            return code_map
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_driver_roster.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f).get("drivers", {})
+                return {code: info["name"] for code, info in data.items()}
+        except Exception:
+            return {}
+
+    def _get_current_teams(self) -> Dict[str, str]:
+        """Get team short->full name mapping from config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'team_name_mapping.json')
+        try:
+            with open(config_path) as f:
+                return json.load(f).get("teams", {})
+        except Exception:
+            return {}
+
     def _load_historical_data(self):
         """Load historical F1 data and calculate performance ratings"""
         try:
@@ -219,24 +212,26 @@ class EnhancedPredictionService:
         self._set_fallback_driver_ratings()
     
     def _set_fallback_car_ratings(self):
-        """Set basic fallback car ratings"""
-        self.car_performance = {
-            'Red Bull Racing Honda RBPT': {'dry_pace': 0.90, 'wet_pace': 0.88, 'strategy': 0.85, 'reliability': 0.82},
-            'McLaren Mercedes': {'dry_pace': 0.88, 'wet_pace': 0.86, 'strategy': 0.83, 'reliability': 0.80},
-            'Scuderia Ferrari': {'dry_pace': 0.85, 'wet_pace': 0.82, 'strategy': 0.75, 'reliability': 0.78},
-            'Mercedes': {'dry_pace': 0.82, 'wet_pace': 0.85, 'strategy': 0.80, 'reliability': 0.83},
-        }
-        logger.warning("Using fallback car performance ratings")
-    
+        """Load fallback car ratings from JSON config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_team_ratings.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f)
+                self.car_performance = data.get("teams", {})
+        except Exception:
+            self.car_performance = {}
+        logger.warning("Using fallback car performance ratings from config")
+
     def _set_fallback_driver_ratings(self):
-        """Set basic fallback driver ratings"""
-        self.driver_performance = {
-            'Max Verstappen': {'overall_skill': 0.95, 'wet_skill': 0.92, 'race_craft': 0.90, 'strategy_execution': 0.88},
-            'Lewis Hamilton': {'overall_skill': 0.90, 'wet_skill': 0.95, 'race_craft': 0.92, 'strategy_execution': 0.85},
-            'Charles Leclerc': {'overall_skill': 0.88, 'wet_skill': 0.85, 'race_craft': 0.86, 'strategy_execution': 0.82},
-            'Lando Norris': {'overall_skill': 0.87, 'wet_skill': 0.83, 'race_craft': 0.85, 'strategy_execution': 0.84},
-        }
-        logger.warning("Using fallback driver performance ratings")
+        """Load fallback driver ratings from JSON config."""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'fallback_driver_ratings.json')
+        try:
+            with open(config_path) as f:
+                data = json.load(f)
+                self.driver_performance = data.get("drivers", {})
+        except Exception:
+            self.driver_performance = {}
+        logger.warning("Using fallback driver performance ratings from config")
     
     # Legacy model initialization removed - now using enhanced ensemble service
     

@@ -1,0 +1,27 @@
+{
+  "_comment": "Fallback driver roster for 2026 season. Used by prediction services when cache_manager has no data. Update each season.",
+  "drivers": {
+    "VER": {"name": "Max Verstappen", "team": "Red Bull", "number": 3},
+    "HAD": {"name": "Isack Hadjar", "team": "Red Bull", "number": 6},
+    "HAM": {"name": "Lewis Hamilton", "team": "Ferrari", "number": 44},
+    "LEC": {"name": "Charles Leclerc", "team": "Ferrari", "number": 16},
+    "RUS": {"name": "George Russell", "team": "Mercedes", "number": 63},
+    "ANT": {"name": "Andrea Kimi Antonelli", "team": "Mercedes", "number": 12},
+    "NOR": {"name": "Lando Norris", "team": "McLaren", "number": 4},
+    "PIA": {"name": "Oscar Piastri", "team": "McLaren", "number": 81},
+    "ALO": {"name": "Fernando Alonso", "team": "Aston Martin", "number": 14},
+    "STR": {"name": "Lance Stroll", "team": "Aston Martin", "number": 18},
+    "GAS": {"name": "Pierre Gasly", "team": "Alpine F1 Team", "number": 10},
+    "COL": {"name": "Franco Colapinto", "team": "Alpine F1 Team", "number": 43},
+    "LAW": {"name": "Liam Lawson", "team": "RB F1 Team", "number": 30},
+    "LIN": {"name": "Arvid Lindblad", "team": "RB F1 Team", "number": 7},
+    "SAI": {"name": "Carlos Sainz", "team": "Williams", "number": 55},
+    "ALB": {"name": "Alexander Albon", "team": "Williams", "number": 23},
+    "OCO": {"name": "Esteban Ocon", "team": "Haas F1 Team", "number": 31},
+    "BEA": {"name": "Oliver Bearman", "team": "Haas F1 Team", "number": 87},
+    "HUL": {"name": "Nico Hülkenberg", "team": "Audi", "number": 27},
+    "BOR": {"name": "Gabriel Bortoleto", "team": "Audi", "number": 5},
+    "BOT": {"name": "Valtteri Bottas", "team": "Cadillac F1 Team", "number": 77},
+    "PER": {"name": "Sergio Pérez", "team": "Cadillac F1 Team", "number": 11}
+  }
+}

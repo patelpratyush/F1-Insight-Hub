@@ -1,0 +1,20 @@
+{
+  "_comment": "Maps short/API team names to full official names used in race data. Update each season.",
+  "teams": {
+    "Red Bull": "Red Bull",
+    "Ferrari": "Ferrari",
+    "Mercedes": "Mercedes",
+    "McLaren": "McLaren",
+    "Aston Martin": "Aston Martin",
+    "Alpine": "Alpine F1 Team",
+    "Alpine F1 Team": "Alpine F1 Team",
+    "RB": "RB F1 Team",
+    "RB F1 Team": "RB F1 Team",
+    "Williams": "Williams",
+    "Haas": "Haas F1 Team",
+    "Haas F1 Team": "Haas F1 Team",
+    "Audi": "Audi",
+    "Cadillac": "Cadillac F1 Team",
+    "Cadillac F1 Team": "Cadillac F1 Team"
+  }
+}
