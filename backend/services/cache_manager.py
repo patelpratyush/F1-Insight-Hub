@@ -134,6 +134,7 @@ class CacheManager:
             self._loaded_years.add(year)
             self._initialized = True
             logger.info(f"CacheManager initialized for {year}")
+            self._update_fallback_configs(year)
         except Exception as e:
             # If hydration loaded data, we're still functional
             if self._loaded_years:
@@ -142,6 +143,82 @@ class CacheManager:
             else:
                 logger.error(f"CacheManager init failed (degraded mode): {e}")
         self._refresh_task = asyncio.create_task(self._periodic_refresh(year))
+
+    def _update_fallback_configs(self, year: int):
+        """Write live API data back to fallback JSON configs so they stay current."""
+        import json as json_module
+
+        drivers = self.get_drivers(year)
+        constructors = self.get_constructors(year)
+        if not drivers:
+            return
+
+        config_dir = os.path.join(os.path.dirname(__file__), '..', 'config')
+
+        # Build code->team map from standings (available mid-season) or existing JSON
+        standings_team = {s["driver"]: s["team"] for s in self.get_driver_standings(year)}
+
+        # --- fallback_driver_roster.json ---
+        roster_path = os.path.join(config_dir, 'fallback_driver_roster.json')
+        try:
+            with open(roster_path) as f:
+                roster_data = json_module.load(f)
+        except Exception:
+            roster_data = {}
+        existing_roster = roster_data.get("drivers", {})
+
+        new_roster = {}
+        for d in drivers:
+            code = d.get("code")
+            if not code:
+                continue
+            name = d.get("name", "")
+            number_str = str(d.get("number", ""))
+            number = int(number_str) if number_str.isdigit() else 0
+            # Prefer standings team, fall back to existing roster entry, then Unknown
+            team = standings_team.get(code) or existing_roster.get(code, {}).get("team", "Unknown")
+            new_roster[code] = {"name": name, "team": team, "number": number}
+
+        roster_data["_comment"] = f"Auto-updated from Jolpica API for {year} season. Do not edit manually."
+        roster_data["drivers"] = new_roster
+        with open(roster_path, 'w') as f:
+            json_module.dump(roster_data, f, indent=2, ensure_ascii=False)
+
+        # --- fallback_driver_ratings.json: add new drivers, keep existing ratings ---
+        ratings_path = os.path.join(config_dir, 'fallback_driver_ratings.json')
+        try:
+            with open(ratings_path) as f:
+                ratings_data = json_module.load(f)
+        except Exception:
+            ratings_data = {}
+        default_rating = ratings_data.get("default", {"overall_skill": 0.70, "wet_skill": 0.68, "race_craft": 0.68, "strategy_execution": 0.68})
+        driver_ratings = ratings_data.get("drivers", {})
+        for d in drivers:
+            name = d.get("name", "")
+            if name and name not in driver_ratings:
+                driver_ratings[name] = default_rating.copy()
+        ratings_data["drivers"] = driver_ratings
+        with open(ratings_path, 'w') as f:
+            json_module.dump(ratings_data, f, indent=2, ensure_ascii=False)
+
+        # --- fallback_team_ratings.json: add new teams, keep existing ratings ---
+        team_ratings_path = os.path.join(config_dir, 'fallback_team_ratings.json')
+        try:
+            with open(team_ratings_path) as f:
+                team_data = json_module.load(f)
+        except Exception:
+            team_data = {}
+        default_team = team_data.get("default", {"dry_pace": 0.70, "wet_pace": 0.70, "strategy": 0.70, "reliability": 0.75})
+        teams = team_data.get("teams", {})
+        for c in constructors:
+            team_name = c.get("name", "")
+            if team_name and team_name not in teams:
+                teams[team_name] = default_team.copy()
+        team_data["teams"] = teams
+        with open(team_ratings_path, 'w') as f:
+            json_module.dump(team_data, f, indent=2, ensure_ascii=False)
+
+        logger.info(f"Fallback configs updated from {year} API data ({len(new_roster)} drivers, {len(constructors)} teams)")
 
     async def shutdown(self):
         """Called from FastAPI shutdown."""
