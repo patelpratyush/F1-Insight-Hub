@@ -5,6 +5,7 @@ from .services.jolpica import JolpicaClient
 from .services.prediction import PredictionService
 from .services.telemetry import TelemetryService
 from .services.strategy import StrategyService
+from .services.weather import WeatherService
 
 
 def get_cache(request: Request) -> CacheService:
@@ -25,3 +26,10 @@ def get_telemetry_service(request: Request) -> TelemetryService:
 
 def get_strategy_service(request: Request) -> StrategyService:
     return StrategyService()
+
+
+def get_weather_service(request: Request) -> WeatherService:
+    return WeatherService(
+        api_key=settings.openweather_api_key,
+        session=request.app.state.jolpica._session,  # reuse shared aiohttp session
+    )
