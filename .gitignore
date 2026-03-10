@@ -37,3 +37,4 @@ backend/**/__pycache__/
 backend/cache/
 # backend/*.log
 backend/.env.worktrees/
+.worktrees/
