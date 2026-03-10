@@ -1111,10 +1111,11 @@ def simulate_race(
     in_pts   = np.zeros(n, dtype=int)
     pos_sum  = np.zeros(n, dtype=int)
     pts_sum  = np.zeros(n, dtype=float)
-    pos_rows = np.zeros((n_iterations, n), dtype=int)
-
-    for i, driver_idx in enumerate(order_matrix.T):   # column = driver rank per iteration
-        pos_rows[:, driver_idx] = i  # record position of each driver per iter
+    # Inverse permutation: pos_rows[iter, driver] = finishing position (0-indexed)
+    # np.argsort on order_matrix gives the rank of each driver per iteration.
+    # NOTE: the original loop-based approach in this plan was buggy (incorrect fancy
+    # indexing). argsort(order_matrix, axis=1) is the correct vectorised fix.
+    pos_rows = np.argsort(order_matrix, axis=1)
 
     for iter_i in range(n_iterations):
         for driver_i, pos in enumerate(pos_rows[iter_i]):
