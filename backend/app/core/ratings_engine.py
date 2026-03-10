@@ -116,7 +116,7 @@ def compute_driver_ratings(results: List[Dict]) -> Dict[str, Dict]:
         race_craft = round(min(max(race_norm[name], SCALE_MIN), SCALE_MAX_DRIVER), 4)
         ratings[name] = {
             "overall_skill":      overall,
-            "wet_skill":          round(overall * 0.97, 4),   # placeholder — no wet detection yet
+            "wet_skill":          round(min(max(overall * 0.97, SCALE_MIN), SCALE_MAX_DRIVER), 4),   # placeholder — no wet detection yet
             "race_craft":         race_craft,
             "strategy_execution": round((overall + race_craft) / 2, 4),
         }

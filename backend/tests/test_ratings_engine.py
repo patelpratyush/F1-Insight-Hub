@@ -60,6 +60,12 @@ class TestDriverRatings:
         """No results → empty dict, no error."""
         assert compute_driver_ratings([]) == {}
 
+    def test_wet_skill_range(self):
+        """wet_skill must be in [0.60, 0.98] — not just overall_skill."""
+        ratings = compute_driver_ratings(RESULTS_2025)
+        for name, r in ratings.items():
+            assert 0.60 <= r["wet_skill"] <= 0.98, f"{name} wet_skill={r['wet_skill']}"
+
     def test_pit_lane_start_excluded(self):
         """Grid position 0 (pit lane) excluded from grid delta calculation."""
         race = {
