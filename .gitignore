@@ -36,4 +36,4 @@ backend/**/__pycache__/
 # F1 data cache and logs
 backend/cache/
 # backend/*.log
-backend/.env
+backend/.env.worktrees/
