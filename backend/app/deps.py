@@ -4,6 +4,7 @@ from .services.cache import CacheService
 from .services.jolpica import JolpicaClient
 from .services.prediction import PredictionService
 from .services.telemetry import TelemetryService
+from .services.strategy import StrategyService
 
 
 def get_cache(request: Request) -> CacheService:
@@ -20,3 +21,7 @@ def get_prediction_service(request: Request) -> PredictionService:
 
 def get_telemetry_service(request: Request) -> TelemetryService:
     return TelemetryService(cache_dir=settings.resolved_fastf1_dir())
+
+
+def get_strategy_service(request: Request) -> StrategyService:
+    return StrategyService()
