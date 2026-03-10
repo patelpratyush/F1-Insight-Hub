@@ -1,5 +1,5 @@
 {
-  "_comment": "Auto-updated from Jolpica API for 2026 season. Do not edit manually.",
+  "_comment": "Auto-updated from Jolpica for 2026. Do not edit manually.",
   "drivers": {
     "ALB": {
       "name": "Alexander Albon",
@@ -69,7 +69,7 @@
     "LIN": {
       "name": "Arvid Lindblad",
       "team": "RB F1 Team",
-      "number": 0
+      "number": 41
     },
     "NOR": {
       "name": "Lando Norris",
