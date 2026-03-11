@@ -185,11 +185,11 @@ def compute_team_ratings(results: List[Dict]) -> Dict[str, Dict]:
         return {}
 
     # Negate grid and race scores so lower position → higher normalized value
-    neg_grid  = {t: -team_grid.get(t, 20)  for t in team_seen}
-    neg_race  = {t: -team_race.get(t, 20)  for t in team_seen}
-    gained    = {t:  team_gained.get(t, 0) for t in team_seen}
+    neg_grid  = {t: -team_grid[t]   for t in team_seen}
+    neg_race  = {t: -team_race[t]   for t in team_seen}
+    gained    = {t:  team_gained[t] for t in team_seen}
     raw_rel   = {
-        t: team_finishes.get(t, 0) / max(team_starts.get(t, 1), 1)
+        t: team_finishes[t] / max(team_starts[t], 1)
         for t in team_seen
     }
 
