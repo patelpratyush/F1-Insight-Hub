@@ -12,6 +12,8 @@ from typing import Any, Dict, List, Optional
 
 import aiosqlite
 
+from ..core.ratings_engine import recompute as _recompute_ratings
+
 logger = logging.getLogger(__name__)
 
 TTL_PERMANENT = 0
@@ -90,6 +92,16 @@ class CacheService:
                 logger.warning(f"API refresh failed, serving from SQLite: {e}")
             else:
                 logger.error(f"Cache init failed (degraded mode): {e}")
+        # Load 2025 for driver ratings — use ensure_year (respects SQLite cache,
+        # won't re-fetch if already loaded) so we don't trigger 24 API calls on
+        # every startup. Isolated try so 2025 failure doesn't affect main-year.
+        if self.current_year != 2025:
+            try:
+                await self.ensure_year(2025)
+            except Exception as e:
+                logger.warning(f"Could not load 2025 data for driver ratings: {e}")
+        # Recompute outside both paths so it runs in happy path AND degraded mode.
+        _recompute_ratings(self)
         self._refresh_task = asyncio.create_task(self._periodic_refresh())
 
     @property
@@ -319,6 +331,9 @@ class CacheService:
                 raise
             except Exception as e:
                 logger.error(f"Periodic refresh error: {e}")
+            # Recompute outside the try — always runs even if data fetch partially failed.
+            # recompute() catches and logs its own failures, so this never raises.
+            _recompute_ratings(self)
 
     async def _load_new_results(self, year: int):
         now = datetime.now(timezone.utc).date()
