@@ -215,32 +215,115 @@ def compute_team_ratings(results: List[Dict]) -> Dict[str, Dict]:
 # ── Blending ──────────────────────────────────────────────────────────────────
 
 def blend_with_prior(
-    prior: float,
-    current: float,
-    n_races: int,
-    virtual_races: int = PRIOR_VIRTUAL_RACES,
-) -> float:
+    computed: Dict,
+    prior_drivers: Dict[str, Dict],
+    prior_teams: Dict[str, Dict],
+    n_2026_races: int,
+) -> Dict:
     """
-    Bayesian-style blend of a prior rating with observed current rating.
+    Blend computed ratings with hand-authored prior using confidence weighting.
+    confidence = n_2026_races / (n_2026_races + PRIOR_VIRTUAL_RACES)
 
-    confidence = n_races / (n_races + virtual_races)
-    blended    = prior * (1 - confidence) + current * confidence
+    Missing values always fall back to 0.70 (the midfield default).
+    This ensures drivers absent from prior at confidence=0 still get 0.70, not
+    the computed value — so zero-data confidence truly means "use prior/default".
     """
-    confidence = n_races / (n_races + virtual_races)
-    blended = prior * (1 - confidence) + current * confidence
-    return round(blended, 4)
+    confidence = n_2026_races / (n_2026_races + PRIOR_VIRTUAL_RACES)
+    w_comp  = confidence
+    w_prior = 1.0 - confidence
+    _DEFAULT = 0.70
 
+    driver_keys = {"overall_skill", "wet_skill", "race_craft", "strategy_execution"}
+    team_keys   = {"dry_pace", "wet_pace", "strategy", "reliability"}
 
-# ── Persistence ───────────────────────────────────────────────────────────────
+    all_drivers = set(computed.get("drivers", {}).keys()) | set(prior_drivers.keys())
+    all_teams   = set(computed.get("teams", {}).keys())   | set(prior_teams.keys())
 
-def save_computed_ratings(driver_ratings: Dict, team_ratings: Dict) -> None:
-    """Write computed ratings to config/computed_ratings.json."""
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    payload = {
-        "computed_at": datetime.now(timezone.utc).isoformat(),
-        "drivers": driver_ratings,
-        "teams": team_ratings,
+    blended_drivers: Dict[str, Dict] = {}
+    for name in all_drivers:
+        comp  = computed.get("drivers", {}).get(name, {})
+        prior = prior_drivers.get(name, {})
+        blended_drivers[name] = {
+            key: round(
+                w_comp  * comp.get(key,  _DEFAULT) +
+                w_prior * prior.get(key, _DEFAULT),
+                4,
+            )
+            for key in driver_keys
+        }
+
+    blended_teams: Dict[str, Dict] = {}
+    for team in all_teams:
+        comp  = computed.get("teams", {}).get(team, {})
+        prior = prior_teams.get(team, {})
+        blended_teams[team] = {
+            key: round(
+                w_comp  * comp.get(key,  _DEFAULT) +
+                w_prior * prior.get(key, _DEFAULT),
+                4,
+            )
+            for key in team_keys
+        }
+
+    return {
+        "_meta": {
+            "generated_at":  datetime.now(timezone.utc).isoformat(),
+            "n_2026_races":  n_2026_races,
+            "confidence":    round(confidence, 4),
+            "method":        "teammate-normalized 2025 + recency-weighted 2026",
+        },
+        "drivers": blended_drivers,
+        "teams":   blended_teams,
     }
-    with open(COMPUTED_RATINGS_PATH, "w") as f:
-        json.dump(payload, f, indent=2)
-    logger.info("Saved computed ratings to %s", COMPUTED_RATINGS_PATH)
+
+
+# ── Recompute + persistence ───────────────────────────────────────────────────
+
+def recompute(cache) -> None:
+    """
+    Main entry point. Called synchronously from CacheService.initialize()
+    and _periodic_refresh() (CPU + local file write — safe to call from async context).
+
+    Fetches 2025 + current-year results from cache, computes ratings,
+    blends with hand-authored prior, writes config/computed_ratings.json.
+    Failures are logged and swallowed — never crash the server over ratings.
+    """
+    try:
+        results_2025 = cache.get_all_race_results(2025)
+        results_current = cache.get_all_race_results(cache.current_year)
+        n_current_races = len(results_current)
+
+        computed_drivers = compute_driver_ratings(results_2025)    if results_2025    else {}
+        computed_teams   = compute_team_ratings(results_current)   if results_current else {}
+
+        prior_drivers = _load_prior("fallback_driver_ratings.json", "drivers")
+        prior_teams   = _load_prior("fallback_team_ratings.json",   "teams")
+
+        blended = blend_with_prior(
+            {"drivers": computed_drivers, "teams": computed_teams},
+            prior_drivers,
+            prior_teams,
+            n_2026_races=n_current_races,
+        )
+        blended["_meta"]["n_2025_races"] = len(results_2025)
+
+        tmp_path_str = COMPUTED_RATINGS_PATH + ".tmp"
+        with open(tmp_path_str, "w") as f:
+            json.dump(blended, f, indent=2, ensure_ascii=False)
+        os.replace(tmp_path_str, COMPUTED_RATINGS_PATH)  # atomic swap — safe concurrent reads
+
+        logger.info(
+            f"Ratings recomputed: {len(computed_drivers)} drivers, "
+            f"{len(computed_teams)} teams, confidence={blended['_meta']['confidence']}"
+        )
+    except Exception as e:
+        logger.error(f"Ratings recompute failed (predictions will use prior): {e}")
+
+
+def _load_prior(filename: str, key: str) -> Dict[str, Dict]:
+    path = os.path.join(CONFIG_DIR, filename)
+    try:
+        with open(path) as f:
+            return json.load(f).get(key, {})
+    except Exception:
+        return {}

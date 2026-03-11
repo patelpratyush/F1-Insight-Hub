@@ -150,3 +150,40 @@ class TestTeamRatings:
 
     def test_empty_results(self):
         assert compute_team_ratings([]) == {}
+
+
+class TestBlendWithPrior:
+    def test_zero_confidence_uses_prior(self):
+        """With 0 races, result = prior entirely."""
+        computed = {"drivers": {"Alice Aaa": {"overall_skill": 0.90}}, "teams": {}}
+        prior_d  = {"Alice Aaa": {"overall_skill": 0.70, "wet_skill": 0.68, "race_craft": 0.68, "strategy_execution": 0.68}}
+        result   = blend_with_prior(computed, prior_d, {}, n_2026_races=0)
+        assert result["drivers"]["Alice Aaa"]["overall_skill"] == pytest.approx(0.70, abs=0.001)
+
+    def test_confidence_grows_with_races(self):
+        """More races → computed value weighted more heavily."""
+        computed = {"drivers": {"Alice Aaa": {"overall_skill": 1.0, "wet_skill": 1.0, "race_craft": 1.0, "strategy_execution": 1.0}}, "teams": {}}
+        prior_d  = {"Alice Aaa": {"overall_skill": 0.0, "wet_skill": 0.0, "race_craft": 0.0, "strategy_execution": 0.0}}
+        r1  = blend_with_prior(computed, prior_d, {}, n_2026_races=1)
+        r10 = blend_with_prior(computed, prior_d, {}, n_2026_races=10)
+        assert r10["drivers"]["Alice Aaa"]["overall_skill"] > r1["drivers"]["Alice Aaa"]["overall_skill"]
+
+    def test_driver_absent_from_prior_uses_default(self):
+        """Driver in computed but not in prior gets default 0.70 at confidence=0."""
+        computed = {"drivers": {"New Driver": {"overall_skill": 0.95, "wet_skill": 0.90, "race_craft": 0.88, "strategy_execution": 0.85}}, "teams": {}}
+        result   = blend_with_prior(computed, {}, {}, n_2026_races=0)
+        # confidence=0 → w_comp=0, w_prior=1 → 1.0 × default(0.70)
+        assert result["drivers"]["New Driver"]["overall_skill"] == pytest.approx(0.70, abs=0.001)
+
+    def test_meta_block_present(self):
+        """Output includes _meta with required keys."""
+        result = blend_with_prior({"drivers": {}, "teams": {}}, {}, {}, n_2026_races=3)
+        assert "_meta" in result
+        for key in ("generated_at", "n_2026_races", "confidence", "method"):
+            assert key in result["_meta"]
+        assert result["_meta"]["n_2026_races"] == 3
+
+    def test_confidence_formula(self):
+        """confidence = n / (n + PRIOR_VIRTUAL_RACES)  with PRIOR_VIRTUAL_RACES=4."""
+        result = blend_with_prior({"drivers": {}, "teams": {}}, {}, {}, n_2026_races=4)
+        assert result["_meta"]["confidence"] == pytest.approx(0.50, abs=0.001)
