@@ -187,3 +187,50 @@ class TestBlendWithPrior:
         """confidence = n / (n + PRIOR_VIRTUAL_RACES)  with PRIOR_VIRTUAL_RACES=4."""
         result = blend_with_prior({"drivers": {}, "teams": {}}, {}, {}, n_2026_races=4)
         assert result["_meta"]["confidence"] == pytest.approx(0.50, abs=0.001)
+
+
+class TestRatingsLoading:
+    def test_computed_ratings_preferred(self, tmp_path, monkeypatch):
+        """f1_ratings uses computed_ratings.json when it exists."""
+        import json
+        from app.core import f1_ratings
+
+        computed = {
+            "_meta": {"confidence": 0.5},
+            "drivers": {"Max Verstappen": {"overall_skill": 0.99, "wet_skill": 0.99, "race_craft": 0.99, "strategy_execution": 0.99}},
+            "teams": {}
+        }
+        computed_path = tmp_path / "computed_ratings.json"
+        computed_path.write_text(json.dumps(computed))
+
+        monkeypatch.setattr(f1_ratings, "_COMPUTED_PATH", str(computed_path))
+
+        ratings = f1_ratings._load_driver_ratings()
+        assert ratings["Max Verstappen"]["overall_skill"] == pytest.approx(0.99, abs=0.001)
+
+    def test_fallback_used_when_no_computed(self, tmp_path, monkeypatch):
+        """f1_ratings falls back to fallback_driver_ratings.json when computed absent."""
+        from app.core import f1_ratings
+
+        monkeypatch.setattr(f1_ratings, "_COMPUTED_PATH", str(tmp_path / "nonexistent.json"))
+
+        ratings = f1_ratings._load_driver_ratings()
+        assert len(ratings) > 0
+
+    def test_computed_team_ratings_preferred(self, tmp_path, monkeypatch):
+        """f1_ratings uses computed teams from computed_ratings.json when present."""
+        import json
+        from app.core import f1_ratings
+
+        computed = {
+            "_meta": {"confidence": 0.5},
+            "drivers": {},
+            "teams": {"McLaren": {"dry_pace": 0.91, "wet_pace": 0.88, "strategy": 0.85, "reliability": 0.92}},
+        }
+        computed_path = tmp_path / "computed_ratings.json"
+        computed_path.write_text(json.dumps(computed))
+
+        monkeypatch.setattr(f1_ratings, "_COMPUTED_PATH", str(computed_path))
+
+        ratings = f1_ratings._load_team_ratings()
+        assert ratings["McLaren"]["dry_pace"] == pytest.approx(0.91, abs=0.001)

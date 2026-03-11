@@ -10,6 +10,7 @@ from typing import Dict, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "config")
+_COMPUTED_PATH = os.path.join(CONFIG_DIR, "computed_ratings.json")
 
 # Weights for the form_factor calculation from standings points
 _MAX_EXPECTED_POINTS = 200.0   # rough upper bound mid-season
@@ -35,14 +36,27 @@ def _load_json(filename: str) -> Dict:
         return {}
 
 
+def _load_json_path(path: str) -> Dict:
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
 def _load_driver_ratings() -> Dict[str, Dict]:
-    data = _load_json("fallback_driver_ratings.json")
-    return data.get("drivers", {})
+    # Prefer live-computed ratings; fall back to hand-authored JSON
+    computed = _load_json_path(_COMPUTED_PATH)
+    if computed.get("drivers"):
+        return computed["drivers"]
+    return _load_json("fallback_driver_ratings.json").get("drivers", {})
 
 
 def _load_team_ratings() -> Dict[str, Dict]:
-    data = _load_json("fallback_team_ratings.json")
-    return data.get("teams", {})
+    computed = _load_json_path(_COMPUTED_PATH)
+    if computed.get("teams"):
+        return computed["teams"]
+    return _load_json("fallback_team_ratings.json").get("teams", {})
 
 
 def _load_track_characteristics() -> Dict[str, Dict]:
