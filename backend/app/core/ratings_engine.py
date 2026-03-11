@@ -128,81 +128,85 @@ def compute_driver_ratings(results: List[Dict]) -> Dict[str, Dict]:
 
 def compute_team_ratings(results: List[Dict]) -> Dict[str, Dict]:
     """
-    Compute team performance ratings from race results.
+    Compute team car performance ratings from race results using recency weighting.
 
-    Metrics per race (recency-weighted):
-      grid_perf       = mean finishing position of team's drivers
-      race_perf       = mean finishing position of team's drivers
-      positions_gained = mean (grid - finish) across team's drivers
-      reliability     = fraction of team's drivers that finished
+    Weight for race i (0-indexed) of N total: (i+1) / sum(1..N)
+    Oldest = lowest weight, most recent = highest weight.
 
-    Returns dict of team_name -> rating dict.
+    Metrics per team (weighted averages across races):
+      grid_score  = weighted avg grid position of both drivers (lower = better)
+      race_score  = weighted avg finish position of classified drivers (lower = better)
+      gained      = weighted avg (grid_pos - finish_pos)  (higher = gained positions)
+      reliability = classified_finishes / total_starts (unweighted)
+
+    dry_pace = 0.6 × norm(−grid_score) + 0.4 × norm(−race_score)
+    wet_pace = dry_pace × 0.97
+    strategy = norm(gained)
     """
-    team_data: Dict[str, Dict] = defaultdict(
-        lambda: {
-            "grid_positions": [],
-            "finish_positions": [],
-            "positions_gained": [],
-            "finishes": [],
-            "entries": [],
-        }
-    )
+    n = len(results)
+    if n == 0:
+        return {}
 
-    for race in results:
+    weight_sum = n * (n + 1) / 2
+    weights = [(i + 1) / weight_sum for i in range(n)]
+
+    team_grid:     Dict[str, float] = defaultdict(float)
+    team_race:     Dict[str, float] = defaultdict(float)
+    team_gained:   Dict[str, float] = defaultdict(float)
+    team_starts:   Dict[str, int]   = defaultdict(int)
+    team_finishes: Dict[str, int]   = defaultdict(int)
+    team_seen:     set              = set()
+
+    for w, race in zip(weights, results):
         teams: Dict[str, List[Dict]] = defaultdict(list)
         for r in race.get("results", []):
             if r.get("team"):
                 teams[r["team"]].append(r)
+                team_seen.add(r["team"])
 
         for team_name, drivers in teams.items():
-            for d in drivers:
-                grid = d.get("grid", 0)
-                pos  = d.get("position", 20)
-                finished = d.get("status") == "Finished"
-                team_data[team_name]["entries"].append(1)
-                team_data[team_name]["finish_positions"].append(pos)
-                team_data[team_name]["finishes"].append(1 if finished else 0)
-                if grid > 0:
-                    team_data[team_name]["grid_positions"].append(grid)
-                    team_data[team_name]["positions_gained"].append(grid - pos)
+            team_starts[team_name] += len(drivers)
+            finishers = [d for d in drivers if d.get("status") == "Finished"]
+            team_finishes[team_name] += len(finishers)
 
-    if not team_data:
+            if not finishers:
+                continue
+
+            valid_grids = [d.get("grid", 20) for d in drivers if d.get("grid", 0) > 0]
+            avg_grid  = _mean(valid_grids) if valid_grids else 20.0
+            avg_race  = _mean([d["position"] for d in finishers])
+            avg_gained = avg_grid - avg_race  # positive = gained positions in race
+
+            team_grid[team_name]   += w * avg_grid
+            team_race[team_name]   += w * avg_race
+            team_gained[team_name] += w * avg_gained
+
+    if not team_seen:
         return {}
 
-    raw: Dict[str, Dict] = {}
-    for name, data in team_data.items():
-        avg_finish   = _mean(data["finish_positions"])
-        avg_grid     = _mean(data["grid_positions"])
-        avg_gained   = _mean(data["positions_gained"])
-        reliability  = _mean(data["finishes"])
-        # Invert positions (lower = better) to a score (higher = better)
-        raw[name] = {
-            "grid_score":    -avg_grid,   # lower grid pos number = better
-            "race_score":    -avg_finish,
-            "gained_score":  avg_gained,
-            "reliability":   reliability,
-        }
+    # Negate grid and race scores so lower position → higher normalized value
+    neg_grid  = {t: -team_grid.get(t, 20)  for t in team_seen}
+    neg_race  = {t: -team_race.get(t, 20)  for t in team_seen}
+    gained    = {t:  team_gained.get(t, 0) for t in team_seen}
+    raw_rel   = {
+        t: team_finishes.get(t, 0) / max(team_starts.get(t, 1), 1)
+        for t in team_seen
+    }
 
-    grid_norm    = _normalize_dict({n: v["grid_score"]   for n, v in raw.items()}, SCALE_MIN, SCALE_MAX_TEAM)
-    race_norm    = _normalize_dict({n: v["race_score"]   for n, v in raw.items()}, SCALE_MIN, SCALE_MAX_TEAM)
-    gained_norm  = _normalize_dict({n: v["gained_score"] for n, v in raw.items()}, SCALE_MIN, SCALE_MAX_TEAM)
-    rel_norm     = _normalize_dict({n: v["reliability"]  for n, v in raw.items()}, SCALE_MIN, SCALE_MAX_TEAM)
+    grid_norm   = _normalize_dict(neg_grid,  SCALE_MIN, SCALE_MAX_TEAM)
+    race_norm   = _normalize_dict(neg_race,  SCALE_MIN, SCALE_MAX_TEAM)
+    gained_norm = _normalize_dict(gained,    SCALE_MIN, SCALE_MAX_TEAM)
+    rel_norm    = _normalize_dict(raw_rel,   SCALE_MIN, SCALE_MAX_TEAM)
 
     ratings: Dict[str, Dict] = {}
-    for name in raw:
-        overall = round(
-            0.30 * grid_norm[name]
-            + 0.40 * race_norm[name]
-            + 0.20 * gained_norm[name]
-            + 0.10 * rel_norm[name],
-            4,
-        )
-        overall = min(max(overall, SCALE_MIN), SCALE_MAX_TEAM)
-        ratings[name] = {
-            "overall_performance": overall,
-            "qualifying_pace":     grid_norm[name],
-            "race_pace":           race_norm[name],
-            "reliability":         rel_norm[name],
+    for team in team_seen:
+        dry = round(0.6 * grid_norm[team] + 0.4 * race_norm[team], 4)
+        dry = min(max(dry, SCALE_MIN), SCALE_MAX_TEAM)
+        ratings[team] = {
+            "dry_pace":    dry,
+            "wet_pace":    round(min(max(dry * 0.97, SCALE_MIN), SCALE_MAX_TEAM), 4),
+            "strategy":    round(gained_norm[team], 4),
+            "reliability": round(rel_norm[team], 4),
         }
 
     return ratings
