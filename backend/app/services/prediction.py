@@ -69,10 +69,6 @@ class PredictionService:
         self, driver_code: str, track: str, weather: str = "dry", year: Optional[int] = None
     ) -> Optional[DriverPrediction]:
         grid = await self.predict_race_grid(track, weather, year)
-        y = self._current_year(year)
-        name_map = self._cache.get_driver_code_map(y)
-        team_map = {s["driver"]: s["team"] for s in self._cache.get_driver_standings(y)}
-
         entry = next((e for e in grid if e.driver == driver_code), None)
         if not entry:
             return None
@@ -80,8 +76,8 @@ class PredictionService:
         key_factors = _build_key_factors(driver_code, weather, entry)
         return DriverPrediction(
             driver=driver_code,
-            name=name_map.get(driver_code, driver_code),
-            team=team_map.get(driver_code, "Unknown"),
+            name=entry.name,
+            team=entry.team,
             predicted_position=entry.position,
             win_probability=entry.win_probability,
             podium_probability=entry.podium_probability,

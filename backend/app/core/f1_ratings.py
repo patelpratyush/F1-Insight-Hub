@@ -75,6 +75,14 @@ def _find_team_rating(team_name: str, team_ratings: Dict[str, Dict]) -> Dict:
     return default
 
 
+def _load_all_ratings() -> tuple:
+    """Load computed_ratings.json once, returning (driver_ratings, team_ratings)."""
+    computed = _load_json_path(_COMPUTED_PATH)
+    drivers = computed.get("drivers") or _load_json("fallback_driver_ratings.json").get("drivers", {})
+    teams   = computed.get("teams")   or _load_json("fallback_team_ratings.json").get("teams", {})
+    return drivers, teams
+
+
 def compute_driver_scores(
     driver_code_to_name: Dict[str, str],
     driver_standings: Dict[str, Dict],   # {code: {points, position, team, wins}}
@@ -89,8 +97,7 @@ def compute_driver_scores(
     Formula:
       score = base_skill × team_mult × form_factor × weather_mod
     """
-    dr_ratings = _load_driver_ratings()
-    team_ratings = _load_team_ratings()
+    dr_ratings, team_ratings = _load_all_ratings()
     track_chars = _load_track_characteristics()
 
     is_wet = weather.lower() in ("wet", "heavy rain", "light rain", "rain")

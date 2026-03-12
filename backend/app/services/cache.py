@@ -277,40 +277,31 @@ class CacheService:
 
     async def _load_year(self, year: int):
         j = self._jolpica
-        # Only fetch metadata if missing or expired
-        if not self._mem.get(f"schedule:{year}") or self._mem[f"schedule:{year}"].expired:
-            data = await j.get_schedule(year)
-            if data:
-                await self._put(f"schedule:{year}", data, TTL_SCHEDULE)
-        if not self._mem.get(f"drivers:{year}") or self._mem[f"drivers:{year}"].expired:
-            data = await j.get_drivers(year)
-            if data:
-                await self._put(f"drivers:{year}", data, TTL_DRIVERS)
-        if not self._mem.get(f"constructors:{year}") or self._mem[f"constructors:{year}"].expired:
-            data = await j.get_constructors(year)
-            if data:
-                await self._put(f"constructors:{year}", data, TTL_DRIVERS)
 
-        # Standings always refresh
-        data = await j.get_driver_standings(year)
-        if data:
-            await self._put(f"driver_standings:{year}", data, TTL_STANDINGS)
-        data = await j.get_constructor_standings(year)
-        if data:
-            await self._put(f"constructor_standings:{year}", data, TTL_STANDINGS)
+        # Fetch metadata concurrently — only if missing or expired
+        async def _fetch_if_stale(key: str, fetcher, ttl: int):
+            if not self._mem.get(key) or self._mem[key].expired:
+                data = await fetcher()
+                if data:
+                    await self._put(key, data, ttl)
 
-        # Race results (permanent once cached)
-        schedule = self.get_schedule(year)
-        now = datetime.now(timezone.utc).date()
-        for race in schedule:
-            rnd = race.get("round")
-            rdate = _safe_date(race.get("date", ""))
-            if rdate < now and not self._mem.get(f"race_result:{year}:{rnd}"):
-                result = await j.get_race_result(year, rnd)
-                if result:
-                    await self._put(f"race_result:{year}:{rnd}", result, TTL_PERMANENT)
-                await asyncio.sleep(0.3)
+        await asyncio.gather(
+            _fetch_if_stale(f"schedule:{year}",     lambda: j.get_schedule(year),     TTL_SCHEDULE),
+            _fetch_if_stale(f"drivers:{year}",      lambda: j.get_drivers(year),      TTL_DRIVERS),
+            _fetch_if_stale(f"constructors:{year}", lambda: j.get_constructors(year), TTL_DRIVERS),
+        )
 
+        # Standings always refresh — fetch concurrently
+        drv_data, con_data = await asyncio.gather(
+            j.get_driver_standings(year),
+            j.get_constructor_standings(year),
+        )
+        if drv_data:
+            await self._put(f"driver_standings:{year}", drv_data, TTL_STANDINGS)
+        if con_data:
+            await self._put(f"constructor_standings:{year}", con_data, TTL_STANDINGS)
+
+        await self._fetch_missing_results(year)
         self._loaded_years.add(year)
         logger.info(f"Loaded year {year} into cache")
 
@@ -318,15 +309,16 @@ class CacheService:
         while True:
             await asyncio.sleep(1800)
             try:
-                j = self._jolpica
                 year = self.current_year
-                data = await j.get_driver_standings(year)
-                if data:
-                    await self._put(f"driver_standings:{year}", data, TTL_STANDINGS)
-                data = await j.get_constructor_standings(year)
-                if data:
-                    await self._put(f"constructor_standings:{year}", data, TTL_STANDINGS)
-                await self._load_new_results(year)
+                drv_data, con_data = await asyncio.gather(
+                    self._jolpica.get_driver_standings(year),
+                    self._jolpica.get_constructor_standings(year),
+                )
+                if drv_data:
+                    await self._put(f"driver_standings:{year}", drv_data, TTL_STANDINGS)
+                if con_data:
+                    await self._put(f"constructor_standings:{year}", con_data, TTL_STANDINGS)
+                await self._fetch_missing_results(year)
             except asyncio.CancelledError:
                 raise
             except Exception as e:
@@ -335,7 +327,7 @@ class CacheService:
             # recompute() catches and logs its own failures, so this never raises.
             _recompute_ratings(self)
 
-    async def _load_new_results(self, year: int):
+    async def _fetch_missing_results(self, year: int):
         now = datetime.now(timezone.utc).date()
         for race in self.get_schedule(year):
             rnd = race.get("round")

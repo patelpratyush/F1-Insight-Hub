@@ -56,7 +56,11 @@ class WeatherService:
         return None
 
     def _store(self, circuit: str, data: Dict):
-        _weather_cache[circuit] = {"data": data, "expires": time.time() + CACHE_SECS}
+        now = time.time()
+        stale = [k for k, v in _weather_cache.items() if now >= v["expires"]]
+        for k in stale:
+            del _weather_cache[k]
+        _weather_cache[circuit] = {"data": data, "expires": now + CACHE_SECS}
 
     async def _owm_get(self, lat: float, lon: float) -> Optional[Dict]:
         if not self._key or not self._session:

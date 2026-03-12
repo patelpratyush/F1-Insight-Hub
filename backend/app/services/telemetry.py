@@ -39,16 +39,17 @@ class TelemetryService:
         self._cache_dir = cache_dir
         _setup_fastf1(cache_dir)
 
-    def _load_session(self, year: int, race: str, session_type: str):
+    def _load_session(self, year: int, race: str, session_type: str, *,
+                      laps: bool = True, telemetry: bool = True, weather: bool = True):
         import fastf1
         ses = fastf1.get_session(year, race, session_type)
-        ses.load(laps=True, telemetry=True, weather=True, messages=False)
+        ses.load(laps=laps, telemetry=telemetry, weather=weather, messages=False)
         return ses
 
     # ── analyze ──────────────────────────────────────────────────
 
     def _analyze(self, year: int, race: str, session_type: str, driver: str) -> Dict:
-        ses = self._load_session(year, race, session_type)
+        ses = self._load_session(year, race, session_type, weather=False)
         laps = ses.laps.pick_drivers(driver)
         if laps.empty:
             return {"error": f"No laps found for {driver}"}
@@ -74,7 +75,7 @@ class TelemetryService:
     # ── speed trace ───────────────────────────────────────────────
 
     def _speed_trace(self, year: int, race: str, session_type: str, driver: str, lap: Optional[int]) -> Dict:
-        ses = self._load_session(year, race, session_type)
+        ses = self._load_session(year, race, session_type, weather=False)
         laps = ses.laps.pick_drivers(driver)
         if laps.empty:
             return {"error": f"No laps for {driver}"}
@@ -98,7 +99,7 @@ class TelemetryService:
     # ── driver comparison ─────────────────────────────────────────
 
     def _compare(self, year: int, race: str, session_type: str, d1: str, d2: str) -> Dict:
-        ses = self._load_session(year, race, session_type)
+        ses = self._load_session(year, race, session_type, weather=False)
         results = {}
         for drv in (d1, d2):
             laps = ses.laps.pick_drivers(drv)
@@ -122,7 +123,7 @@ class TelemetryService:
     # ── track map ─────────────────────────────────────────────────
 
     def _track_map(self, year: int, race: str, session_type: str, driver: str, lap: Optional[int]) -> Dict:
-        ses = self._load_session(year, race, session_type)
+        ses = self._load_session(year, race, session_type, weather=False)
         laps = ses.laps.pick_drivers(driver)
         if laps.empty:
             return {"error": f"No laps for {driver}"}
@@ -143,7 +144,7 @@ class TelemetryService:
     # ── weather context ───────────────────────────────────────────
 
     def _weather(self, year: int, race: str, session_type: str) -> Dict:
-        ses = self._load_session(year, race, session_type)
+        ses = self._load_session(year, race, session_type, laps=False, telemetry=False)
         w = ses.weather_data
         if w is None or w.empty:
             return {"error": "No weather data available"}

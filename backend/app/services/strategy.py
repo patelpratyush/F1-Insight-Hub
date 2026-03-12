@@ -98,12 +98,10 @@ class StrategyService:
         strategies: List[List[str]], weather: str,
     ) -> List[Dict]:
         loop = asyncio.get_event_loop()
-        results = []
-        for s in strategies:
-            r = await loop.run_in_executor(
-                _executor, _simulate_strategy, driver, track, laps, s, weather
-            )
-            results.append(r)
+        results = list(await asyncio.gather(*[
+            loop.run_in_executor(_executor, _simulate_strategy, driver, track, laps, s, weather)
+            for s in strategies
+        ]))
         results.sort(key=lambda x: x["total_time"])
         return results
 
@@ -111,7 +109,6 @@ class StrategyService:
         self, driver: str, track: str, laps: int,
         weather: str, use_ai: bool = False,
     ) -> Dict:
-        # Simulate candidate strategies
         candidates = [
             ["SOFT", "HARD"],
             ["MEDIUM", "MEDIUM"],
@@ -120,12 +117,10 @@ class StrategyService:
             ["SOFT", "SOFT", "HARD"],
         ]
         loop = asyncio.get_event_loop()
-        results = []
-        for s in candidates:
-            r = await loop.run_in_executor(
-                _executor, _simulate_strategy, driver, track, laps, s, weather
-            )
-            results.append(r)
+        results = list(await asyncio.gather(*[
+            loop.run_in_executor(_executor, _simulate_strategy, driver, track, laps, s, weather)
+            for s in candidates
+        ]))
         results.sort(key=lambda x: x["total_time"])
         best = results[0]
 
