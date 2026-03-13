@@ -25,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WeatherContextPanel from "@/components/WeatherContextPanel";
 import { useDrivers, useTracks, type Driver } from "@/hooks/useF1Metadata";
 import { getCurrentSeasonYear } from "@/lib/season";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   AlertTriangle,
@@ -61,15 +61,14 @@ const TelemetryAnalyzer = () => {
   const [selectedDriver, setSelectedDriver] = useState("");
   const [selectedDriver2, setSelectedDriver2] = useState("");
   const [viewMode, setViewMode] = useState("distance"); // "distance" or "time"
-  const [telemetryData, setTelemetryData] = useState(null);
-  const [speedTraceData, setSpeedTraceData] = useState(null);
-  const [comparisonData, setComparisonData] = useState(null);
-  const [error, setError] = useState("");
+  const [analysisParams, setAnalysisParams] = useState<{ year: number; race: string; session: string; drivers: string[] } | null>(null);
+  const [speedTraceParams, setSpeedTraceParams] = useState<{ year: number; race: string; driver: string; session: string; lap_number: number } | null>(null);
+  const [trackMapParams, setTrackMapParams] = useState<{ year: number; race: string; driver: string; session: string; lap_number: number } | null>(null);
+  const [comparisonParams, setComparisonParams] = useState<{ year: number; race: string; driver1: string; driver2: string; session: string; lap_type: string } | null>(null);
   const [selectedLap, setSelectedLap] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [availableLaps, setAvailableLaps] = useState([]);
-  const [trackMapData, setTrackMapData] = useState(null);
   const [showRacingLine, setShowRacingLine] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -108,165 +107,143 @@ const TelemetryAnalyzer = () => {
     enabled: !!selectedSeason,
   });
 
-  // Analyze telemetry mutation
-  const analyzeTelemetry = useMutation({
-    mutationFn: async () => {
+  // Cached telemetry query — only re-fetches when analysisParams changes (new race/session/driver combo)
+  const { data: telemetryData, isPending: analysisPending, error: analysisError } = useQuery({
+    queryKey: ["telemetry-analyze", analysisParams],
+    queryFn: async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(`${apiUrl}/api/telemetry/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          year: parseInt(selectedSeason),
-          race: selectedGP,
-          session: sessionMap[selectedSession] || selectedSession,
-          drivers: [selectedDriver],
-        }),
+        body: JSON.stringify(analysisParams),
       });
       if (!response.ok) throw new Error("Failed to analyze telemetry");
       return response.json();
     },
-    onSuccess: (data) => {
-      setTelemetryData(data);
-      setError("");
-
-      // Extract available laps from the telemetry data
-      if (
-        selectedDriver &&
-        data?.performance_metrics?.[selectedDriver]?.lap_times?.all_laps
-      ) {
-        const laps = data.performance_metrics[
-          selectedDriver
-        ].lap_times.all_laps.map((lap) => lap.lap_number);
-        setAvailableLaps(laps.sort((a, b) => a - b));
-        if (laps.length > 0 && !laps.includes(selectedLap)) {
-          setSelectedLap(laps[0]);
-        }
-      }
-    },
-    onError: (error) => {
-      setError(error.message);
-      setTelemetryData(null);
-    },
+    enabled: !!analysisParams,
+    staleTime: 1000 * 60 * 30,
   });
 
-  // Get speed trace mutation
-  const getSpeedTrace = useMutation({
-    mutationFn: async () => {
+  // Cached speed trace query — cache key includes lap number so each lap is cached separately
+  const { data: speedTraceData, isPending: speedTracePending, error: speedTraceError } = useQuery({
+    queryKey: ["telemetry-speed-trace", speedTraceParams],
+    queryFn: async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(`${apiUrl}/api/telemetry/speed-trace`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          year: parseInt(selectedSeason),
-          race: selectedGP,
-          driver: selectedDriver,
-          session: sessionMap[selectedSession] || selectedSession,
-          lap_number: selectedLap,
-        }),
+        body: JSON.stringify(speedTraceParams),
       });
       if (!response.ok) throw new Error("Failed to get speed trace");
       return response.json();
     },
-    onSuccess: (data) => {
-      setSpeedTraceData(data);
-      setError("");
-    },
-    onError: (error) => {
-      setError(error.message);
-      setSpeedTraceData(null);
-    },
+    enabled: !!speedTraceParams,
+    staleTime: 1000 * 60 * 30,
   });
 
-  // Get track map mutation
-  const getTrackMap = useMutation({
-    mutationFn: async () => {
+  // Cached track map query — cache key includes lap number
+  const { data: trackMapData, isPending: trackMapPending, error: trackMapError } = useQuery({
+    queryKey: ["telemetry-track-map", trackMapParams],
+    queryFn: async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(`${apiUrl}/api/telemetry/track-map`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          year: parseInt(selectedSeason),
-          race: selectedGP,
-          driver: selectedDriver,
-          session: sessionMap[selectedSession] || selectedSession,
-          lap_number: selectedLap,
-        }),
+        body: JSON.stringify(trackMapParams),
       });
       if (!response.ok) throw new Error("Failed to get track map");
       return response.json();
     },
-    onSuccess: (data) => {
-      setTrackMapData(data);
-      setError("");
-    },
-    onError: (error) => {
-      setError(error.message);
-      setTrackMapData(null);
-    },
+    enabled: !!trackMapParams,
+    staleTime: 1000 * 60 * 30,
   });
 
-  // Driver comparison mutation
-  const getDriverComparison = useMutation({
-    mutationFn: async () => {
+  // Cached driver comparison query
+  const { data: comparisonData, isPending: comparisonPending, error: comparisonError } = useQuery({
+    queryKey: ["telemetry-comparison", comparisonParams],
+    queryFn: async () => {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(
-        `${apiUrl}/api/telemetry/driver-comparison`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            year: parseInt(selectedSeason),
-            race: selectedGP,
-            driver1: selectedDriver,
-            driver2: selectedDriver2,
-            session: sessionMap[selectedSession] || selectedSession,
-            lap_type: "fastest",
-          }),
-        },
-      );
+      const response = await fetch(`${apiUrl}/api/telemetry/driver-comparison`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(comparisonParams),
+      });
       if (!response.ok) throw new Error("Failed to get driver comparison");
       return response.json();
     },
-    onSuccess: (data) => {
-      setComparisonData(data);
-      setError("");
-    },
-    onError: (error) => {
-      setError(error.message);
-      setComparisonData(null);
-    },
+    enabled: !!comparisonParams,
+    staleTime: 1000 * 60 * 30,
   });
 
+  // Extract available laps when telemetry data loads
+  useEffect(() => {
+    const driver = analysisParams?.drivers?.[0];
+    if (telemetryData?.performance_metrics?.[driver]?.lap_times?.all_laps) {
+      const laps = telemetryData.performance_metrics[driver].lap_times.all_laps.map(
+        (lap) => lap.lap_number,
+      );
+      setAvailableLaps(laps.sort((a, b) => a - b));
+      if (laps.length > 0 && !laps.includes(selectedLap)) {
+        setSelectedLap(laps[0]);
+      }
+    }
+  }, [telemetryData]);
+
+  const displayError =
+    (analysisError as Error)?.message ||
+    (speedTraceError as Error)?.message ||
+    (trackMapError as Error)?.message ||
+    (comparisonError as Error)?.message ||
+    "";
+
   const handleAnalyze = () => {
-    analyzeTelemetry.mutate();
+    setAnalysisParams({
+      year: parseInt(selectedSeason),
+      race: selectedGP,
+      session: sessionMap[selectedSession] || selectedSession,
+      drivers: [selectedDriver],
+    });
   };
 
   const handleSpeedTrace = () => {
-    getSpeedTrace.mutate();
+    setSpeedTraceParams({
+      year: parseInt(selectedSeason),
+      race: selectedGP,
+      driver: selectedDriver,
+      session: sessionMap[selectedSession] || selectedSession,
+      lap_number: selectedLap,
+    });
   };
 
   const handleDriverComparison = () => {
-    getDriverComparison.mutate();
+    setComparisonParams({
+      year: parseInt(selectedSeason),
+      race: selectedGP,
+      driver1: selectedDriver,
+      driver2: selectedDriver2,
+      session: sessionMap[selectedSession] || selectedSession,
+      lap_type: "fastest",
+    });
   };
 
   const handleTrackMap = () => {
-    getTrackMap.mutate();
+    setTrackMapParams({
+      year: parseInt(selectedSeason),
+      race: selectedGP,
+      driver: selectedDriver,
+      session: sessionMap[selectedSession] || selectedSession,
+      lap_number: selectedLap,
+    });
   };
 
-  // Auto-refresh speed trace and track map when lap changes
+  // Auto-refresh speed trace and track map when lap changes (uses cached results if same lap was fetched before)
   useEffect(() => {
-    if (
-      selectedLap &&
-      selectedSeason &&
-      selectedGP &&
-      selectedSession &&
-      selectedDriver
-    ) {
-      if (speedTraceData) {
-        getSpeedTrace.mutate();
+    if (selectedLap && selectedSeason && selectedGP && selectedSession && selectedDriver) {
+      if (speedTraceParams) {
+        setSpeedTraceParams((prev) => prev ? { ...prev, lap_number: selectedLap } : null);
       }
-      if (trackMapData) {
-        getTrackMap.mutate();
+      if (trackMapParams) {
+        setTrackMapParams((prev) => prev ? { ...prev, lap_number: selectedLap } : null);
       }
     }
   }, [selectedLap]);
@@ -508,12 +485,12 @@ const TelemetryAnalyzer = () => {
                       !selectedGP ||
                       !selectedSession ||
                       !selectedDriver ||
-                      analyzeTelemetry.isPending
+                      analysisPending
                     }
                     className="flex-1 w-full bg-red-600 hover:bg-red-700 text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
                     size="lg"
                   >
-                    {analyzeTelemetry.isPending ? (
+                    {analysisPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <Zap className="mr-2 h-4 w-4" />
@@ -528,12 +505,12 @@ const TelemetryAnalyzer = () => {
                       !selectedGP ||
                       !selectedSession ||
                       !selectedDriver ||
-                      getSpeedTrace.isPending
+                      speedTracePending
                     }
                     className="flex-1 w-full bg-white hover:bg-white/90 text-black rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
                     size="lg"
                   >
-                    {getSpeedTrace.isPending ? (
+                    {speedTracePending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <Gauge className="mr-2 h-4 w-4" />
@@ -548,12 +525,12 @@ const TelemetryAnalyzer = () => {
                       !selectedGP ||
                       !selectedSession ||
                       !selectedDriver ||
-                      getTrackMap.isPending
+                      trackMapPending
                     }
                     className="flex-1 w-full bg-transparent border border-white/20 hover:bg-white/10 text-white rounded-full h-16 text-lg font-bold tracking-widest transition-all hover:scale-[1.02]"
                     size="lg"
                   >
-                    {getTrackMap.isPending ? (
+                    {trackMapPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <Settings className="mr-2 h-4 w-4" />
@@ -570,11 +547,11 @@ const TelemetryAnalyzer = () => {
             delay={800}
             className="w-full border-t border-white/10 pt-12"
           >
-            {error && (
+            {displayError && (
               <Alert className="mb-6 border-red-600 bg-red-600/10">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-red-400">
-                  {error}
+                  {displayError}
                 </AlertDescription>
               </Alert>
             )}
@@ -1739,10 +1716,10 @@ const TelemetryAnalyzer = () => {
                               !selectedSession ||
                               !selectedDriver ||
                               !selectedDriver2 ||
-                              getDriverComparison.isPending
+                              comparisonPending
                             }
                           >
-                            {getDriverComparison.isPending ? (
+                            {comparisonPending ? (
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
                               <Users className="mr-2 h-4 w-4" />
