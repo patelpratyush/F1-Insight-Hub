@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 
 class DriverPredictRequest(BaseModel):
-    driver: str = Field(..., description="3-letter driver code, e.g. VER")
-    track: str = Field(..., description="Race name, e.g. 'Monaco Grand Prix'")
-    weather: str = Field(default="dry", description="dry | wet | mixed")
-    year: Optional[int] = None
+    driver: str = Field(..., min_length=2, max_length=10, description="3-letter driver code, e.g. VER")
+    track: str = Field(..., min_length=1, max_length=100, description="Race name, e.g. 'Monaco Grand Prix'")
+    weather: Literal["dry", "wet", "mixed"] = Field(default="dry", description="dry | wet | mixed")
+    year: Optional[int] = Field(default=None, ge=1950, le=2100)
 
 
 class DriverPrediction(BaseModel):
@@ -21,9 +21,9 @@ class DriverPrediction(BaseModel):
 
 
 class RacePredictRequest(BaseModel):
-    track: str
-    weather: str = "dry"
-    year: Optional[int] = None
+    track: str = Field(..., min_length=1, max_length=100)
+    weather: Literal["dry", "wet", "mixed"] = "dry"
+    year: Optional[int] = Field(default=None, ge=1950, le=2100)
 
 
 class RaceGridEntry(BaseModel):
