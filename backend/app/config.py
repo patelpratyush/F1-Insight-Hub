@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     cache_db_path: str = ""          # default resolved at runtime
     fastf1_cache_dir: str = ""       # default resolved at runtime
     log_level: str = "INFO"
+    allowed_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
