@@ -1,6 +1,7 @@
-#.env
-# Environment variables for the project
+# Environment variables — never commit secrets
 .env
+*.env
+backend/.env
 
 # Logs
 logs
