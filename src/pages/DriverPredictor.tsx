@@ -13,6 +13,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import useApiCall from "@/hooks/useApiCall";
+import { API_BASE } from "@/lib/api";
 import { useDrivers, useTracks } from "@/hooks/useF1Metadata";
 import { getCurrentSeasonYear } from "@/lib/season";
 import { motion } from "framer-motion";
@@ -53,7 +54,7 @@ const DriverPredictor = () => {
   const predictionApi = useApiCall(
     async () => {
       const selectedDriverData = drivers.find((d) => d.id === selectedDriver);
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = API_BASE;
 
       const response = await fetch(`${apiUrl}/api/predict/driver`, {
         method: "POST",

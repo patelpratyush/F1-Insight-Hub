@@ -20,6 +20,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { useDrivers, useTracks } from "@/hooks/useF1Metadata";
 import { getCurrentSeasonYear } from "@/lib/season";
+import { API_BASE } from "@/lib/api";
 import {
     Brain,
     Clock,
@@ -253,7 +254,7 @@ const StrategySimulator = () => {
       );
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/strategy/simulate`,
+        `${API_BASE}/api/strategy/simulate`,
         {
           method: "POST",
           headers: {
@@ -347,7 +348,7 @@ const StrategySimulator = () => {
       );
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/strategy/compare`,
+        `${API_BASE}/api/strategy/compare`,
         {
           method: "POST",
           headers: {
@@ -403,7 +404,7 @@ const StrategySimulator = () => {
       );
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/strategy/optimize`,
+        `${API_BASE}/api/strategy/optimize`,
         {
           method: "POST",
           headers: {

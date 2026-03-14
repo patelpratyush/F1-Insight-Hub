@@ -10,6 +10,7 @@ import {
   Wind,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { API_BASE } from "@/lib/api";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import {
@@ -76,7 +77,7 @@ const WeatherContextPanel: React.FC<WeatherContextPanelProps> = ({
     setError(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = API_BASE;
       const response = await fetch(`${apiUrl}/api/telemetry/weather-context`, {
         method: "POST",
         headers: {

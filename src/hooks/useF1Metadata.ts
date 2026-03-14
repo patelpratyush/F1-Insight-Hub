@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getCurrentSeasonYear } from "@/lib/season";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { API_BASE } from "@/lib/api";
 const CURRENT_YEAR = getCurrentSeasonYear();
 
 export interface Driver {
@@ -53,7 +52,7 @@ function resolveTeamColor(team: string): string {
 }
 
 async function fetchDrivers(year: number): Promise<Driver[]> {
-  const resp = await fetch(`${API_URL}/api/metadata/drivers/${year}`);
+  const resp = await fetch(`${API_BASE}/api/metadata/drivers/${year}`);
   if (!resp.ok) throw new Error(`Failed to fetch drivers: ${resp.status}`);
   const data = await resp.json();
   if (!data.success) throw new Error("API returned failure");
@@ -72,7 +71,7 @@ async function fetchDrivers(year: number): Promise<Driver[]> {
 }
 
 async function fetchTracks(year: number): Promise<Track[]> {
-  const resp = await fetch(`${API_URL}/api/metadata/tracks/${year}`);
+  const resp = await fetch(`${API_BASE}/api/metadata/tracks/${year}`);
   if (!resp.ok) throw new Error(`Failed to fetch tracks: ${resp.status}`);
   const data = await resp.json();
   if (!data.success) throw new Error("API returned failure");

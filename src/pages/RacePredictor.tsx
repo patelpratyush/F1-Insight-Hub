@@ -15,6 +15,7 @@ import {
 import useApiCall from "@/hooks/useApiCall";
 import { useTracks } from "@/hooks/useF1Metadata";
 import { getCurrentSeasonYear } from "@/lib/season";
+import { API_BASE } from "@/lib/api";
 import { motion } from "framer-motion";
 import {
     Flag,
@@ -81,7 +82,7 @@ const RacePredictor = () => {
 
   const raceApi = useApiCall(
     async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = API_BASE;
       const response = await fetch(`${apiUrl}/api/predict/race`, {
         method: "POST",
         headers: {

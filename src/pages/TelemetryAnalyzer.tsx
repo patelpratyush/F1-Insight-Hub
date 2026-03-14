@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WeatherContextPanel from "@/components/WeatherContextPanel";
 import { useDrivers, useTracks, type Driver } from "@/hooks/useF1Metadata";
 import { getCurrentSeasonYear } from "@/lib/season";
+import { API_BASE } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -97,7 +98,7 @@ const TelemetryAnalyzer = () => {
   const { data: availableRaces, isLoading: racesLoading } = useQuery({
     queryKey: ["available-sessions", selectedSeason],
     queryFn: async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = API_BASE;
       const response = await fetch(
         `${apiUrl}/api/telemetry/available-sessions/${selectedSeason}`,
       );
@@ -111,7 +112,7 @@ const TelemetryAnalyzer = () => {
   const { data: telemetryData, isPending: analysisPending, error: analysisError } = useQuery({
     queryKey: ["telemetry-analyze", analysisParams],
     queryFn: async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = API_BASE;
       const response = await fetch(`${apiUrl}/api/telemetry/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,7 +129,7 @@ const TelemetryAnalyzer = () => {
   const { data: speedTraceData, isPending: speedTracePending, error: speedTraceError } = useQuery({
     queryKey: ["telemetry-speed-trace", speedTraceParams],
     queryFn: async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = API_BASE;
       const response = await fetch(`${apiUrl}/api/telemetry/speed-trace`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -145,7 +146,7 @@ const TelemetryAnalyzer = () => {
   const { data: trackMapData, isPending: trackMapPending, error: trackMapError } = useQuery({
     queryKey: ["telemetry-track-map", trackMapParams],
     queryFn: async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = API_BASE;
       const response = await fetch(`${apiUrl}/api/telemetry/track-map`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -162,7 +163,7 @@ const TelemetryAnalyzer = () => {
   const { data: comparisonData, isPending: comparisonPending, error: comparisonError } = useQuery({
     queryKey: ["telemetry-comparison", comparisonParams],
     queryFn: async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = API_BASE;
       const response = await fetch(`${apiUrl}/api/telemetry/driver-comparison`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
