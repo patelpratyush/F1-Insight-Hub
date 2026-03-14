@@ -14,7 +14,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import useApiCall from "@/hooks/useApiCall";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { API_BASE } from "@/lib/api";
 import { useDrivers } from "@/hooks/useF1Metadata";
 import {
   formatRaceDate,
@@ -69,125 +70,104 @@ const Dashboard = () => {
   const [selectedCircuit, setSelectedCircuit] = useState("");
   const [liveDataLastUpdate, setLiveDataLastUpdate] = useState(null);
 
-  // API calls
+  const queryClient = useQueryClient();
   const [dataYear, setDataYear] = useState(seasonYear);
-  const dashboardApi = useApiCall(
-    async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/f1/dashboard/${seasonYear}`);
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      const data = await response.json();
-      if (!data.success)
-        throw new Error(data.message || "Failed to fetch dashboard data");
-      if (data.data_year) setDataYear(data.data_year);
-      return data.data;
-    },
-    { maxRetries: 3, retryDelay: 2000 },
-  );
 
-  const performanceTrendsLast5Api = useApiCall(
-    async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = useQuery({
+    queryKey: ["dashboard", seasonYear],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/api/f1/dashboard/${seasonYear}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const json = await response.json();
+      if (!json.success) throw new Error(json.message || "Failed to fetch dashboard data");
+      return { ...json.data, dataYear: json.data_year };
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+  });
+
+  useEffect(() => {
+    if (dashboardData?.dataYear) setDataYear(dashboardData.dataYear);
+  }, [dashboardData]);
+
+  const { data: performanceTrends, isLoading: trendsLoading, error: trendsError, refetch: refetchTrends } = useQuery({
+    queryKey: ["dashboard-trends", seasonYear, showAllRaces],
+    queryFn: async () => {
       const response = await fetch(
-        `${apiUrl}/api/f1/dashboard-trends/${seasonYear}?all_races=false`,
+        `${API_BASE}/api/f1/dashboard-trends/${seasonYear}?all_races=${showAllRaces}`,
       );
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
-      if (!data.success)
-        throw new Error(data.message || "Failed to fetch performance trends");
+      if (!data.success) throw new Error(data.message || "Failed to fetch performance trends");
       return data.performance_trends;
     },
-    { maxRetries: 3, retryDelay: 2000 },
-  );
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+  });
 
-  const performanceTrendsAllApi = useApiCall(
-    async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(
-        `${apiUrl}/api/f1/dashboard-trends/${seasonYear}?all_races=true`,
-      );
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      const data = await response.json();
-      if (!data.success)
-        throw new Error(data.message || "Failed to fetch performance trends");
-      return data.performance_trends;
-    },
-    { maxRetries: 3, retryDelay: 2000 },
-  );
-
-  const liveWeatherApi = useApiCall(
-    async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/weather/current`, {
+  const { data: liveWeatherData, isFetching: liveWeatherFetching } = useQuery({
+    queryKey: ["live-weather", selectedCircuit],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/api/weather/current`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ circuit_name: selectedCircuit }),
       });
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
       if (!data.success) throw new Error("Failed to fetch weather data");
       return data;
     },
-    { maxRetries: 2, retryDelay: 1000 },
-  );
+    enabled: !!selectedCircuit,
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
+  });
 
-  const liveChampionshipApi = useApiCall(
-    async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/championship/standings`);
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  const { data: liveChampionshipData } = useQuery({
+    queryKey: ["championship-standings"],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/api/championship/standings`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
-      if (!data.success)
-        throw new Error("Failed to fetch championship standings");
+      if (!data.success) throw new Error("Failed to fetch championship standings");
       return data;
     },
-    { maxRetries: 2, retryDelay: 1000 },
-  );
+    staleTime: 1000 * 60 * 10,
+    retry: 2,
+    refetchInterval: 1000 * 60 * 10,
+  });
 
-  const availableCircuitsApi = useApiCall(
-    async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/weather/circuits`);
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  const { data: availableCircuitsData } = useQuery({
+    queryKey: ["weather-circuits"],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/api/weather/circuits`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
       if (!data.success) throw new Error("Failed to fetch available circuits");
       return data.circuits;
     },
-    { maxRetries: 2, retryDelay: 1000 },
-  );
+    staleTime: 1000 * 60 * 60,
+    retry: 2,
+  });
 
-  const nextRaceApi = useApiCall(
-    async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/api/results/next-race?year=${seasonYear}`);
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  const { data: nextRaceData } = useQuery({
+    queryKey: ["next-race", seasonYear],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/api/results/next-race?year=${seasonYear}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
       if (!data.success) throw new Error("Failed to fetch next race");
       return data;
     },
-    { maxRetries: 2, retryDelay: 1000 },
-  );
+    staleTime: 1000 * 60 * 60,
+    retry: 2,
+  });
 
-  const raceWeekendForecastApi = useApiCall(
-    async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const nextRaceResponse = await fetch(
-        `${apiUrl}/api/results/next-race?year=${seasonYear}`,
-      );
-      if (!nextRaceResponse.ok) throw new Error("Failed to get next race");
-      const nextRaceData = await nextRaceResponse.json();
-      if (!nextRaceData.success || !nextRaceData.next_race)
-        throw new Error("No upcoming race found");
-
-      const nextRace = nextRaceData.next_race;
-      const response = await fetch(`${apiUrl}/api/weather/race-weekend`, {
+  const { data: raceWeekendForecastData } = useQuery({
+    queryKey: ["race-weekend-forecast", nextRaceData?.next_race?.race_name],
+    queryFn: async () => {
+      const nextRace = nextRaceData!.next_race;
+      const response = await fetch(`${API_BASE}/api/weather/race-weekend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -195,15 +175,15 @@ const Dashboard = () => {
           race_date: nextRace.date,
         }),
       });
-      if (!response.ok)
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
-      if (!data.success)
-        throw new Error("Failed to fetch race weekend forecast");
+      if (!data.success) throw new Error("Failed to fetch race weekend forecast");
       return data;
     },
-    { maxRetries: 2, retryDelay: 1000 },
-  );
+    enabled: !!nextRaceData?.next_race,
+    staleTime: 1000 * 60 * 60,
+    retry: 2,
+  });
 
   const { data: apiDrivers } = useDrivers(seasonYear);
 
@@ -225,20 +205,14 @@ const Dashboard = () => {
   })();
   const availableDriverCodes = apiDrivers?.map((driver) => driver.code) || [];
 
-  const championshipData = dashboardApi.data?.championship_standings || [];
-  const recentRaceData = dashboardApi.data?.latest_race || null;
-  const weatherData = dashboardApi.data?.weather_analysis || [];
-  const upcomingRace = dashboardApi.data?.upcoming_race || null;
-  const seasonStats = dashboardApi.data?.season_statistics || {
+  const championshipData = dashboardData?.championship_standings || [];
+  const recentRaceData = dashboardData?.latest_race || null;
+  const upcomingRace = dashboardData?.upcoming_race || null;
+  const seasonStats = dashboardData?.season_statistics || {
     completed_races: 0,
     total_races: 24,
   };
-
-  const liveWeatherData = liveWeatherApi.data;
-  const liveChampionshipData = liveChampionshipApi.data;
-  const nextRaceData = nextRaceApi.data;
-  const availableCircuits = availableCircuitsApi.data || [];
-  const raceWeekendForecastData = raceWeekendForecastApi.data;
+  const availableCircuits = availableCircuitsData || [];
   const seasonDataStatus = getSeasonDataStatus(seasonYear, dataYear);
 
   const toggleDriver = (driverCode) => {
@@ -250,11 +224,7 @@ const Dashboard = () => {
   };
 
   const getFilteredPerformanceData = () => {
-    const trendsData = showAllRaces
-      ? performanceTrendsAllApi.data || []
-      : performanceTrendsLast5Api.data ||
-        dashboardApi.data?.performance_trends ||
-        [];
+    const trendsData = performanceTrends || dashboardData?.performance_trends || [];
     return !trendsData || trendsData.length === 0 ? [] : trendsData;
   };
 
@@ -289,55 +259,32 @@ const Dashboard = () => {
   };
 
   const refreshLiveData = () => {
-    if (selectedCircuit) liveWeatherApi.execute();
-    liveChampionshipApi.execute();
-    nextRaceApi.execute();
-    raceWeekendForecastApi.execute();
+    queryClient.invalidateQueries({ queryKey: ["live-weather"] });
+    queryClient.invalidateQueries({ queryKey: ["championship-standings"] });
+    queryClient.invalidateQueries({ queryKey: ["next-race"] });
+    queryClient.invalidateQueries({ queryKey: ["race-weekend-forecast"] });
     setLiveDataLastUpdate(new Date());
   };
 
   useEffect(() => {
     setIsVisible(true);
-    dashboardApi.execute();
-    if (showAllRaces) performanceTrendsAllApi.execute();
-    else performanceTrendsLast5Api.execute();
-
-    availableCircuitsApi.execute();
-    liveChampionshipApi.execute();
-    nextRaceApi.execute();
-    raceWeekendForecastApi.execute();
     setLiveDataLastUpdate(new Date());
   }, []);
 
   useEffect(() => {
-    if (showAllRaces) performanceTrendsAllApi.execute();
-    else performanceTrendsLast5Api.execute();
-  }, [showAllRaces]);
-
-  useEffect(() => {
-    if (selectedCircuit) liveWeatherApi.execute();
-  }, [selectedCircuit]);
-
-  useEffect(() => {
     const defaultCircuit = getDefaultCircuitName({
-      nextRaceName:
-        nextRaceApi.data?.next_race?.race_name || nextRaceApi.data?.next_race?.name,
+      nextRaceName: nextRaceData?.next_race?.race_name || nextRaceData?.next_race?.name,
       dashboardUpcomingRaceName:
-        dashboardApi.data?.upcoming_race?.raceName ||
-        dashboardApi.data?.upcoming_race?.race_name ||
-        dashboardApi.data?.upcoming_race?.name,
+        dashboardData?.upcoming_race?.raceName ||
+        dashboardData?.upcoming_race?.race_name ||
+        dashboardData?.upcoming_race?.name,
       availableCircuits,
     });
 
     if (defaultCircuit && defaultCircuit !== selectedCircuit) {
       setSelectedCircuit(defaultCircuit);
     }
-  }, [availableCircuits, dashboardApi.data, nextRaceApi.data, selectedCircuit]);
-
-  useEffect(() => {
-    const interval = setInterval(() => refreshLiveData(), 10 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [availableCircuits, dashboardData, nextRaceData, selectedCircuit]);
 
   useEffect(() => {
     if (!availableDriverCodes.length) return;
@@ -365,7 +312,7 @@ const Dashboard = () => {
     return changes[randomIndex];
   };
 
-  if (dashboardApi.loading && !dashboardApi.data) {
+  if (dashboardLoading && !dashboardData) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
         <LoadingSpinner size="lg" message="Loading F1 Dashboard..." />
@@ -373,14 +320,14 @@ const Dashboard = () => {
     );
   }
 
-  if (dashboardApi.error && !dashboardApi.data) {
+  if (dashboardError && !dashboardData) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
         <ErrorDisplay
           title="Failed to load dashboard"
-          message={dashboardApi.error}
-          onRetry={dashboardApi.retry}
-          isRetrying={dashboardApi.isRetrying}
+          message={(dashboardError as Error).message}
+          onRetry={refetchDashboard}
+          isRetrying={dashboardLoading}
           variant="card"
         />
       </div>
@@ -416,14 +363,14 @@ const Dashboard = () => {
 
             <div className="flex gap-4 items-center">
               <Button
-                onClick={dashboardApi.retry}
+                onClick={() => refetchDashboard()}
                 className="rounded-full bg-white/5 border-l-2 border-t border-white/10 border-r-0 border-b-0 text-white hover:bg-white/10 hover:border-red-500/50 transition-all h-12 px-6"
-                disabled={dashboardApi.isRetrying}
+                disabled={dashboardLoading}
               >
                 <RefreshCw
-                  className={`h-4 w-4 mr-2 ${dashboardApi.isRetrying ? "animate-spin" : ""}`}
+                  className={`h-4 w-4 mr-2 ${dashboardLoading ? "animate-spin" : ""}`}
                 />
-                {dashboardApi.isRetrying ? "Syncing Data..." : "Sync Telemetry"}
+                {dashboardLoading ? "Syncing Data..." : "Sync Telemetry"}
               </Button>
             </div>
           </div>
@@ -595,27 +542,11 @@ const Dashboard = () => {
               </div>
 
               <DataWrapper
-                loading={
-                  showAllRaces
-                    ? performanceTrendsAllApi.loading
-                    : performanceTrendsLast5Api.loading
-                }
-                error={
-                  showAllRaces
-                    ? performanceTrendsAllApi.error
-                    : performanceTrendsLast5Api.error
-                }
+                loading={trendsLoading}
+                error={trendsError ? (trendsError as Error).message : null}
                 data={getFilteredPerformanceData()}
-                onRetry={() =>
-                  showAllRaces
-                    ? performanceTrendsAllApi.execute()
-                    : performanceTrendsLast5Api.execute()
-                }
-                isRetrying={
-                  showAllRaces
-                    ? performanceTrendsAllApi.isRetrying
-                    : performanceTrendsLast5Api.isRetrying
-                }
+                onRetry={refetchTrends}
+                isRetrying={trendsLoading}
                 minHeight="min-h-[400px]"
               >
                 <div className="flex-1 w-full min-h-[400px]">
@@ -695,15 +626,15 @@ const Dashboard = () => {
               </p>
             </div>
             <DataWrapper
-              loading={dashboardApi.loading && !championshipData.length}
+              loading={dashboardLoading && !championshipData.length}
               error={
-                dashboardApi.error && !championshipData.length
-                  ? dashboardApi.error
+                dashboardError && !championshipData.length
+                  ? (dashboardError as Error).message
                   : null
               }
               data={championshipData}
-              onRetry={dashboardApi.retry}
-              isRetrying={dashboardApi.isRetrying}
+              onRetry={refetchDashboard}
+              isRetrying={dashboardLoading}
               minHeight="min-h-[300px]"
             >
               <div className="flex flex-col gap-2 max-h-[450px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
@@ -819,7 +750,7 @@ const Dashboard = () => {
                 onClick={refreshLiveData}
               >
                 <RefreshCw
-                  className={`w-5 h-5 ${liveWeatherApi.loading ? "animate-spin" : ""}`}
+                  className={`w-5 h-5 ${liveWeatherFetching ? "animate-spin" : ""}`}
                 />
               </div>
             </div>
