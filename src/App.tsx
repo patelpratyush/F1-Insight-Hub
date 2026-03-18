@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import LoadingSpinner from "./components/ui/loading-spinner";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const Index = lazy(() => import("./pages/Index"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -33,12 +34,12 @@ const App = () => (
             }
           >
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/predictor" element={<DriverPredictor />} />
-              <Route path="/race-predictor" element={<RacePredictor />} />
-              <Route path="/telemetry" element={<TelemetryAnalyzer />} />
-              <Route path="/strategy" element={<StrategySimulator />} />
+              <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+              <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+              <Route path="/predictor" element={<ErrorBoundary><DriverPredictor /></ErrorBoundary>} />
+              <Route path="/race-predictor" element={<ErrorBoundary><RacePredictor /></ErrorBoundary>} />
+              <Route path="/telemetry" element={<ErrorBoundary><TelemetryAnalyzer /></ErrorBoundary>} />
+              <Route path="/strategy" element={<ErrorBoundary><StrategySimulator /></ErrorBoundary>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
