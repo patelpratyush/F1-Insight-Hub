@@ -48,6 +48,7 @@ import {
     Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import {
     Bar,
     BarChart,
@@ -67,7 +68,7 @@ const Dashboard = () => {
   const [selectedDrivers, setSelectedDrivers] = useState<string[]>([]);
   const [showAllRaces, setShowAllRaces] = useState(false);
   const [showDriverDropdown, setShowDriverDropdown] = useState(false);
-  const [selectedCircuit, setSelectedCircuit] = useState("");
+  const [selectedCircuit, setSelectedCircuit] = usePersistedState("dashboard-circuit", "");
   const [liveDataLastUpdate, setLiveDataLastUpdate] = useState(null);
 
   const queryClient = useQueryClient();

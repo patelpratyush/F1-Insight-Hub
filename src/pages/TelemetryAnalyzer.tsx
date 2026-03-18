@@ -38,6 +38,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import {
   Area,
   AreaChart,
@@ -56,11 +57,11 @@ import {
 
 const TelemetryAnalyzer = () => {
   const currentYear = getCurrentSeasonYear();
-  const [selectedSeason, setSelectedSeason] = useState(String(currentYear));
-  const [selectedGP, setSelectedGP] = useState("");
-  const [selectedSession, setSelectedSession] = useState("Qualifying"); // Start with Qualifying as most representative
-  const [selectedDriver, setSelectedDriver] = useState("");
-  const [selectedDriver2, setSelectedDriver2] = useState("");
+  const [selectedSeason, setSelectedSeason] = usePersistedState("telemetry-season", String(currentYear));
+  const [selectedGP, setSelectedGP] = usePersistedState("telemetry-gp", "");
+  const [selectedSession, setSelectedSession] = usePersistedState("telemetry-session", "Qualifying");
+  const [selectedDriver, setSelectedDriver] = usePersistedState("telemetry-driver", "");
+  const [selectedDriver2, setSelectedDriver2] = usePersistedState("telemetry-driver2", "");
   const [viewMode, setViewMode] = useState("distance"); // "distance" or "time"
   const [analysisParams, setAnalysisParams] = useState<{ year: number; race: string; session: string; drivers: string[] } | null>(null);
   const [speedTraceParams, setSpeedTraceParams] = useState<{ year: number; race: string; driver: string; session: string; lap_number: number } | null>(null);
