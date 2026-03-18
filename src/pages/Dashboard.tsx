@@ -216,6 +216,11 @@ const Dashboard = () => {
   const availableCircuits = availableCircuitsData || [];
   const seasonDataStatus = getSeasonDataStatus(seasonYear, dataYear);
 
+  const championshipUpdatedAt = queryClient.getQueryState(["championship-standings"])?.dataUpdatedAt;
+  const championshipSecondsAgo = championshipUpdatedAt
+    ? Math.floor((Date.now() - championshipUpdatedAt) / 1000)
+    : null;
+
   const toggleDriver = (driverCode) => {
     setSelectedDrivers((prev) =>
       prev.includes(driverCode)
@@ -619,9 +624,18 @@ const Dashboard = () => {
             className="lg:col-span-4 flex flex-col pt-2 lg:pt-0"
           >
             <div className="mb-8">
-              <h2 className="text-3xl font-black tracking-tighter">
-                STANDINGS
-              </h2>
+              <div className="flex items-end justify-between">
+                <h2 className="text-3xl font-black tracking-tighter">
+                  STANDINGS
+                </h2>
+                {championshipSecondsAgo !== null && (
+                  <span className="text-xs text-white/30 font-mono mb-1">
+                    {championshipSecondsAgo < 60
+                      ? `${championshipSecondsAgo}s ago`
+                      : `${Math.floor(championshipSecondsAgo / 60)}m ago`}
+                  </span>
+                )}
+              </div>
               <p className="text-white/50 font-light mt-1">
                 Current driver ranks.
               </p>
