@@ -9,6 +9,7 @@ class StrategyRequest(BaseModel):
     starting_tire: str = "MEDIUM"  # SOFT | MEDIUM | HARD
     weather: str = "dry"
     year: Optional[int] = None
+    stint_compounds: Optional[List[str]] = None  # explicit user-picked stint plan, overrides auto-derivation
 
 
 class StrategyCompareRequest(BaseModel):
@@ -28,13 +29,40 @@ class StrategyOptimizeRequest(BaseModel):
 
 
 class StintResult(BaseModel):
-    stint: int
-    tire: str
+    stint_number: int
+    tire_compound: str
     start_lap: int
     end_lap: int
     laps: int
     avg_lap_time: float
-    degradation: str
+    degradation_level: str
+
+
+class PitStop(BaseModel):
+    lap: int
+    stint_number: int
+    old_tire: str
+    new_tire: str
+    pit_time: float
+    reason: str
+
+
+class TimelineEntry(BaseModel):
+    lap_start: int
+    lap_end: int
+    tire: str
+    cumulative_time: float
+
+
+class OptimizationMetrics(BaseModel):
+    consistency: float  # 0-1, higher = more even lap times across stints
+    baseline_time: float
+
+
+class RiskAnalysis(BaseModel):
+    overall_risk: float  # 0-1, higher = riskier strategy
+    pit_stop_risk: float
+    weather_risk: float
 
 
 class StrategyResult(BaseModel):
@@ -42,7 +70,14 @@ class StrategyResult(BaseModel):
     driver: str
     track: str
     total_time: float
-    pit_stops: int
+    total_race_time: str  # formatted H:MM:SS.mmm
+    total_seconds: float
+    pit_stops: List[PitStop]
     stints: List[StintResult]
-    final_position_estimate: int
+    predicted_position: int
+    efficiency_score: float
+    confidence: float
+    timeline: List[TimelineEntry]
+    optimization_metrics: OptimizationMetrics
+    risk_analysis: RiskAnalysis
     summary: str

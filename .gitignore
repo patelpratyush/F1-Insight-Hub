@@ -34,6 +34,9 @@ backend/data/
 backend/__pycache__/
 backend/**/__pycache__/
 
+# Runtime-generated ratings (rewritten on every server start/refresh)
+backend/config/computed_ratings.json
+
 # F1 data cache and logs
 cache/
 backend/cache/

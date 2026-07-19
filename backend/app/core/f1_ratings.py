@@ -97,6 +97,29 @@ def compute_driver_scores(
     Formula:
       score = base_skill × team_mult × form_factor × weather_mod
     """
+    return {
+        code: breakdown["score"]
+        for code, breakdown in compute_driver_scores_with_breakdown(
+            driver_code_to_name, driver_standings, constructor_standings, track_name, weather,
+        ).items()
+    }
+
+
+def compute_driver_scores_with_breakdown(
+    driver_code_to_name: Dict[str, str],
+    driver_standings: Dict[str, Dict],
+    constructor_standings: Dict[str, Dict],
+    track_name: str = "",
+    weather: str = "dry",
+) -> Dict[str, Dict[str, float]]:
+    """
+    Same scoring as compute_driver_scores, but returns each multiplicative
+    factor alongside the final score so callers can show a genuine
+    per-factor breakdown instead of a fabricated "feature importance" stat.
+
+    Return {driver_code: {score, base_skill, team_mult, form_factor,
+                           weather_mod, track_mod}}
+    """
     dr_ratings, team_ratings = _load_all_ratings()
     track_chars = _load_track_characteristics()
 
@@ -111,7 +134,7 @@ def compute_driver_scores(
         (s.get("points", 0) for s in driver_standings.values()), default=1
     ) or 1
 
-    scores: Dict[str, float] = {}
+    scores: Dict[str, Dict[str, float]] = {}
 
     for code, name in driver_code_to_name.items():
         # Base skill from config (default 0.70)
@@ -148,6 +171,13 @@ def compute_driver_scores(
             track_mod = affinity.get(code, affinity.get(name, 1.0))
 
         score = base * team_mult * form * weather_mod * track_mod
-        scores[code] = min(score, 1.0)
+        scores[code] = {
+            "score": min(score, 1.0),
+            "base_skill": round(base, 4),
+            "team_mult": round(team_mult, 4),
+            "form_factor": round(form, 4),
+            "weather_mod": round(weather_mod, 4),
+            "track_mod": round(track_mod, 4),
+        }
 
     return scores

@@ -1,8 +1,8 @@
 # 🏎️ F1 Insight Hub
 
-> **Comprehensive Formula 1 Data Analytics Platform with Live Integration, ML Predictions, and Advanced Telemetry Analysis**
+> **Comprehensive Formula 1 Data Analytics Platform with Live Integration, Monte Carlo Predictions, and Advanced Telemetry Analysis**
 
-F1 Insight Hub is a cutting-edge platform that brings together real-time F1 data, machine learning predictions, advanced telemetry analysis, and strategic race simulation in a unified dashboard experience.
+F1 Insight Hub is a cutting-edge platform that brings together real-time F1 data, rating-based Monte Carlo race predictions, advanced telemetry analysis, and strategic race simulation in a unified dashboard experience.
 
 ---
 
@@ -15,12 +15,13 @@ F1 Insight Hub is a cutting-edge platform that brings together real-time F1 data
 - **Championship Standings**: Auto-updating driver and constructor standings with battle analysis
 - **Session Results**: Live qualifying results, race analysis, and session comparisons
 
-### 🧠 Machine Learning Predictions
+### 🧠 Rating-Based Monte Carlo Predictions
 
-- **Enhanced Ensemble Models**: XGBoost + Random Forest + Neural Network for maximum accuracy
-- **Driver Performance Prediction**: Individual driver qualifying and race position predictions
-- **Full Grid Prediction**: Complete race grid predictions with confidence scoring
-- **Advanced Feature Engineering**: 50+ features including momentum, pressure, weather impact
+- **Weighted Rating Engine**: Combines driver skill, team pace, season form, weather modifier, and track affinity into a single per-driver score
+- **Monte Carlo Race Simulation**: Each prediction runs 1,000 simulated races with Gaussian noise to produce win/podium/points probabilities and a genuine confidence interval
+- **Driver Performance Prediction**: Individual driver race position predictions with a real per-factor rating breakdown
+- **Full Grid Prediction**: Complete race grid predictions with simulation-derived confidence scoring
+- **Honest Accuracy Metric**: Reports rank concordance between the rating engine's driver ordering and actual current championship standings — not a claimed out-of-sample accuracy
 
 ### 📊 Advanced Telemetry Analysis
 
@@ -166,10 +167,10 @@ F1-Insight-Hub/
 ### Backend
 
 - **Python 3.11+** with FastAPI for high-performance API
-- **Machine Learning**: XGBoost, Random Forest, Neural Networks
-- **Data Processing**: Pandas, NumPy, Scikit-learn
-- **F1 Data**: FastF1 API with telemetry caching
-- **Live APIs**: OpenWeatherMap, Google Gemini
+- **Prediction Engine**: Weighted rating model + NumPy-vectorized Monte Carlo simulation (1,000 trials/prediction)
+- **Data Processing**: NumPy
+- **F1 Data**: FastF1 API with telemetry caching, Jolpica-F1 for standings/results
+- **Live APIs**: OpenWeatherMap, Google Gemini (optional strategy insight)
 
 ---
 
@@ -187,8 +188,8 @@ F1-Insight-Hub/
 
 - Individual driver performance predictions
 - Weather impact analysis with 9+ weather conditions
-- Advanced ensemble ML models with confidence scoring
-- Driver and car ratings based on 2024-2025 data
+- Rating-based Monte Carlo simulation with simulation-derived confidence scoring
+- Driver and team ratings computed from live championship standings
 
 ### Race Predictor (`/race-predictor`)
 
@@ -314,7 +315,7 @@ curl -X GET "http://localhost:8000/api/championship/standings"
 curl -X GET "http://localhost:8000/api/results/next-race"
 ```
 
-### Machine Learning APIs
+### Prediction APIs
 
 #### Individual Driver Prediction
 
@@ -323,9 +324,8 @@ curl -X POST "http://localhost:8000/api/predict/driver" \
   -H "Content-Type: application/json" \
   -d '{
     "driver": "VER",
-    "track": "Silverstone", 
-    "weather": "Dry",
-    "team": "Red Bull Racing"
+    "track": "British Grand Prix",
+    "weather": "dry"
   }'
 ```
 
@@ -335,9 +335,8 @@ curl -X POST "http://localhost:8000/api/predict/driver" \
 curl -X POST "http://localhost:8000/api/predict/race" \
   -H "Content-Type: application/json" \
   -d '{
-    "race_name": "Hungarian Grand Prix",
-    "weather": "Dry",
-    "temperature": 28.5
+    "track": "Hungarian Grand Prix",
+    "weather": "dry"
   }'
 ```
 
@@ -489,7 +488,7 @@ python -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.ge
 
 **Memory Issues**:
 
-- ML models require ~4GB RAM
+- Monte Carlo simulation is lightweight (NumPy vectorized, ~1000 trials/prediction)
 - Use lightweight deployment for resource-constrained environments
 - Monitor memory usage: `htop` or `top`
 
@@ -497,12 +496,16 @@ python -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.ge
 
 ## 📈 Model Performance
 
-### Machine Learning Accuracy
+### Prediction Accuracy
 
-- **Qualifying Predictions**: 0.359 MAE (excellent accuracy)
-- **Race Predictions**: 1.638 MAE (very good accuracy)
-- **Training Data**: 718+ race records from 2024-2025 seasons
-- **Confidence Range**: 60-98% based on conditions
+The rating engine reports a **rank concordance** score with every prediction: the
+percentage of driver pairs where the rating engine's ordering agrees with the
+actual current championship order. This is an honest, always-computable metric —
+it is not a claim about predicting future race results, since the model isn't
+trained on historical outcomes.
+
+- **Simulation Trials**: 1,000 per prediction
+- **Rank Concordance**: typically 75-90%, varies with season progress (`model_info.concordant_pct` in API responses)
 - **API Response Time**: < 150ms average
 
 ### System Performance
@@ -523,12 +526,12 @@ python -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.ge
 ✅ Auto-updating championship standings  
 ✅ Live session results integration  
 
-### Enhanced ML Models (Completed)
+### Rating-Based Monte Carlo Engine (Completed)
 
-✅ Ensemble models with XGBoost + Random Forest + Neural Networks  
-✅ Advanced feature engineering (50+ features)  
-✅ Hyperparameter optimization with Optuna  
-✅ Enhanced confidence scoring  
+✅ Weighted rating model (driver skill, team pace, form, weather, track affinity)  
+✅ Vectorized 1,000-trial Monte Carlo race simulation  
+✅ Percentile-based confidence intervals from simulation spread  
+✅ Rank-concordance accuracy reporting  
 
 ### Dashboard Improvements (Completed)
 
@@ -578,7 +581,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Ready to explore F1 data like never before?** 🏁
 
-Get started with the setup instructions above and dive into the world of Formula 1 analytics with real-time data, machine learning predictions, and professional telemetry analysis!
+Get started with the setup instructions above and dive into the world of Formula 1 analytics with real-time data, Monte Carlo race predictions, and professional telemetry analysis!
 
 ---
 

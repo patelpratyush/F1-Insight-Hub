@@ -89,10 +89,9 @@ const RacePredictor = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          race_name: selectedTrack,
+          track: selectedTrack,
           weather: weather,
-          temperature:
-            weather === "clear" ? 25.0 : weather === "overcast" ? 20.0 : 18.0,
+          year: currentSeasonYear,
         }),
       });
 
@@ -108,11 +107,11 @@ const RacePredictor = () => {
         throw new Error(data.error || "Race prediction failed");
       }
 
-      const transformedPredictions = data.predictions.map((pred: any) => ({
-        pos: pred.predicted_position,
-        driver: pred.driver_code,
-        name: pred.driver_name,
-        team: pred.team
+      const transformedPredictions = data.grid.map((entry: any) => ({
+        pos: entry.position,
+        driver: entry.driver,
+        name: entry.name,
+        team: entry.team
           .replace(" Honda RBPT", "")
           .replace(" Mercedes", "")
           .replace("Scuderia ", "")
@@ -121,23 +120,23 @@ const RacePredictor = () => {
           .replace("Visa Cash App RB F1 Team", "RB")
           .replace("MoneyGram Haas F1 Team", "Haas")
           .replace("Kick Sauber F1 Team", "Kick Sauber"),
-        confidence: Math.round(pred.confidence),
-        gap: pred.gap_to_winner,
+        winProbability: entry.win_probability,
+        podiumProbability: entry.podium_probability,
+        expectedPoints: entry.expected_points,
+        confidence: entry.confidence != null ? Math.round(entry.confidence * 100) : null,
       }));
+
+      const avgConfidence =
+        transformedPredictions.reduce(
+          (sum: number, p: any) => sum + (p.confidence || 0),
+          0,
+        ) / (transformedPredictions.length || 1);
 
       return {
         predictions: transformedPredictions,
-        statistics: data.statistics,
-        modelType: data.model_type,
-        ensemblePerformance: data.ensemble_performance,
-        gridAnalysis: data.grid_analysis,
-        strategyInsights: data.strategy_insights,
-        weatherAnalysis: data.weather_analysis,
-        championshipImpact: data.championship_impact,
-        success: data.success,
-        raceName: data.race_name,
-        weatherConditions: data.weather_conditions,
-        temperature: data.temperature,
+        modelInfo: data.model_info,
+        avgConfidence: Math.round(avgConfidence),
+        raceName: selectedTrack,
       };
     },
     { maxRetries: 2, retryDelay: 2000 },
@@ -182,9 +181,9 @@ const RacePredictor = () => {
               PREDICTOR
             </h1>
             <p className="text-white/50 text-xl font-light max-w-2xl mt-4">
-              Simulate final positions for the current {currentSeasonYear} grid based on
-              qualifying results, historical team performance, and dynamic race
-              conditions via continuous machine learning.
+              Simulates the full {currentSeasonYear} grid 1,000 times using
+              live championship form, team pace, and weather-adjusted skill
+              ratings.
             </p>
           </div>
         </AnimatedPageWrapper>
@@ -383,16 +382,14 @@ const RacePredictor = () => {
                             <div className="flex items-center gap-8 justify-between w-full sm:w-auto">
                               <div className="flex flex-col items-start sm:items-end w-24">
                                 <span className="text-white/30 text-[10px] uppercase tracking-widest font-bold">
-                                  Gap Leader
+                                  Expected Pts
                                 </span>
                                 <span className="text-white/80 font-mono font-medium">
-                                  {driver.gap === "0.000"
-                                    ? "LEADER"
-                                    : `+${driver.gap}`}
+                                  {driver.expectedPoints?.toFixed(1) ?? "-"}
                                 </span>
                               </div>
                               <div className="bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1 rounded-full text-xs font-bold w-16 text-center">
-                                {driver.confidence}%
+                                {driver.confidence ?? "-"}%
                               </div>
                             </div>
                           </div>
@@ -422,7 +419,7 @@ const RacePredictor = () => {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[40px] font-black leading-none mb-1 text-red-400">
-                            {raceApi.data?.statistics?.average_confidence || 87}
+                            {raceApi.data?.avgConfidence ?? "-"}
                             %
                           </span>
                           <span className="text-white/40 text-[10px] uppercase tracking-widest font-bold">
@@ -431,138 +428,91 @@ const RacePredictor = () => {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-lg font-bold leading-none mb-2 mt-4 text-white/80">
-                            {raceApi.data.modelType || "GBM"}
+                            {raceApi.data?.modelInfo?.simulation_trials || 1000} trials
                           </span>
                           <span className="text-white/40 text-[10px] uppercase tracking-widest font-bold">
-                            Architecture
+                            {raceApi.data?.modelInfo?.method || "Rating-based Monte Carlo"}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Dynamics Context Widget */}
+                    {/* Model Accuracy Widget */}
                     <div className="p-8 border-t border-l border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent rounded-[40px] flex flex-col group hover:border-white/10 transition-colors">
                       <h4 className="text-white/30 font-bold text-[10px] uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-red-500" /> Dynamic
-                        Insights
+                        <TrendingUp className="h-4 w-4 text-red-500" /> Model
+                        Accuracy
                       </h4>
 
                       <div className="flex flex-col gap-5">
                         <div className="flex justify-between items-center border-b border-white/5 pb-4">
                           <span className="text-white/60 text-sm">
-                            Overtaking Difficulty
+                            Rank agreement vs current standings
                           </span>
                           <span className="font-bold">
-                            {raceApi.data?.strategyInsights
-                              ?.overtaking_difficulty || "Medium"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                          <span className="text-white/60 text-sm">
-                            Pit Window
-                          </span>
-                          <span className="font-bold">
-                            {raceApi.data?.strategyInsights
-                              ?.pit_window_importance || "High"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                          <span className="text-white/60 text-sm">
-                            Safety Car Probability
-                          </span>
-                          <span className="font-bold text-red-400">
-                            {raceApi.data?.strategyInsights
-                              ?.safety_car_probability || "High Risk"}
+                            {raceApi.data?.modelInfo?.concordant_pct != null
+                              ? `${(raceApi.data.modelInfo.concordant_pct * 100).toFixed(1)}%`
+                              : "-"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center pb-2">
                           <span className="text-white/60 text-sm">
-                            Weather Effect
+                            Driver pairs compared
                           </span>
                           <span className="font-bold">
-                            {raceApi.data?.weatherAnalysis?.impact_on_grid ||
-                              "Minimal"}
+                            {raceApi.data?.modelInfo?.compared_pairs ?? "-"}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Array of Specialists */}
-                    {(raceApi.data?.weatherAnalysis?.wet_weather_specialists ||
-                      raceApi.data?.gridAnalysis?.pole_contenders) && (
-                      <div className="md:col-span-2 p-8 bg-black rounded-[40px] flex flex-col relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-transparent"></div>
-                        <h4 className="text-white/30 font-bold text-[10px] uppercase tracking-widest mb-6 flex items-center gap-2">
-                          <Trophy className="h-4 w-4 text-red-500" /> Advanced
-                          Driver Impacts
-                        </h4>
+                    {/* Podium & Midfield */}
+                    <div className="md:col-span-2 p-8 bg-black rounded-[40px] flex flex-col relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-transparent"></div>
+                      <h4 className="text-white/30 font-bold text-[10px] uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-red-500" /> Grid
+                        Breakdown
+                      </h4>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          {raceApi.data?.gridAnalysis?.pole_contenders && (
-                            <div className="flex flex-col">
-                              <span className="text-white/80 font-bold mb-3 text-sm">
-                                Podium Contenders
-                              </span>
-                              <div className="flex flex-wrap gap-2">
-                                {raceApi.data.gridAnalysis.pole_contenders.map(
-                                  (d: string) => (
-                                    <span
-                                      key={d}
-                                      className="bg-white/5 px-3 py-1.5 rounded-full text-xs font-bold text-white/80"
-                                    >
-                                      {d}
-                                    </span>
-                                  ),
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {raceApi.data?.weatherAnalysis
-                            ?.wet_weather_specialists &&
-                            raceApi.data.weatherAnalysis.wet_weather_specialists
-                              .length > 0 && (
-                              <div className="flex flex-col">
-                                <span className="text-white/80 font-bold mb-3 text-sm">
-                                  Condition Specialists
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="flex flex-col">
+                          <span className="text-white/80 font-bold mb-3 text-sm">
+                            Podium Contenders
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {raceApi.data.predictions
+                              .filter((p: any) => p.pos <= 3)
+                              .map((p: any) => (
+                                <span
+                                  key={p.driver}
+                                  className="bg-white/5 px-3 py-1.5 rounded-full text-xs font-bold text-white/80"
+                                >
+                                  {p.driver}
                                 </span>
-                                <div className="flex flex-wrap gap-2">
-                                  {raceApi.data.weatherAnalysis.wet_weather_specialists.map(
-                                    (d: string) => (
-                                      <span
-                                        key={d}
-                                        className="bg-red-500/10 text-red-400 px-3 py-1.5 rounded-full text-xs font-bold"
-                                      >
-                                        {d}
-                                      </span>
-                                    ),
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                              ))}
+                          </div>
+                        </div>
 
-                          {raceApi.data?.gridAnalysis?.midfield_battle && (
-                            <div className="flex flex-col md:col-span-2 mt-4">
-                              <span className="text-white/80 font-bold mb-3 text-sm">
-                                Midfield Aggressors
-                              </span>
-                              <div className="flex flex-wrap gap-2">
-                                {raceApi.data.gridAnalysis.midfield_battle
-                                  .slice(0, 6)
-                                  .map((d: string) => (
-                                    <span
-                                      key={d}
-                                      className="text-white/50 text-xs font-bold border border-white/10 px-3 py-1.5 rounded-full"
-                                    >
-                                      {d}
-                                    </span>
-                                  ))}
-                              </div>
-                            </div>
-                          )}
+                        <div className="flex flex-col">
+                          <span className="text-white/80 font-bold mb-3 text-sm">
+                            Midfield Battle
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {raceApi.data.predictions
+                              .filter((p: any) => p.pos >= 6 && p.pos <= 12)
+                              .slice(0, 6)
+                              .map((p: any) => (
+                                <span
+                                  key={p.driver}
+                                  className="text-white/50 text-xs font-bold border border-white/10 px-3 py-1.5 rounded-full"
+                                >
+                                  {p.driver}
+                                </span>
+                              ))}
+                          </div>
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               )}

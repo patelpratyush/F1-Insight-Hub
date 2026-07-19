@@ -15,6 +15,12 @@ const DriverPredictor = lazy(() => import("./pages/DriverPredictor"));
 const RacePredictor = lazy(() => import("./pages/RacePredictor"));
 const TelemetryAnalyzer = lazy(() => import("./pages/TelemetryAnalyzer"));
 const StrategySimulator = lazy(() => import("./pages/StrategySimulator"));
+const PitStopAnalysis = lazy(() => import("./pages/PitStopAnalysis"));
+const LapReplay = lazy(() => import("./pages/LapReplay"));
+const DriverProfile = lazy(() => import("./pages/DriverProfile"));
+const TeamProfile = lazy(() => import("./pages/TeamProfile"));
+const SeasonComparison = lazy(() => import("./pages/SeasonComparison"));
+const Favorites = lazy(() => import("./pages/Favorites"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -40,6 +46,12 @@ const App = () => (
               <Route path="/race-predictor" element={<ErrorBoundary><RacePredictor /></ErrorBoundary>} />
               <Route path="/telemetry" element={<ErrorBoundary><TelemetryAnalyzer /></ErrorBoundary>} />
               <Route path="/strategy" element={<ErrorBoundary><StrategySimulator /></ErrorBoundary>} />
+              <Route path="/pit-stops" element={<ErrorBoundary><PitStopAnalysis /></ErrorBoundary>} />
+              <Route path="/lap-replay" element={<ErrorBoundary><LapReplay /></ErrorBoundary>} />
+              <Route path="/drivers/:code" element={<ErrorBoundary><DriverProfile /></ErrorBoundary>} />
+              <Route path="/teams/:name" element={<ErrorBoundary><TeamProfile /></ErrorBoundary>} />
+              <Route path="/compare" element={<ErrorBoundary><SeasonComparison /></ErrorBoundary>} />
+              <Route path="/favorites" element={<ErrorBoundary><Favorites /></ErrorBoundary>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

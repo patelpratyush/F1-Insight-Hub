@@ -88,6 +88,30 @@ async def session_result(
     return result
 
 
+@router.get("/pit-stops/{year}/{round}")
+async def pit_stops(
+    year: int,
+    round: int,
+    cache=Depends(get_cache),
+):
+    await cache.ensure_year(year)
+    svc = ResultsService(cache)
+    stops = await svc.get_pit_stops(year, round)
+    return {"year": year, "round": round, "pit_stops": stops}
+
+
+@router.get("/laps/{year}/{round}")
+async def lap_times(
+    year: int,
+    round: int,
+    cache=Depends(get_cache),
+):
+    await cache.ensure_year(year)
+    svc = ResultsService(cache)
+    laps = await svc.get_lap_times(year, round)
+    return {"year": year, "round": round, "laps": laps}
+
+
 @router.get("/upcoming")
 async def upcoming_races(
     year: Optional[int] = Query(None),

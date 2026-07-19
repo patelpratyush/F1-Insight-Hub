@@ -1,11 +1,12 @@
+import SearchBar from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     Activity,
     BarChart3,
     Flag,
-    Home,
     Menu,
+    Star,
     TrendingUp,
     Trophy,
     X,
@@ -25,6 +26,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { name: "Race Predictor", href: "/race-predictor", icon: TrendingUp },
     { name: "Telemetry", href: "/telemetry", icon: Activity },
     { name: "Strategy", href: "/strategy", icon: Zap },
+    { name: "Favorites", href: "/favorites", icon: Star },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -74,15 +76,19 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             ))}
           </div>
 
-          <div className="hidden lg:flex justify-end relative z-10 lg:w-[150px]">
-            <Button
-              onClick={() => {
-                window.location.href = "/dashboard";
-              }}
-              className="bg-white text-black hover:bg-gray-200 rounded-full px-6 text-sm font-bold transition-all hover:scale-105"
-            >
-              Launch App
-            </Button>
+          <div className="hidden lg:flex justify-end relative z-10">
+            {isHome ? (
+              <Button
+                onClick={() => {
+                  window.location.href = "/dashboard";
+                }}
+                className="bg-white text-black hover:bg-gray-200 rounded-full px-6 text-sm font-bold transition-all hover:scale-105"
+              >
+                Launch App
+              </Button>
+            ) : (
+              <SearchBar />
+            )}
           </div>
 
           {/* Mobile menu toggle */}
@@ -91,6 +97,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             size="sm"
             className="lg:hidden text-white hover:bg-white/10 rounded-full w-10 h-10 p-0"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? (
               <X className="h-5 w-5" />
@@ -110,6 +118,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               className="lg:hidden overflow-hidden border-t border-white/5"
             >
               <div className="p-4 space-y-2 flex flex-col">
+                <div className="pb-2">
+                  <SearchBar />
+                </div>
                 {navigation.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -150,7 +161,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <Flag className="w-4 h-4 text-red-500" />
                 <span>&copy; {new Date().getFullYear()} F1 Insight Hub.</span>
               </div>
-              <p>Powered by Fast-F1 & Advanced Machine Learning</p>
+              <p>Powered by Jolpica-F1 & Monte Carlo Simulation</p>
             </div>
           </div>
         </footer>

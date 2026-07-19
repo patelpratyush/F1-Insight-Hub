@@ -226,6 +226,51 @@ class CacheService:
                 pts[code]["per_round"][rnd] = p
         return pts
 
+    # ── On-demand per-race data (fetched lazily, cached permanently) ─
+
+    async def get_pit_stops(self, year: int, round_num: int) -> List[Dict]:
+        key = f"pit_stops:{year}:{round_num}"
+        cached = self._get(key, None)
+        if cached is not None:
+            return cached
+        raw = await self._jolpica.get_pit_stops(year, round_num)
+        id_to_code = self._driver_id_to_code(year)
+        stops = [
+            {**s, "driver": id_to_code.get(s["driver_id"], s["driver_id"])}
+            for s in raw
+        ]
+        # A near-empty result (0-1 stops) is more likely a truncated/failed
+        # fetch than a real race -- cache it briefly so it gets retried
+        # instead of freezing bad data in forever.
+        ttl = TTL_PERMANENT if len(stops) > 1 else TTL_STANDINGS
+        await self._put(key, stops, ttl)
+        return stops
+
+    async def get_lap_times(self, year: int, round_num: int) -> List[Dict]:
+        key = f"lap_times:{year}:{round_num}"
+        cached = self._get(key, None)
+        if cached is not None:
+            return cached
+        raw = await self._jolpica.get_lap_times(year, round_num)
+        id_to_code = self._driver_id_to_code(year)
+        laps = [
+            {
+                "lap": lap["lap"],
+                "timings": [
+                    {**t, "driver": id_to_code.get(t["driver_id"], t["driver_id"])}
+                    for t in lap["timings"]
+                ],
+            }
+            for lap in raw
+        ]
+        await self._put(key, laps, TTL_PERMANENT)
+        return laps
+
+    def _driver_id_to_code(self, year: int) -> Dict[str, str]:
+        # Ergast pitstops/laps endpoints key by driverId (e.g. "max_verstappen"),
+        # everything else in this app keys by 3-letter code -- bridge the two.
+        return {d["id"]: d["code"] for d in self.get_drivers(year) if d.get("id") and d.get("code")}
+
     # ── On-demand year loading ─────────────────────────────────────
 
     async def ensure_year(self, year: int):
@@ -253,6 +298,15 @@ class CacheService:
             )
             await self._db.commit()
 
+    # Only these prefixes represent the "core" per-year dataset that
+    # ensure_year()/​_load_year() is responsible for keeping fresh. Per-race
+    # sub-resources (race_result, pit_stops, lap_times) are keyed
+    # "prefix:year:round" and cached permanently once a race is over -- they
+    # must never cause a year to be treated as "loaded" for standings
+    # purposes, or a short-TTL key like driver_standings can go stale forever
+    # after a restart (loaded_years short-circuits ensure_year permanently).
+    _YEAR_LOADED_PREFIXES = {"schedule", "drivers", "constructors", "driver_standings", "constructor_standings"}
+
     async def _hydrate(self):
         if not self._db:
             return
@@ -271,8 +325,19 @@ class CacheService:
                 self._mem[key] = entry
                 loaded += 1
                 parts = key.split(":")
+                if parts[0] not in self._YEAR_LOADED_PREFIXES:
+                    continue
                 if len(parts) >= 2 and parts[1].isdigit():
                     self._loaded_years.add(int(parts[1]))
+        # A year only counts as "loaded" if standings actually survived
+        # hydration -- schedule/drivers have a much longer TTL than
+        # standings, so it's possible for schedule to hydrate fresh while
+        # standings didn't, which would otherwise short-circuit ensure_year
+        # and leave standings empty until the next full TTL cycle.
+        self._loaded_years = {
+            year for year in self._loaded_years
+            if f"driver_standings:{year}" in self._mem
+        }
         logger.info(f"Hydrated {loaded} cache entries from SQLite")
 
     async def _load_year(self, year: int):

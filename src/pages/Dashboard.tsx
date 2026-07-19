@@ -24,6 +24,7 @@ import {
   getNextSelectedDrivers,
   getRaceDisplayName,
   getSeasonDataStatus,
+  isRaceWeekend,
 } from "@/lib/season";
 import { motion } from "framer-motion";
 import {
@@ -80,10 +81,16 @@ const Dashboard = () => {
       const response = await fetch(`${API_BASE}/api/f1/dashboard/${seasonYear}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const json = await response.json();
-      if (!json.success) throw new Error(json.message || "Failed to fetch dashboard data");
-      return { ...json.data, dataYear: json.data_year };
+      return { ...json, dataYear: json.data_year };
     },
     staleTime: 1000 * 60 * 5,
+    // Honest "fast refresh" during a race weekend -- polls every 30s
+    // instead of only on manual refresh. Not true live timing: the
+    // underlying data source isn't push/real-time, just polled faster.
+    refetchInterval: (query) =>
+      isRaceWeekend(query.state.data?.upcoming_race?.date)
+        ? 1000 * 30
+        : false,
     retry: 3,
   });
 
@@ -124,20 +131,6 @@ const Dashboard = () => {
     retry: 2,
   });
 
-  const { data: liveChampionshipData } = useQuery({
-    queryKey: ["championship-standings"],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE}/api/championship/standings`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      const data = await response.json();
-      if (!data.success) throw new Error("Failed to fetch championship standings");
-      return data;
-    },
-    staleTime: 1000 * 60 * 10,
-    retry: 2,
-    refetchInterval: 1000 * 60 * 10,
-  });
-
   const { data: availableCircuitsData } = useQuery({
     queryKey: ["weather-circuits"],
     queryFn: async () => {
@@ -165,14 +158,14 @@ const Dashboard = () => {
   });
 
   const { data: raceWeekendForecastData } = useQuery({
-    queryKey: ["race-weekend-forecast", nextRaceData?.next_race?.race_name],
+    queryKey: ["race-weekend-forecast", nextRaceData?.race_name],
     queryFn: async () => {
-      const nextRace = nextRaceData!.next_race;
+      const nextRace = nextRaceData!;
       const response = await fetch(`${API_BASE}/api/weather/race-weekend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          circuit_name: nextRace.race_name || nextRace.name,
+          circuit_name: nextRace.race_name,
           race_date: nextRace.date,
         }),
       });
@@ -181,7 +174,7 @@ const Dashboard = () => {
       if (!data.success) throw new Error("Failed to fetch race weekend forecast");
       return data;
     },
-    enabled: !!nextRaceData?.next_race,
+    enabled: !!nextRaceData?.race_name,
     staleTime: 1000 * 60 * 60,
     retry: 2,
   });
@@ -216,7 +209,7 @@ const Dashboard = () => {
   const availableCircuits = availableCircuitsData || [];
   const seasonDataStatus = getSeasonDataStatus(seasonYear, dataYear);
 
-  const championshipUpdatedAt = queryClient.getQueryState(["championship-standings"])?.dataUpdatedAt;
+  const championshipUpdatedAt = queryClient.getQueryState(["dashboard", seasonYear])?.dataUpdatedAt;
   const championshipSecondsAgo = championshipUpdatedAt
     ? Math.floor((Date.now() - championshipUpdatedAt) / 1000)
     : null;
@@ -266,7 +259,7 @@ const Dashboard = () => {
 
   const refreshLiveData = () => {
     queryClient.invalidateQueries({ queryKey: ["live-weather"] });
-    queryClient.invalidateQueries({ queryKey: ["championship-standings"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard", seasonYear] });
     queryClient.invalidateQueries({ queryKey: ["next-race"] });
     queryClient.invalidateQueries({ queryKey: ["race-weekend-forecast"] });
     setLiveDataLastUpdate(new Date());
@@ -279,7 +272,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const defaultCircuit = getDefaultCircuitName({
-      nextRaceName: nextRaceData?.next_race?.race_name || nextRaceData?.next_race?.name,
+      nextRaceName: nextRaceData?.race_name,
       dashboardUpcomingRaceName:
         dashboardData?.upcoming_race?.raceName ||
         dashboardData?.upcoming_race?.race_name ||
@@ -410,7 +403,7 @@ const Dashboard = () => {
               <Trophy className="w-4 h-4 text-red-500" /> Prev Winner
             </span>
             <span className="text-4xl md:text-5xl font-black tracking-tighter truncate">
-              {recentRaceData?.podium?.[0]?.name?.split(" ")[1] || "N/A"}
+              {recentRaceData?.results?.[0]?.name?.split(" ")[1] || "N/A"}
             </span>
             <span className="text-white/60 font-mono mt-2 truncate w-full">
               {recentRaceData?.raceName || "Unknown"}
@@ -422,15 +415,13 @@ const Dashboard = () => {
               <Calendar className="w-4 h-4 text-red-500" /> Next Race
             </span>
             <span className="text-4xl md:text-5xl font-black tracking-tighter truncate">
-              {nextRaceData?.next_race
-                ? getRaceDisplayName(
-                    nextRaceData.next_race.race_name || nextRaceData.next_race.name,
-                  )
+              {nextRaceData?.race_name
+                ? getRaceDisplayName(nextRaceData.race_name)
                 : "TBD"}
             </span>
             <span className="text-white/60 font-mono mt-2">
-              {nextRaceData?.next_race?.date
-                ? formatRaceDate(nextRaceData.next_race.date)
+              {nextRaceData?.date
+                ? formatRaceDate(nextRaceData.date)
                 : "N/A"}
             </span>
           </div>
@@ -494,6 +485,8 @@ const Dashboard = () => {
                     <button
                       onClick={() => setShowDriverDropdown(!showDriverDropdown)}
                       className="flex items-center gap-2 px-5 py-2.5 bg-[#111111] border-l-2 border-t border-white/10 border-r-0 border-b-0 rounded-full hover:bg-white/5 transition-all text-sm font-bold"
+                      aria-expanded={showDriverDropdown}
+                      aria-haspopup="true"
                     >
                       Drivers ({selectedDrivers.length}){" "}
                       <span className="text-xs opacity-50">▼</span>
@@ -628,13 +621,24 @@ const Dashboard = () => {
                 <h2 className="text-3xl font-black tracking-tighter">
                   STANDINGS
                 </h2>
-                {championshipSecondsAgo !== null && (
-                  <span className="text-xs text-white/30 font-mono mb-1">
-                    {championshipSecondsAgo < 60
-                      ? `${championshipSecondsAgo}s ago`
-                      : `${Math.floor(championshipSecondsAgo / 60)}m ago`}
-                  </span>
-                )}
+                <div className="flex items-center gap-3 mb-1">
+                  {isRaceWeekend(dashboardData?.upcoming_race?.date) && (
+                    <span
+                      className="text-xs text-red-400 font-mono flex items-center gap-1.5"
+                      title="Polling every 30s during the race weekend — not true live timing"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                      FAST REFRESH
+                    </span>
+                  )}
+                  {championshipSecondsAgo !== null && (
+                    <span className="text-xs text-white/30 font-mono">
+                      {championshipSecondsAgo < 60
+                        ? `${championshipSecondsAgo}s ago`
+                        : `${Math.floor(championshipSecondsAgo / 60)}m ago`}
+                    </span>
+                  )}
+                </div>
               </div>
               <p className="text-white/50 font-light mt-1">
                 Current driver ranks.
@@ -714,8 +718,8 @@ const Dashboard = () => {
             </div>
 
             <div className="flex flex-col gap-4 mb-8">
-              {recentRaceData?.podium?.slice(0, 3).map((result, idx) => (
-                <div key={result.driver} className="flex items-center gap-4">
+              {recentRaceData?.results?.slice(0, 3).map((result, idx) => (
+                <div key={result.code} className="flex items-center gap-4">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-black ${idx === 0 ? "bg-white text-black" : "bg-white/10 text-white"}`}
                   >
@@ -760,20 +764,22 @@ const Dashboard = () => {
                   {liveWeatherData?.location || "Loading..."}
                 </h4>
               </div>
-              <div
+              <button
+                type="button"
                 className="p-3 bg-red-500/10 rounded-full border border-red-500/30 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-all cursor-pointer"
                 onClick={refreshLiveData}
+                aria-label="Refresh live weather data"
               >
                 <RefreshCw
                   className={`w-5 h-5 ${liveWeatherFetching ? "animate-spin" : ""}`}
                 />
-              </div>
+              </button>
             </div>
 
             <div className="flex items-end justify-between my-8 relative z-10">
               <div className="flex flex-col">
                 <span className="text-[64px] font-black leading-none tracking-tighter">
-                  {liveWeatherData?.temperature?.toFixed(0) || "0"}°
+                  {liveWeatherData?.temperature_c?.toFixed(0) || "0"}°
                 </span>
                 <span className="text-red-300 font-medium capitalize mt-2 flex items-center gap-2">
                   {getWeatherIcon(liveWeatherData?.condition)}{" "}
@@ -788,7 +794,7 @@ const Dashboard = () => {
                   Track
                 </span>
                 <span className="font-mono text-lg">
-                  {liveWeatherData?.track_temperature?.toFixed(1) || "-"}°
+                  {liveWeatherData?.track_temp_estimate_c?.toFixed(1) || "-"}°
                 </span>
               </div>
               <div className="flex flex-col">
@@ -796,7 +802,9 @@ const Dashboard = () => {
                   Wind
                 </span>
                 <span className="font-mono text-lg">
-                  {liveWeatherData?.wind_speed?.toFixed(0) || "-"}{" "}
+                  {liveWeatherData?.wind_speed_ms != null
+                    ? (liveWeatherData.wind_speed_ms * 3.6).toFixed(0)
+                    : "-"}{" "}
                   <span className="text-xs">kmh</span>
                 </span>
               </div>

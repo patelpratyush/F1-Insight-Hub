@@ -212,6 +212,7 @@ export const GraphCustomizationPanel: React.FC<
             size="sm"
             onClick={() => setIsOpen(!isOpen)}
             className="text-white hover:bg-white/10 rounded-full border border-white/5 bg-white/5 p-4 py-2 hover:border-white/10"
+            aria-expanded={isOpen}
           >
             {isOpen ? "Hide" : "Show"} Controls
           </Button>

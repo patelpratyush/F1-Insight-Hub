@@ -9,12 +9,24 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from ..core.f1_ratings import compute_driver_scores
+from ..core.backtest import rating_concordance
+from ..core.f1_ratings import compute_driver_scores_with_breakdown
 from ..core.monte_carlo import simulate_race
-from ..models.predict import DriverPrediction, RaceGridEntry
+from ..models.predict import (
+    DriverPrediction, ModelInfo, PositionRange, RaceGridEntry, RatingBreakdown,
+)
 
 logger = logging.getLogger(__name__)
 _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="mc_")
+_SIMULATION_TRIALS = 1000
+
+
+def _confidence_from_range(p10: int, p90: int, grid_size: int) -> float:
+    """Tighter Monte Carlo spread relative to grid size -> higher confidence."""
+    if grid_size <= 1:
+        return 1.0
+    spread = (p90 - p10) / grid_size
+    return round(max(0.0, min(1.0, 1 - spread)), 4)
 
 
 class PredictionService:
@@ -24,9 +36,9 @@ class PredictionService:
     def _current_year(self, year: Optional[int] = None) -> int:
         return year or datetime.now(timezone.utc).year
 
-    async def predict_race_grid(
-        self, track: str, weather: str = "dry", year: Optional[int] = None
-    ) -> List[RaceGridEntry]:
+    async def run_simulation(
+        self, track: str, weather: str, year: Optional[int],
+    ) -> tuple[List[RaceGridEntry], Dict[str, Dict], ModelInfo]:
         y = self._current_year(year)
         cache = self._cache
 
@@ -40,40 +52,69 @@ class PredictionService:
             code_to_name = _fallback_driver_map()
 
         loop = asyncio.get_event_loop()
-        scores = await loop.run_in_executor(
+        breakdowns = await loop.run_in_executor(
             _executor,
-            compute_driver_scores,
+            compute_driver_scores_with_breakdown,
             code_to_name, driver_standings, constructor_standings, track, weather,
         )
+        scores = {code: b["score"] for code, b in breakdowns.items()}
         results = await loop.run_in_executor(
-            _executor, simulate_race, scores, 1000,
+            _executor, simulate_race, scores, _SIMULATION_TRIALS,
         )
 
-        name_map = code_to_name
         team_map = {s["driver"]: s["team"] for s in cache.get_driver_standings(y)}
+        grid_size = len(results)
 
-        return [
+        grid = [
             RaceGridEntry(
                 position=r["predicted_position"],
                 driver=r["driver"],
-                name=name_map.get(r["driver"], r["driver"]),
+                name=code_to_name.get(r["driver"], r["driver"]),
                 team=team_map.get(r["driver"], "Unknown"),
                 win_probability=r["win_pct"],
                 podium_probability=r["podium_pct"],
                 expected_points=r["expected_pts"],
+                position_range=PositionRange(
+                    p10=r["p10_pos"], p90=r["p90_pos"], std_dev=r["pos_std"],
+                ),
+                confidence=_confidence_from_range(r["p10_pos"], r["p90_pos"], grid_size),
             )
             for r in results
         ]
 
+        concordance = rating_concordance(scores, driver_standings)
+        model_info = ModelInfo(
+            simulation_trials=_SIMULATION_TRIALS,
+            concordant_pct=concordance["concordant_pct"],
+            compared_pairs=concordance["compared_pairs"],
+        )
+
+        return grid, breakdowns, model_info
+
+    async def predict_race_grid(
+        self, track: str, weather: str = "dry", year: Optional[int] = None
+    ) -> List[RaceGridEntry]:
+        grid, _, _ = await self.run_simulation(track, weather, year)
+        return grid
+
     async def predict_driver(
         self, driver_code: str, track: str, weather: str = "dry", year: Optional[int] = None
     ) -> Optional[DriverPrediction]:
-        grid = await self.predict_race_grid(track, weather, year)
+        grid, breakdowns, model_info = await self.run_simulation(track, weather, year)
         entry = next((e for e in grid if e.driver == driver_code), None)
         if not entry:
             return None
 
         key_factors = _build_key_factors(driver_code, weather, entry)
+        breakdown = breakdowns.get(driver_code, {})
+        rating_breakdown = RatingBreakdown(
+            base_skill=breakdown.get("base_skill", 0),
+            team_mult=breakdown.get("team_mult", 0),
+            form_factor=breakdown.get("form_factor", 0),
+            weather_mod=breakdown.get("weather_mod", 0),
+            track_mod=breakdown.get("track_mod", 0),
+        ) if breakdown else None
+
         return DriverPrediction(
             driver=driver_code,
             name=entry.name,
@@ -83,6 +124,10 @@ class PredictionService:
             podium_probability=entry.podium_probability,
             expected_points=entry.expected_points,
             key_factors=key_factors,
+            position_range=entry.position_range,
+            confidence=entry.confidence,
+            rating_breakdown=rating_breakdown,
+            model_info=model_info,
         )
 
 

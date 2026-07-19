@@ -33,3 +33,15 @@ class ResultsService:
 
     def get_upcoming_races(self, year: int) -> List[Dict]:
         return self._c.get_upcoming_races(year)
+
+    def get_latest_race(self, year: int) -> Optional[Dict]:
+        return self._c.get_latest_race(year)
+
+    def get_performance_trends(self, year: int, limit: int = 5) -> List[Dict]:
+        return self._c.get_performance_trends(year, limit)
+
+    async def get_pit_stops(self, year: int, round_num: int) -> List[Dict]:
+        return await self._c.get_pit_stops(year, round_num)
+
+    async def get_lap_times(self, year: int, round_num: int) -> List[Dict]:
+        return await self._c.get_lap_times(year, round_num)

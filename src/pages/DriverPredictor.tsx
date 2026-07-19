@@ -53,7 +53,6 @@ const DriverPredictor = () => {
 
   const predictionApi = useApiCall(
     async () => {
-      const selectedDriverData = drivers.find((d) => d.id === selectedDriver);
       const apiUrl = API_BASE;
 
       const response = await fetch(`${apiUrl}/api/predict/driver`, {
@@ -65,7 +64,6 @@ const DriverPredictor = () => {
           driver: selectedDriver,
           track: selectedTrack,
           weather: weather.toLowerCase(),
-          team: selectedDriverData?.team || "Unknown",
         }),
       });
 
@@ -81,34 +79,16 @@ const DriverPredictor = () => {
         throw new Error(data.message);
       }
 
-      const podiumProbability =
-        data.predicted_race_position <= 3
-          ? Math.min(
-              95,
-              data.race_confidence * 100 +
-                (4 - data.predicted_race_position) * 10,
-            )
-          : Math.max(5, (21 - data.predicted_race_position) * 3);
-
       return {
-        qualifying: data.predicted_qualifying_position,
-        race: data.predicted_race_position,
-        podiumProbability: podiumProbability,
-        qualifyingConfidence: data.qualifying_confidence,
-        raceConfidence: data.race_confidence,
-        modelType: data.model_type,
-        ensembleBreakdown: data.ensemble_breakdown,
-        featureImportance: data.feature_importance,
-        uncertaintyRange: data.uncertainty_range,
-        modelPerformance: data.model_performance,
-        driverRatings: data.driver_ratings,
-        carRatings: data.car_ratings,
-        weatherImpact: data.weather_impact,
-        historicalComparison: data.historical_comparison,
-        trackAnalysis: data.track_analysis,
-        predictionFactors: data.prediction_factors,
-        confidenceExplanation: data.confidence_explanation,
-        riskAssessment: data.risk_assessment,
+        position: data.predicted_position,
+        winProbability: data.win_probability,
+        podiumProbability: data.podium_probability,
+        expectedPoints: data.expected_points,
+        confidence: data.confidence,
+        positionRange: data.position_range,
+        ratingBreakdown: data.rating_breakdown,
+        modelInfo: data.model_info,
+        keyFactors: data.key_factors,
       };
     },
     { maxRetries: 2, retryDelay: 1500 },
@@ -137,7 +117,7 @@ const DriverPredictor = () => {
           <div className="flex flex-col mb-16 gap-6">
             <span className="text-red-500 font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-              MACHINE LEARNING INFERENCE
+              RATING-BASED MONTE CARLO SIMULATION
             </span>
             <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-md">
               DRIVER
@@ -145,10 +125,9 @@ const DriverPredictor = () => {
               PREDICTOR
             </h1>
             <p className="text-white/50 text-xl font-light max-w-2xl mt-4">
-              Gradient Boosting ML model trained on recent F1 data. Forecasts
-              {` ${currentSeasonYear} `}
-              race results utilizing historic qualifying times, live weather,
-              and dynamic track features.
+              Simulates {` ${currentSeasonYear} `}
+              race outcomes 1,000 times per driver, combining live championship
+              form, team pace, and weather-adjusted skill ratings.
             </p>
           </div>
         </AnimatedPageWrapper>
@@ -415,19 +394,17 @@ const DriverPredictor = () => {
                     <div className="p-8 flex flex-col items-center justify-center relative group transition-all">
                       <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-all z-0"></div>
                       <span className="text-[80px] font-black leading-none tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] relative z-10 mb-4 animate-pulse">
-                        P{predictionApi.data.qualifying}
+                        P{predictionApi.data.position}
                       </span>
                       <div className="flex flex-col items-center text-center relative z-10">
                         <span className="text-white/50 font-bold text-xs uppercase tracking-widest mb-1">
-                          Qualifying
+                          Predicted Finish
                         </span>
                         <span className="text-white/30 text-[10px] bg-white/5 px-2 py-0.5 rounded-full">
                           Confidence:{" "}
-                          {predictionApi.data.qualifyingConfidence
-                            ? (
-                                predictionApi.data.qualifyingConfidence * 100
-                              ).toFixed(0)
-                            : 75}
+                          {predictionApi.data.confidence != null
+                            ? (predictionApi.data.confidence * 100).toFixed(0)
+                            : "-"}
                           %
                         </span>
                       </div>
@@ -436,20 +413,14 @@ const DriverPredictor = () => {
                     <div className="p-8 flex flex-col items-center justify-center relative group hover:text-red-500 transition-all">
                       <div className="absolute rounded-full w-full h-full bg-red-600/10 blur-[40px] group-hover:bg-red-600/20 transition-all z-0"></div>
                       <span className="text-[80px] font-black leading-none tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] relative z-10 mb-4 animate-pulse">
-                        P{predictionApi.data.race}
+                        {Math.round((predictionApi.data.winProbability || 0) * 100)}%
                       </span>
                       <div className="flex flex-col items-center text-center relative z-10">
                         <span className="text-red-400 font-bold text-xs uppercase tracking-widest mb-1">
-                          RACE FINISH
+                          WIN PROBABILITY
                         </span>
                         <span className="text-red-400/50 text-[10px] bg-red-500/10 border-l-2 border-t border-red-500/20 border-r-0 border-b-0 px-2 py-0.5 rounded-full">
-                          Confidence:{" "}
-                          {predictionApi.data.raceConfidence
-                            ? (predictionApi.data.raceConfidence * 100).toFixed(
-                                0,
-                              )
-                            : 65}
-                          %
+                          Across {predictionApi.data.modelInfo?.simulation_trials || 1000} simulated races
                         </span>
                       </div>
                     </div>
@@ -457,188 +428,131 @@ const DriverPredictor = () => {
                     <div className="p-8 flex flex-col items-center justify-center relative group transition-all">
                       <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-all z-0"></div>
                       <span className="text-[80px] font-black leading-none tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] relative z-10 mb-4">
-                        {Math.round(predictionApi.data.podiumProbability)}%
+                        {Math.round((predictionApi.data.podiumProbability || 0) * 100)}%
                       </span>
                       <div className="flex flex-col items-center text-center relative z-10">
                         <span className="text-white/50 font-bold text-xs uppercase tracking-widest mb-1">
                           Podium Chance
                         </span>
                         <span className="text-white/30 text-[10px] bg-white/5 px-2 py-0.5 rounded-full">
-                          Top 3 Finish Margin
+                          Expected {predictionApi.data.expectedPoints?.toFixed(1) ?? "-"} pts
                         </span>
                       </div>
                     </div>
                   </StaggeredAnimation>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Confidence Intervals */}
-                    {predictionApi.data.uncertaintyRange && (
+                    {/* Confidence Interval */}
+                    {predictionApi.data.positionRange && (
                       <div className="p-8 flex flex-col">
                         <h4 className="text-white font-bold text-lg mb-6 flex items-center gap-2">
                           <Target className="h-5 w-5 text-red-500" />
-                          Uncertainty Variance
+                          Simulation Spread
                         </h4>
 
-                        <div className="flex flex-col gap-6">
-                          <div className="flex flex-col gap-3">
-                            <div className="flex justify-between items-center text-sm font-bold">
-                              <span className="text-white/50">Quali Range</span>
-                              <span className="text-white">
-                                {
-                                  predictionApi.data.uncertaintyRange.qualifying
-                                    ?.confidence_interval
-                                }
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-white/30 font-mono text-xs w-6">
-                                P
-                                {
-                                  predictionApi.data.uncertaintyRange.qualifying
-                                    ?.min_position
-                                }
-                              </span>
-                              <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden relative">
-                                <div
-                                  className="absolute top-0 bottom-0 bg-white/30 rounded-full"
-                                  style={{ left: "0%", right: "0%" }}
-                                ></div>
-                                <div className="absolute top-0 bottom-0 w-1 bg-white left-1/2 -translate-x-1/2 rounded-full shadow-[0_0_10px_white]"></div>
-                              </div>
-                              <span className="text-white/30 font-mono text-xs w-6">
-                                P
-                                {
-                                  predictionApi.data.uncertaintyRange.qualifying
-                                    ?.max_position
-                                }
-                              </span>
-                            </div>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex justify-between items-center text-sm font-bold">
+                            <span className="text-red-400">
+                              P{predictionApi.data.positionRange.p10} – P
+                              {predictionApi.data.positionRange.p90}
+                            </span>
+                            <span className="text-white/50">
+                              10th–90th percentile
+                            </span>
                           </div>
-
-                          <div className="flex flex-col gap-3">
-                            <div className="flex justify-between items-center text-sm font-bold">
-                              <span className="text-red-400">Race Range</span>
-                              <span className="text-red-400">
-                                {
-                                  predictionApi.data.uncertaintyRange.race
-                                    ?.confidence_interval
-                                }
-                              </span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-white/30 font-mono text-xs w-6">
+                              P{predictionApi.data.positionRange.p10}
+                            </span>
+                            <div className="flex-1 h-3 bg-red-950/30 rounded-full overflow-hidden relative">
+                              <div className="absolute top-0 bottom-0 bg-red-500/40 rounded-full inset-0"></div>
+                              <div className="absolute top-0 bottom-0 w-1 bg-red-500 left-1/2 -translate-x-1/2 rounded-full shadow-[0_0_10px_red]"></div>
                             </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-white/30 font-mono text-xs w-6">
-                                P
-                                {
-                                  predictionApi.data.uncertaintyRange.race
-                                    ?.min_position
-                                }
-                              </span>
-                              <div className="flex-1 h-3 bg-red-950/30 rounded-full overflow-hidden relative">
-                                <div
-                                  className="absolute top-0 bottom-0 bg-red-500/40 rounded-full"
-                                  style={{ left: "0%", right: "0%" }}
-                                ></div>
-                                <div className="absolute top-0 bottom-0 w-1 bg-red-500 left-1/2 -translate-x-1/2 rounded-full shadow-[0_0_10px_red]"></div>
-                              </div>
-                              <span className="text-white/30 font-mono text-xs w-6">
-                                P
-                                {
-                                  predictionApi.data.uncertaintyRange.race
-                                    ?.max_position
-                                }
-                              </span>
-                            </div>
+                            <span className="text-white/30 font-mono text-xs w-6">
+                              P{predictionApi.data.positionRange.p90}
+                            </span>
                           </div>
+                          <p className="text-white/40 text-xs mt-2">
+                            Std dev across trials: {predictionApi.data.positionRange.std_dev} positions
+                          </p>
                         </div>
                       </div>
                     )}
 
-                    {/* Metadata & Analysis */}
+                    {/* Rating Breakdown */}
                     <div className="flex flex-col gap-6">
                       <div className="p-6 flex flex-col justify-center">
                         <h4 className="text-white/50 font-bold text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
                           <TrendingUp className="h-4 w-4 text-white" />
-                          Model Architecture
+                          Rating Breakdown
                         </h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="flex flex-col">
-                            <span className="text-white/30 text-xs mb-1">
-                              Architecture
-                            </span>
-                            <span className="font-bold">
-                              {predictionApi.data.modelType
-                                ? "Enhanced Ensemble"
-                                : "Gradient Boost"}
-                            </span>
+                        {predictionApi.data.ratingBreakdown ? (
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col">
+                              <span className="text-white/30 text-xs mb-1">
+                                Base Skill
+                              </span>
+                              <span className="font-bold">
+                                {predictionApi.data.ratingBreakdown.base_skill}
+                              </span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-white/30 text-xs mb-1">
+                                Team Multiplier
+                              </span>
+                              <span className="font-bold text-red-400">
+                                {predictionApi.data.ratingBreakdown.team_mult}
+                              </span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-white/30 text-xs mb-1">
+                                Season Form
+                              </span>
+                              <span className="font-bold font-mono">
+                                {predictionApi.data.ratingBreakdown.form_factor}
+                              </span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-white/30 text-xs mb-1">
+                                Weather Mod
+                              </span>
+                              <span className="font-bold capitalize">
+                                {predictionApi.data.ratingBreakdown.weather_mod}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-white/30 text-xs mb-1">
-                              Accuracy Factor
-                            </span>
-                            <span className="font-bold text-red-400">
-                              {predictionApi.data.modelPerformance
-                                ?.model_accuracy || "+89%"}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-white/30 text-xs mb-1">
-                              Training Sets
-                            </span>
-                            <span className="font-bold font-mono">
-                              {predictionApi.data.modelPerformance
-                                ?.training_data_size || 718}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-white/30 text-xs mb-1">
-                              Base Weather
-                            </span>
-                            <span className="font-bold capitalize">
-                              {weather.replace("_", " ")}
-                            </span>
-                          </div>
-                        </div>
+                        ) : (
+                          <p className="text-white/40 text-sm">No breakdown available</p>
+                        )}
                       </div>
 
-                      {predictionApi.data.riskAssessment && (
+                      {predictionApi.data.modelInfo && (
                         <div className="p-6 flex flex-col justify-center">
                           <h4 className="text-white/50 font-bold text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
                             <AlertCircle className="h-4 w-4 text-white" />
-                            Factor Risk
+                            Model Accuracy
                           </h4>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="flex justify-between items-center text-sm bg-white/5 px-3 py-2 rounded-xl">
-                              <span className="text-white/60">Weather</span>
-                              <span
-                                className={`font-bold ${predictionApi.data.riskAssessment.weather_risk === "High" ? "text-red-500" : "text-white"}`}
-                              >
-                                {predictionApi.data.riskAssessment.weather_risk}
+                              <span className="text-white/60">Method</span>
+                              <span className="font-bold text-white text-right">
+                                {predictionApi.data.modelInfo.method}
                               </span>
                             </div>
                             <div className="flex justify-between items-center text-sm bg-white/5 px-3 py-2 rounded-xl">
-                              <span className="text-white/60">Strategy</span>
+                              <span className="text-white/60">Trials</span>
                               <span className="font-bold text-white">
-                                {
-                                  predictionApi.data.riskAssessment
-                                    .strategy_risk
-                                }
+                                {predictionApi.data.modelInfo.simulation_trials}
                               </span>
                             </div>
-                            <div className="flex justify-between items-center text-sm bg-white/5 px-3 py-2 rounded-xl">
-                              <span className="text-white/60">Mechanical</span>
+                            <div className="flex justify-between items-center text-sm bg-white/5 px-3 py-2 rounded-xl col-span-2">
+                              <span className="text-white/60">
+                                Rank agreement vs current standings
+                              </span>
                               <span className="font-bold text-white">
-                                {
-                                  predictionApi.data.riskAssessment
-                                    .mechanical_risk
-                                }
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm bg-white/5 px-3 py-2 rounded-xl">
-                              <span className="text-white">Overall</span>
-                              <span
-                                className={`font-bold ${predictionApi.data.riskAssessment.overall_risk === "High" ? "text-red-500" : "text-white"}`}
-                              >
-                                {predictionApi.data.riskAssessment.overall_risk}
+                                {predictionApi.data.modelInfo.concordant_pct != null
+                                  ? `${(predictionApi.data.modelInfo.concordant_pct * 100).toFixed(1)}%`
+                                  : "-"}
                               </span>
                             </div>
                           </div>
@@ -647,17 +561,19 @@ const DriverPredictor = () => {
                     </div>
                   </div>
 
-                  {/* AI Explanation Terminal Block */}
-                  {predictionApi.data.confidenceExplanation && (
+                  {/* Key Factors */}
+                  {predictionApi.data.keyFactors?.length > 0 && (
                     <div className="p-8 mt-2 relative">
                       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-transparent"></div>
                       <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-4 flex items-center gap-2 opacity-50">
                         <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                        Neural Analysis Report
+                        Key Factors
                       </h4>
-                      <p className="text-white/80 font-mono text-sm leading-relaxed whitespace-pre-line tracking-tight">
-                        {predictionApi.data.confidenceExplanation}
-                      </p>
+                      <ul className="text-white/80 font-mono text-sm leading-relaxed tracking-tight list-disc list-inside">
+                        {predictionApi.data.keyFactors.map((factor, i) => (
+                          <li key={i}>{factor}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>

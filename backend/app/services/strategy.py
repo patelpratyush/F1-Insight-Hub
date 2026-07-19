@@ -32,11 +32,27 @@ def _tire_lap_time(compound: str, lap_in_stint: int) -> float:
     return BASE_LAP_TIME + t["base_delta"] + deg
 
 
+def _format_race_time(total_seconds: float) -> str:
+    hours, rem = divmod(total_seconds, 3600)
+    minutes, secs = divmod(rem, 60)
+    return f"{int(hours)}:{int(minutes):02d}:{secs:06.3f}"
+
+
+def _weather_risk(weather: str) -> float:
+    w = weather.lower()
+    if w in ("wet", "heavy rain"):
+        return 0.6
+    if w in ("mixed", "variable", "light rain"):
+        return 0.3
+    return 0.05
+
+
 def _simulate_strategy(
     driver: str, track: str, laps: int,
     stint_compounds: List[str], weather: str,
 ) -> Dict:
     stints = []
+    timeline = []
     total_time = 0.0
     lap = 1
     for i, compound in enumerate(stint_compounds):
@@ -56,29 +72,74 @@ def _simulate_strategy(
         deg_level = "Low" if avg < BASE_LAP_TIME + 1 else "Medium" if avg < BASE_LAP_TIME + 2 else "High"
 
         stints.append({
-            "stint": i + 1,
-            "tire": compound,
+            "stint_number": i + 1,
+            "tire_compound": compound,
             "start_lap": lap,
             "end_lap": lap + stint_laps - 1,
             "laps": stint_laps,
             "avg_lap_time": round(avg, 3),
-            "degradation": deg_level,
+            "degradation_level": deg_level,
         })
         total_time += stint_time
+        timeline.append({
+            "lap_start": lap,
+            "lap_end": lap + stint_laps - 1,
+            "tire": compound,
+            "cumulative_time": round(total_time, 2),
+        })
         lap += stint_laps
 
-    pit_stops = len(stint_compounds) - 1
-    pos_estimate = max(1, min(20, 8 - pit_stops + int(total_time % 3)))
+    pit_stop_count = len(stint_compounds) - 1
+    pos_estimate = max(1, min(20, 8 - pit_stop_count + int(total_time % 3)))
+
+    pit_stops = [
+        {
+            "lap": stints[i]["end_lap"],
+            "stint_number": stints[i]["stint_number"],
+            "old_tire": stints[i]["tire_compound"],
+            "new_tire": stints[i + 1]["tire_compound"],
+            "pit_time": PIT_LOSS,
+            "reason": f"Scheduled stop — {stints[i]['degradation_level'].lower()} degradation on {stints[i]['tire_compound']}",
+        }
+        for i in range(len(stints) - 1)
+    ]
+
+    # Efficiency: how close total_time is to a zero-degradation baseline
+    # run on the fastest compound with the same number of stops.
+    baseline_time = BASE_LAP_TIME * laps + PIT_LOSS * pit_stop_count
+    efficiency_score = round(min(100.0, (baseline_time / total_time) * 100), 1)
+
+    # Confidence: tighter spread of stint pace -> more predictable strategy.
+    stint_avgs = [s["avg_lap_time"] for s in stints]
+    pace_std = float(np.std(stint_avgs)) if len(stint_avgs) > 1 else 0.0
+    confidence = round(max(0.0, min(1.0, 1 - pace_std / BASE_LAP_TIME)), 4)
+
+    pit_stop_risk = round(min(1.0, pit_stop_count * 0.15), 4)
+    weather_risk = _weather_risk(weather)
 
     return {
         "strategy_id": str(uuid.uuid4())[:8],
         "driver": driver,
         "track": track,
         "total_time": round(total_time, 2),
+        "total_seconds": round(total_time, 2),
+        "total_race_time": _format_race_time(total_time),
         "pit_stops": pit_stops,
         "stints": stints,
-        "final_position_estimate": pos_estimate,
-        "summary": f"{pit_stops}-stop {'-'.join(stint_compounds)} strategy",
+        "predicted_position": pos_estimate,
+        "efficiency_score": efficiency_score,
+        "confidence": confidence,
+        "timeline": timeline,
+        "optimization_metrics": {
+            "consistency": confidence,
+            "baseline_time": round(baseline_time, 2),
+        },
+        "risk_analysis": {
+            "overall_risk": round((pit_stop_risk + weather_risk) / 2, 4),
+            "pit_stop_risk": pit_stop_risk,
+            "weather_risk": weather_risk,
+        },
+        "summary": f"{pit_stop_count}-stop {'-'.join(stint_compounds)} strategy",
     }
 
 
@@ -86,8 +147,9 @@ class StrategyService:
     async def simulate(
         self, driver: str, track: str, laps: int,
         starting_tire: str, weather: str,
+        stint_compounds: Optional[List[str]] = None,
     ) -> Dict:
-        compounds = _choose_compounds(starting_tire, laps, weather)
+        compounds = stint_compounds or _choose_compounds(starting_tire, laps, weather)
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
             _executor, _simulate_strategy, driver, track, laps, compounds, weather

@@ -28,10 +28,11 @@ async def predict_race(
 ):
     from datetime import datetime, timezone
     year = body.year or datetime.now(timezone.utc).year
-    grid = await svc.predict_race_grid(body.track, body.weather, body.year)
+    grid, _, model_info = await svc.run_simulation(body.track, body.weather, body.year)
     return RaceGridPrediction(
         track=body.track,
         weather=body.weather,
         year=year,
         grid=grid,
+        model_info=model_info,
     )

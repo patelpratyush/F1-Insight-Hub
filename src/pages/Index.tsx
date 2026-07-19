@@ -69,9 +69,9 @@ const Index = () => {
             transition={{ duration: 1, delay: 0.4, type: "spring" }}
             className="text-lg md:text-2xl font-light text-white/80 max-w-2xl leading-relaxed mb-12"
           >
-            The pinnacle of Formula 1 analytics. Powered by massive datasets,
-            machine learning models, and real-time telemetry to give you the
-            ultimate racing edge.
+            The pinnacle of Formula 1 analytics. Powered by live championship
+            data, Monte Carlo race simulation, and real-time telemetry to
+            give you the ultimate racing edge.
           </motion.p>
 
           <motion.div

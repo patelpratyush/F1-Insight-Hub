@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .config import settings
+from .middleware.success_envelope import SuccessEnvelopeMiddleware
 from .models.common import AppError, ErrorResponse, HealthResponse
 from .services.cache import CacheService
 from .services.jolpica import JolpicaClient
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST"],
         allow_headers=["Content-Type", "Authorization"],
     )
+    app.add_middleware(SuccessEnvelopeMiddleware)
 
     @app.exception_handler(AppError)
     async def app_error_handler(request: Request, exc: AppError):
@@ -73,13 +75,14 @@ def create_app() -> FastAPI:
         )
 
     # Routers registered in Task 6–11
-    from .routers import meta, predict, results, telemetry, strategy, weather
-    app.include_router(meta.router, prefix="/api/meta")
+    from .routers import f1, meta, predict, results, telemetry, strategy, weather
+    app.include_router(meta.router, prefix="/api/metadata")
     app.include_router(predict.router, prefix="/api/predict")
     app.include_router(results.router, prefix="/api/results")
     app.include_router(telemetry.router, prefix="/api/telemetry")
     app.include_router(strategy.router, prefix="/api/strategy")
     app.include_router(weather.router, prefix="/api/weather")
+    app.include_router(f1.router, prefix="/api/f1")
 
     return app
 

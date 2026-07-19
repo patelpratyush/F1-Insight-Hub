@@ -8,6 +8,20 @@ import aiohttp
 logger = logging.getLogger(__name__)
 
 
+def _parse_duration(raw: Optional[str]) -> Optional[float]:
+    """Pit stop duration is usually "36.604" but long stops (damage, etc.)
+    come back as "M:SS.mmm" -- handle both."""
+    if not raw:
+        return None
+    try:
+        if ":" in raw:
+            minutes, seconds = raw.split(":", 1)
+            return int(minutes) * 60 + float(seconds)
+        return float(raw)
+    except ValueError:
+        return None
+
+
 class JolpicaClient:
     def __init__(self, base_url: str = "https://api.jolpi.ca/ergast/f1"):
         self._base = base_url.rstrip("/")
@@ -24,6 +38,46 @@ class JolpicaClient:
             await self._session.close()
 
     # ── Low-level GET ──────────────────────────────────────────────
+
+    async def _get_paginated(
+        self, path_no_query: str, page_size: int = 100, max_pages: int = 30, page_retries: int = 3,
+    ) -> List[Dict]:
+        """GET a paginated Ergast-style resource, following offset until total is exhausted.
+
+        Each page gets its own retry budget -- a single transient failure (rate
+        limit, network hiccup) shouldn't silently truncate the result.
+        """
+        all_races: List[Dict] = []
+        offset = 0
+        for page_num in range(max_pages):
+            data = None
+            for attempt in range(page_retries):
+                data = await self._get(f"{path_no_query}?limit={page_size}&offset={offset}")
+                if data:
+                    break
+                if attempt < page_retries - 1:
+                    await asyncio.sleep(2 * (attempt + 1))
+            if not data:
+                logger.error(
+                    f"Giving up on {path_no_query} page at offset={offset} after {page_retries} attempts"
+                    f" -- returning partial data ({offset} of expected rows fetched)"
+                )
+                break
+            mrd = data.get("MRData", {})
+            races = mrd.get("RaceTable", {}).get("Races", [])
+            if not races:
+                break
+            if not all_races:
+                all_races = races
+            else:
+                # merge nested list (Laps or PitStops) from this page into the first race entry
+                key = "Laps" if "Laps" in races[0] else "PitStops"
+                all_races[0].setdefault(key, []).extend(races[0].get(key, []))
+            total = int(mrd.get("total", 0))
+            offset += page_size
+            if offset >= total:
+                break
+        return all_races
 
     async def _get(self, path: str) -> Optional[Dict]:
         if not self._session:
@@ -185,3 +239,45 @@ class JolpicaClient:
         except (KeyError, TypeError, IndexError) as e:
             logger.error(f"parse race result {year}/{round_num}: {e}")
             return None
+
+    async def get_pit_stops(self, year: int, round_num: int) -> List[Dict]:
+        races = await self._get_paginated(f"{year}/{round_num}/pitstops.json")
+        if not races:
+            return []
+        try:
+            return [
+                {
+                    "driver_id": s.get("driverId", ""),
+                    "lap": int(s.get("lap", 0)),
+                    "stop_number": int(s.get("stop", 0)),
+                    "time": s.get("time", ""),
+                    "duration_s": _parse_duration(s.get("duration")),
+                }
+                for s in races[0].get("PitStops", [])
+            ]
+        except (KeyError, TypeError, ValueError) as e:
+            logger.error(f"parse pitstops {year}/{round_num}: {e}")
+            return []
+
+    async def get_lap_times(self, year: int, round_num: int) -> List[Dict]:
+        races = await self._get_paginated(f"{year}/{round_num}/laps.json")
+        if not races:
+            return []
+        try:
+            return [
+                {
+                    "lap": int(lap.get("number", 0)),
+                    "timings": [
+                        {
+                            "driver_id": t.get("driverId", ""),
+                            "position": int(t.get("position", 0)),
+                            "time": t.get("time", ""),
+                        }
+                        for t in lap.get("Timings", [])
+                    ],
+                }
+                for lap in races[0].get("Laps", [])
+            ]
+        except (KeyError, TypeError, ValueError) as e:
+            logger.error(f"parse laps {year}/{round_num}: {e}")
+            return []

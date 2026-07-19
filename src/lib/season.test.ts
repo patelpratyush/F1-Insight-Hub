@@ -5,6 +5,7 @@ import {
   getNextSelectedDrivers,
   getRaceDisplayName,
   getSeasonDataStatus,
+  isRaceWeekend,
 } from "@/lib/season";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
@@ -88,6 +89,16 @@ describe("season helpers", () => {
         ["NOR", "PIA", "VER", "LEC", "HAM", "RUS", "ALO"],
       ),
     ).toEqual(["NOR", "PIA", "VER", "LEC", "HAM", "RUS"]);
+  });
+
+  it("flags a race weekend from Friday through the race Sunday", () => {
+    const raceSunday = "2026-03-15";
+    expect(isRaceWeekend(raceSunday, new Date("2026-03-13T09:00:00Z"))).toBe(true); // Friday
+    expect(isRaceWeekend(raceSunday, new Date("2026-03-15T20:00:00Z"))).toBe(true); // race day
+    expect(isRaceWeekend(raceSunday, new Date("2026-03-10T09:00:00Z"))).toBe(false); // 5 days out
+    expect(isRaceWeekend(raceSunday, new Date("2026-03-17T09:00:00Z"))).toBe(false); // 2 days after
+    expect(isRaceWeekend(null, new Date())).toBe(false);
+    expect(isRaceWeekend("not-a-date", new Date())).toBe(false);
   });
 
   it("declares a favicon asset for the app shell", () => {

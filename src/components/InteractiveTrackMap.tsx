@@ -179,6 +179,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
             onClick={handleReset}
             className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white"
             title="Reset to start"
+            aria-label="Reset to start"
           >
             <RotateCcw className="w-5 h-5" />
           </button>
@@ -187,6 +188,7 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
             onClick={handlePlayPause}
             className="p-3 bg-red-600 hover:bg-red-500 text-white rounded-full transition-all hover:scale-105 shadow-[0_0_15px_rgba(220,38,38,0.4)]"
             title={isAnimating ? "Pause animation" : "Start animation"}
+            aria-label={isAnimating ? "Pause animation" : "Start animation"}
           >
             {isAnimating ? (
               <Pause className="w-5 h-5" />
@@ -225,6 +227,8 @@ const InteractiveTrackMap: React.FC<InteractiveTrackMapProps> = ({
                   : "bg-white/5 hover:bg-white/10 text-white/50"
               }`}
               title="Toggle racing line"
+              aria-label={showRacingLine ? "Hide racing line" : "Show racing line"}
+              aria-pressed={showRacingLine}
             >
               {showRacingLine ? (
                 <Eye className="w-4 h-4" />

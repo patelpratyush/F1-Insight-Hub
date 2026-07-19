@@ -128,6 +128,7 @@ const LapSelector: React.FC<LapSelectorProps> = ({
               onClick={handleReset}
               className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors font-semibold"
               title="Reset to first lap"
+              aria-label="Reset to first lap"
             >
               <RotateCcw className="w-5 h-5 text-white" />
             </button>
@@ -137,6 +138,7 @@ const LapSelector: React.FC<LapSelectorProps> = ({
               disabled={currentIndex === 0}
               className="p-3 bg-white/5 hover:bg-white/10 disabled:bg-transparent disabled:text-white/20 disabled:border disabled:border-white/5 rounded-full transition-colors"
               title="Previous lap"
+              aria-label="Previous lap"
             >
               <SkipBack className="w-5 h-5 text-white" />
             </button>
@@ -145,6 +147,7 @@ const LapSelector: React.FC<LapSelectorProps> = ({
               onClick={handlePlay}
               className="p-3 bg-blue-600 hover:bg-blue-500 rounded-full transition-colors"
               title={isPlaying ? "Pause playback" : "Start playback"}
+              aria-label={isPlaying ? "Pause playback" : "Start playback"}
             >
               {isPlaying ? (
                 <Pause className="w-6 h-6 text-white" />
@@ -158,6 +161,7 @@ const LapSelector: React.FC<LapSelectorProps> = ({
               disabled={currentIndex === availableLaps.length - 1}
               className="p-3 bg-white/5 hover:bg-white/10 disabled:bg-transparent disabled:text-white/20 disabled:border disabled:border-white/5 rounded-full transition-colors"
               title="Next lap"
+              aria-label="Next lap"
             >
               <SkipForward className="w-5 h-5 text-white" />
             </button>
