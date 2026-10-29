@@ -139,6 +139,16 @@ Exit criteria: a signed-in user views `/standings` served from Postgres via the 
 4. **Cost.** Free and hobby tiers cover early use. Telemetry storage and live fan-out are the main drivers, so budgets and alerts are set in Phase 0.
 5. **Rewrite regression.** Each phase spec includes a parity checklist against the old feature set. No old code is copied.
 
+## 8a. Amendments made during planning
+
+1. A shared Python package `packages/db-py` (import `f1_db`) holds models, migrations and the object-storage client. `packages/core-py` stays pure.
+2. The contract package generates TypeScript types and a fetch client (`openapi-typescript`, `openapi-fetch`). Zod is used on the web for forms and env validation only.
+3. Phase 0 adds `driver_standings` and `ingestion_runs` tables. Race sessions are stored in `race_sessions` (the name `sessions` belongs to auth).
+4. Job queue: Arq (ADR 0002). Better Auth tables live in schema `auth` (ADR 0003).
+5. Live timing uses OpenF1 and is labelled unofficial.
+
+Detailed implementation plans: `docs/superpowers/plans/2026-10-29-00-index.md`.
+
 ## 9. Open items
 
 - Final domain name and brand name.
