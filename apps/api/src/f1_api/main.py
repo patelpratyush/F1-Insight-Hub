@@ -6,10 +6,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import Redis
 
+from f1_api.auth.jwt import JwtVerifier
 from f1_api.config import Settings, get_settings
 from f1_api.errors import install_error_handlers
 from f1_api.middleware.request_id import RequestIdMiddleware
-from f1_api.routers import health, meta, standings
+from f1_api.routers import health, me, meta, standings
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -22,6 +23,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.session_factory = make_session_factory(engine)
         app.state.redis = Redis.from_url(cfg.redis_url, decode_responses=True)
         app.state.settings = cfg
+        app.state.verifier = JwtVerifier(cfg.auth_jwks_url, cfg.auth_issuer)
         try:
             yield
         finally:
@@ -41,4 +43,5 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(standings.router)
     app.include_router(meta.router)
+    app.include_router(me.router)
     return app
