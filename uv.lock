@@ -795,6 +795,7 @@ dependencies = [
     { name = "f1-db" },
     { name = "httpx" },
     { name = "pydantic-settings" },
+    { name = "sentry-sdk" },
     { name = "structlog" },
     { name = "tenacity" },
 ]
@@ -806,6 +807,7 @@ requires-dist = [
     { name = "f1-db", editable = "packages/db-py" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "pydantic-settings", specifier = ">=2.6" },
+    { name = "sentry-sdk", specifier = ">=2.19" },
     { name = "structlog", specifier = ">=24.4" },
     { name = "tenacity", specifier = ">=9.0" },
 ]

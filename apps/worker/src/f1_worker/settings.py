@@ -15,6 +15,8 @@ class Config(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     database_url: str = "postgresql+asyncpg://f1:f1@localhost:5432/f1"
     redis_url: str = "redis://localhost:6379/0"
+    environment: str = "development"
+    sentry_dsn: str = ""
 
 
 async def standings_task(ctx: dict[str, Any]) -> int:
@@ -24,6 +26,15 @@ async def standings_task(ctx: dict[str, Any]) -> int:
 
 async def on_startup(ctx: dict[str, Any]) -> None:
     cfg = Config()
+    if cfg.sentry_dsn:
+        import sentry_sdk
+
+        sentry_sdk.init(
+            dsn=cfg.sentry_dsn,
+            environment=cfg.environment,
+            traces_sample_rate=0.1,
+            send_default_pii=False,
+        )
     ctx["engine"] = make_engine(cfg.database_url)
     ctx["session_factory"] = make_session_factory(ctx["engine"])
     ctx["jolpica"] = JolpicaClient()

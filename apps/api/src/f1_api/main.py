@@ -9,8 +9,10 @@ from redis.asyncio import Redis
 from f1_api.auth.jwt import JwtVerifier
 from f1_api.config import Settings, get_settings
 from f1_api.errors import install_error_handlers
+from f1_api.logging_setup import configure_logging
 from f1_api.middleware.request_id import RequestIdMiddleware
 from f1_api.routers import health, me, meta, standings
+from f1_api.telemetry import instrument_engine, setup_telemetry
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -19,6 +21,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         engine = make_engine(cfg.database_url)
+        instrument_engine(engine, cfg)
         app.state.engine = engine
         app.state.session_factory = make_session_factory(engine)
         app.state.redis = Redis.from_url(cfg.redis_url, decode_responses=True)
@@ -30,7 +33,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             await app.state.redis.aclose()
             await engine.dispose()
 
+    configure_logging(cfg.environment)
     app = FastAPI(title="F1 Insight Hub API", version="1.0.0", lifespan=lifespan)
+    setup_telemetry(app, cfg)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cfg.cors_origins,

@@ -1,5 +1,6 @@
 import uuid
 
+import structlog
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
@@ -20,4 +21,8 @@ class RequestIdMiddleware:
                 message["headers"] = [*message.get("headers", []), (b"x-request-id", rid.encode())]
             await send(message)
 
-        await self.app(scope, receive, send_with_id)
+        structlog.contextvars.bind_contextvars(request_id=rid)
+        try:
+            await self.app(scope, receive, send_with_id)
+        finally:
+            structlog.contextvars.clear_contextvars()
