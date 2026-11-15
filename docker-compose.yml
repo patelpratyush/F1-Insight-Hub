@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: f1
+      POSTGRES_USER: f1
+      POSTGRES_PASSWORD: f1
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U f1 -d f1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  s3:
+    # SeaweedFS (Apache-2.0) as the local S3-compatible store. Production uses Cloudflare R2.
+    image: chrislusf/seaweedfs:4.53
+    command: >
+      mini -dir=/data -s3.port=9000 -bucket=f1-telemetry
+      -admin.port=9001 -admin.user=minio -admin.password=minio12345
+    environment:
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: minio12345
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["s3data:/data"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9000/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  pgdata:
+  s3data:
