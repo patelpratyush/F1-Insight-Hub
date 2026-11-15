@@ -11,6 +11,7 @@ class ProblemError(Exception):
         self, status: int, title: str, detail: str | None = None, type_: str = "about:blank"
     ) -> None:
         self.status, self.title, self.detail, self.type_ = status, title, detail, type_
+        self.headers: dict[str, str] = {}
 
 
 def _problem(
@@ -37,7 +38,10 @@ def _problem(
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ProblemError)
     async def _problem_error(request: Request, exc: ProblemError) -> JSONResponse:
-        return _problem(request, exc.status, exc.title, exc.detail, exc.type_)
+        resp = _problem(request, exc.status, exc.title, exc.detail, exc.type_)
+        for k, v in getattr(exc, "headers", {}).items():
+            resp.headers[k] = v
+        return resp
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(request: Request, exc: StarletteHTTPException) -> JSONResponse:
