@@ -1,0 +1,46 @@
+from f1_db.models import Driver, DriverStanding, Season, Team
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from f1_api.schemas.standings import DriverRef, DriverStandingOut, TeamRef
+
+
+class StandingsService:
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+
+    async def latest_driver_standings(self, year: int) -> list[DriverStandingOut]:
+        latest_round = (
+            select(func.max(DriverStanding.round))
+            .join(Season, Season.id == DriverStanding.season_id)
+            .where(Season.year == year)
+            .scalar_subquery()
+        )
+        stmt = (
+            select(DriverStanding, Driver, Team)
+            .join(Season, Season.id == DriverStanding.season_id)
+            .join(Driver, Driver.id == DriverStanding.driver_id)
+            .join(Team, Team.id == DriverStanding.team_id)
+            .where(Season.year == year, DriverStanding.round == latest_round)
+            .order_by(DriverStanding.position)
+        )
+        rows = (await self.session.execute(stmt)).all()
+        return [
+            DriverStandingOut(
+                position=s.position,
+                points=float(s.points),
+                wins=s.wins,
+                driver=DriverRef(
+                    id=d.id,
+                    code=d.code,
+                    given_name=d.given_name,
+                    family_name=d.family_name,
+                    number=d.number,
+                ),
+                team=TeamRef(id=t.id, name=t.name),
+                season=year,
+                round=s.round,
+                updated_at=s.ingested_at,
+            )
+            for s, d, t in rows
+        ]
