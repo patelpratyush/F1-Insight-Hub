@@ -1,20 +1,30 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { FreshnessLabel } from "@/components/freshness-label";
+import { SeasonNote } from "@/components/season-note";
 import { StandingsTable } from "@/components/standings-table";
 import { auth } from "@/lib/auth";
 import { getApi } from "@/lib/api";
 
-export default async function StandingsPage() {
+export default async function StandingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ season?: string }>;
+}) {
   const h = await headers();
   const session = await auth.api.getSession({ headers: h });
   if (!session) redirect("/sign-in?next=/standings");
+  const { season } = await searchParams;
+  const requested = season && /^\d{4}$/.test(season) ? Number(season) : null;
   const { token } = await auth.api.getToken({ headers: h });
   const api = getApi(token);
   const [standings, fresh] = await Promise.all([
-    api.GET("/v1/standings/drivers", {}),
+    api.GET("/v1/standings/drivers", {
+      params: { query: requested !== null ? { season: requested } : {} },
+    }),
     api.GET("/v1/meta/freshness", {}),
   ]);
+  const rows = standings.data ?? [];
   const last = fresh.data?.find((f) => f.job === "standings")?.last_success_at ?? null;
   return (
     <section className="space-y-4">
@@ -22,7 +32,12 @@ export default async function StandingsPage() {
         <h1 className="font-[var(--font-display)] text-4xl font-bold">Driver Standings</h1>
         <FreshnessLabel lastSuccessAt={last} />
       </header>
-      <StandingsTable rows={standings.data ?? []} />
+      <SeasonNote
+        shownSeason={rows[0]?.season ?? null}
+        requestedSeason={requested}
+        currentYear={new Date().getUTCFullYear()}
+      />
+      <StandingsTable rows={rows} />
     </section>
   );
 }

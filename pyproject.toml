@@ -29,6 +29,7 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+extend-exclude = ["docs"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC", "S", "SIM", "RUF"]
 ignore = ["S101"]
@@ -36,6 +37,12 @@ ignore = ["S101"]
 [tool.mypy]
 strict = true
 plugins = ["pydantic.mypy"]
+explicit_package_bases = true
+mypy_path = ["apps/api/src", "apps/worker/src", "packages/core-py/src", "packages/db-py/src"]
+
+[[tool.mypy.overrides]]
+module = ["testcontainers.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

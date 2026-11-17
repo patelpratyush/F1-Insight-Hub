@@ -26,7 +26,15 @@ async def driver_standings(
     db: DbSession,
     season: Annotated[int | None, Query(ge=1950, le=2100)] = None,
 ) -> list[DriverStandingOut]:
-    year = season if season is not None else datetime.now(UTC).year
-    if year > _max_year():
-        raise ProblemError(422, "Validation error", "season is in the far future")
-    return await StandingsService(db).latest_driver_standings(year)
+    service = StandingsService(db)
+    if season is not None:
+        if season > _max_year():
+            raise ProblemError(422, "Validation error", "season is in the far future")
+        return await service.latest_driver_standings(season)
+    # No season requested: current season, or the latest season that has data
+    # (e.g. before round 1 of a new season). Each row carries its `season`.
+    rows = await service.latest_driver_standings(datetime.now(UTC).year)
+    if rows:
+        return rows
+    fallback = await service.latest_season_with_data()
+    return await service.latest_driver_standings(fallback) if fallback is not None else []

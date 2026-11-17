@@ -70,3 +70,26 @@ async def test_invalid_season_is_422_problem(client: AsyncClient, bad: str) -> N
     resp = await client.get("/v1/standings/drivers", params={"season": bad})
     assert resp.status_code == 422
     assert resp.headers["content-type"].startswith("application/problem+json")
+
+
+async def test_default_season_falls_back_to_latest_with_data(
+    client: AsyncClient, seeded: None
+) -> None:
+    resp = await client.get("/v1/standings/drivers")
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert [r["driver"]["code"] for r in rows] == ["PIA", "NOR"]
+    assert all(r["season"] == 1999 for r in rows)
+
+
+async def test_default_season_with_no_data_anywhere_is_empty(
+    client: AsyncClient, pg_url: str
+) -> None:
+    engine = make_engine(pg_url)
+    async with make_session_factory(engine)() as s:
+        await s.execute(text("truncate driver_standings, drivers, teams, seasons cascade"))
+        await s.commit()
+    await engine.dispose()
+    resp = await client.get("/v1/standings/drivers")
+    assert resp.status_code == 200
+    assert resp.json() == []

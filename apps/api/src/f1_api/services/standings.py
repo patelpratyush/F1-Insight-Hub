@@ -9,6 +9,13 @@ class StandingsService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    async def latest_season_with_data(self) -> int | None:
+        stmt = select(func.max(Season.year)).join(
+            DriverStanding, DriverStanding.season_id == Season.id
+        )
+        year: int | None = (await self.session.execute(stmt)).scalar()
+        return year
+
     async def latest_driver_standings(self, year: int) -> list[DriverStandingOut]:
         latest_round = (
             select(func.max(DriverStanding.round))

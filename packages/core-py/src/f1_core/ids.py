@@ -10,10 +10,6 @@ def uuid7() -> uuid.UUID:
     rand_a = (rand >> 62) & 0xFFF
     rand_b = rand & ((1 << 62) - 1)
     value = (
-        ((millis & ((1 << 48) - 1)) << 80)
-        | (0x7 << 76)
-        | (rand_a << 64)
-        | (0b10 << 62)
-        | rand_b
+        ((millis & ((1 << 48) - 1)) << 80) | (0x7 << 76) | (rand_a << 64) | (0b10 << 62) | rand_b
     )
     return uuid.UUID(int=value)
