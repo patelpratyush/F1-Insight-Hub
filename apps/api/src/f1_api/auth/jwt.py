@@ -23,8 +23,12 @@ class JwtVerifier:
         issuer: str,
         jwks_loader: Callable[[], dict[str, Any]] | None = None,
         ttl: float = 300.0,
+        min_refresh: float = 30.0,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.jwks_url, self.issuer, self.ttl = jwks_url, issuer, ttl
+        self.min_refresh = min_refresh
+        self._clock = clock
         self._loader = jwks_loader or self._fetch
         self._cache: dict[str, Any] | None = None
         self._fetched_at = 0.0
@@ -36,9 +40,12 @@ class JwtVerifier:
         return data
 
     def _jwks(self, force: bool = False) -> dict[str, Any]:
-        if force or self._cache is None or time.monotonic() - self._fetched_at > self.ttl:
+        age = self._clock() - self._fetched_at
+        # A forced refresh (unknown kid) is allowed at most once per `min_refresh`
+        # seconds, so forged kids cannot turn every request into a JWKS fetch.
+        if self._cache is None or age > self.ttl or (force and age >= self.min_refresh):
             self._cache = self._loader()
-            self._fetched_at = time.monotonic()
+            self._fetched_at = self._clock()
         return self._cache
 
     def verify(self, token: str) -> Principal:
