@@ -11,12 +11,7 @@ const config: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          {
-            key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' " +
-              (process.env.API_BASE_URL ?? "http://localhost:8000"),
-          },
+          // Content-Security-Policy is set per request in src/proxy.ts (runtime API_BASE_URL).
         ],
       },
     ];
