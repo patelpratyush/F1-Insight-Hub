@@ -146,6 +146,7 @@ Exit criteria: a signed-in user views `/standings` served from Postgres via the 
 3. Phase 0 adds `driver_standings` and `ingestion_runs` tables. Race sessions are stored in `race_sessions` (the name `sessions` belongs to auth).
 4. Job queue: Arq (ADR 0002). Better Auth tables live in schema `auth` (ADR 0003).
 5. Live timing uses OpenF1 and is labelled unofficial.
+6. (2026-11-16) Predictions treat regulation resets (2014, 2017, 2022, 2026) explicitly: team ratings reset, driver ratings carry over, backtests cover reset seasons. Local object storage uses SeaweedFS.
 
 Detailed implementation plans: `docs/superpowers/plans/2026-10-29-00-index.md`.
 

@@ -19,6 +19,21 @@
 - Gemini calls: 10 s timeout, structured output validated with Pydantic, response cached by `sha256(prompt + model)`, hard daily budget from `AI_DAILY_BUDGET_CALLS`, never block a simulation result on the AI call.
 - Backtest gate: Brier score for win probability must not worsen by more than 2% relative to the stored baseline, rank correlation must stay above the stored floor.
 
+## Amendment (2026-11-16): regulation resets
+
+Decided with the author during Phase 0. Applies to Tasks 1, 2 and 5 and overrides their defaults where they conflict.
+
+Context: 2026 started a new technical regulation cycle (new power units, active aero, new teams Cadillac and Audi). Car performance does not carry across a regulation reset; driver skill mostly does. A single `offseason_regression` for both would carry too much of the old car order into a reset year.
+
+1. **Reset seasons are data.** `REGULATION_RESETS = {2014, 2017, 2022, 2026}` in `f1_core.ratings.priors` (extendable; never inferred).
+2. **Split regression.** `RatingParams` gains `team_regression_normal` (default 0.35), `team_regression_reset` (default 0.95), `driver_regression_normal` (default 0.35) and `driver_regression_reset` (default 0.2). `new_season_prior(end, params, season)` uses the reset values when `season in REGULATION_RESETS`, and inflates team sigma to `params.sigma_new` in reset seasons.
+3. **Fast early learning.** In a reset season the update step `k` is multiplied by `params.reset_k_boost` (default 2.0) for the first `params.reset_boost_rounds` (default 4) rounds, then returns to normal. Qualifying order is the strongest early signal of the new car order and is weighted accordingly in `features`.
+4. **Team lineage.** A `team_lineage` mapping (for example `sauber -> audi`) carries a team's history across renames. New teams with no lineage (for example Cadillac) start at `mu=0, sigma=params.sigma_new`.
+5. **Honest uncertainty.** Prediction intervals in reset seasons are wide early and must tighten as rounds accumulate. A test asserts that interval width after round 1 of a reset season is larger than after round 10.
+6. **Backtests cover resets.** `run_backtest.py` default range becomes `2014-2025` (was 2019-2025), and the report scores reset seasons (2014, 2017, 2022) separately from normal seasons. The CI gate applies to both groups.
+
+Review Focus addition: 8. First race of a reset season: team ratings are near-neutral with wide sigma, driver ratings are mostly retained, and renamed teams inherit lineage. (Task 1, Task 2)
+
 ## Review Focus
 
 1. A rookie or a driver with fewer than 3 races: rating shrinks toward the team mean instead of producing extreme values or division by zero. (Task 1)
