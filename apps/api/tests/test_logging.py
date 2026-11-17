@@ -45,3 +45,19 @@ def test_telemetry_is_noop_without_config() -> None:
     app = FastAPI()
     setup_telemetry(app, Settings(sentry_dsn=""))
     assert not sentry_sdk.get_client().is_active()
+
+
+def test_uvicorn_access_logs_are_json_with_request_id(capsys: pytest.CaptureFixture[str]) -> None:
+    access = logging.getLogger("uvicorn.access")
+    access.handlers = [logging.StreamHandler()]  # what uvicorn's default log config installs
+    access.propagate = False
+    configure_logging("production")
+    structlog.contextvars.bind_contextvars(request_id="rid-7")
+    access.info('%s - "%s %s HTTP/%s" %d', "1.2.3.4", "GET", "/healthz", "1.1", 200)
+    structlog.contextvars.clear_contextvars()
+    data = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert data["logger"] == "uvicorn.access"
+    assert data["level"] == "info"
+    assert data["request_id"] == "rid-7"
+    assert "GET /healthz" in data["event"]
+    logging.getLogger().handlers.clear()
