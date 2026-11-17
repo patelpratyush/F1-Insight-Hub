@@ -1,0 +1,27 @@
+{
+  "MRData": {
+    "StandingsTable": {
+      "season": "2025",
+      "StandingsLists": [
+        {
+          "season": "2025",
+          "round": "24",
+          "DriverStandings": [
+            {
+              "position": "1", "points": "423.5", "wins": "7",
+              "Driver": {"driverId": "norris", "permanentNumber": "4", "code": "NOR",
+                         "givenName": "Lando", "familyName": "Norris", "nationality": "British"},
+              "Constructors": [{"constructorId": "mclaren", "name": "McLaren", "nationality": "British"}]
+            },
+            {
+              "position": "2", "points": "421", "wins": "7",
+              "Driver": {"driverId": "max_verstappen", "permanentNumber": "33", "code": "VER",
+                         "givenName": "Max", "familyName": "Verstappen", "nationality": "Dutch"},
+              "Constructors": [{"constructorId": "red_bull", "name": "Red Bull", "nationality": "Austrian"}]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
