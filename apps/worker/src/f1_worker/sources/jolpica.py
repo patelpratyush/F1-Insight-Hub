@@ -1,5 +1,6 @@
 import asyncio
 from dataclasses import dataclass
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -23,6 +24,36 @@ class ParsedStanding:
     team_ref: str
     team_name: str
     team_nationality: str | None
+
+
+SESSION_KEYS = {
+    "FirstPractice": "FP1",
+    "SecondPractice": "FP2",
+    "ThirdPractice": "FP3",
+    "SprintQualifying": "SQ",
+    "SprintShootout": "SQ",
+    "Sprint": "SPRINT",
+    "Qualifying": "Q",
+}
+
+
+@dataclass(frozen=True)
+class ParsedRace:
+    round: int
+    name: str
+    circuit_ref: str
+    circuit_name: str
+    locality: str
+    country: str
+    lat: float
+    lon: float
+    race_date: date
+    sessions: dict[str, datetime]
+
+
+def _dt(block: dict[str, str]) -> datetime:
+    time = block.get("time", "00:00:00Z").replace("Z", "+00:00")
+    return datetime.fromisoformat(f"{block['date']}T{time}").astimezone(UTC)
 
 
 class JolpicaClient:
@@ -88,6 +119,29 @@ class JolpicaClient:
                     team_ref=c["constructorId"],
                     team_name=c["name"],
                     team_nationality=c.get("nationality"),
+                )
+            )
+        return out
+
+    async def calendar(self, year: int) -> list[ParsedRace]:
+        data = await self._get_json(f"/{year}.json")
+        out: list[ParsedRace] = []
+        for r in data["MRData"]["RaceTable"]["Races"]:
+            circuit, loc = r["Circuit"], r["Circuit"]["Location"]
+            sessions = {key: _dt(r[name]) for name, key in SESSION_KEYS.items() if name in r}
+            sessions["R"] = _dt({"date": r["date"], "time": r.get("time", "00:00:00Z")})
+            out.append(
+                ParsedRace(
+                    round=int(r["round"]),
+                    name=r["raceName"],
+                    circuit_ref=circuit["circuitId"],
+                    circuit_name=circuit["circuitName"],
+                    locality=loc["locality"],
+                    country=loc["country"],
+                    lat=float(loc["lat"]),
+                    lon=float(loc["long"]),
+                    race_date=date.fromisoformat(r["date"]),
+                    sessions=sessions,
                 )
             )
         return out
