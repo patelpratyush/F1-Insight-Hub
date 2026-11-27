@@ -27,7 +27,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.redis = Redis.from_url(cfg.redis_url, decode_responses=True)
         app.state.settings = cfg
         app.state.trusted_proxy_hops = cfg.trusted_proxy_hops
-        app.state.log_forwarded_headers = cfg.log_forwarded_headers
         app.state.verifier = JwtVerifier(cfg.auth_jwks_url, cfg.auth_issuer)
         try:
             yield

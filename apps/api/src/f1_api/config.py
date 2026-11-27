@@ -14,9 +14,8 @@ class Settings(BaseSettings):
     auth_jwks_url: str = "http://localhost:3000/api/auth/jwks"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
     sentry_dsn: str = ""
-    # Proxies in front of the api that append to X-Forwarded-For (Railway edge = 1).
+    # X-Forwarded-For entries appended by our proxies. Railway sends "<client>, <edge>" = 2.
     trusted_proxy_hops: int = 0
-    log_forwarded_headers: bool = False  # temporary proxy-header diagnostics
     otlp_endpoint: str = Field(default="", validation_alias="OTEL_EXPORTER_OTLP_ENDPOINT")
 
 
