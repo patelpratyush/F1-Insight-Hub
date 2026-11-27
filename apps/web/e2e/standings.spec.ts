@@ -38,7 +38,7 @@ test("signed-out user signs in and is returned to standings", async ({ page }) =
   await expect(page.getByRole("heading", { name: "Driver Standings" })).toBeVisible();
 });
 
-test("open redirect via next param is ignored", async ({ page }) => {
+test("open redirect via next param is ignored", async ({ page, baseURL }) => {
   const email = `e2e-redirect-${Date.now()}@example.com`;
   const password = "correct-horse-battery";
   await page.goto("/sign-up");
@@ -53,5 +53,5 @@ test("open redirect via next param is ignored", async ({ page }) => {
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL("http://localhost:3000/standings");
+  await expect(page).toHaveURL(new URL("/standings", baseURL).toString());
 });
