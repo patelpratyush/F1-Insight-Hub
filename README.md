@@ -16,4 +16,6 @@ Unofficial F1 analytics platform. Not affiliated with Formula 1.
 
 Local S3-compatible storage is SeaweedFS (`s3` service, port 9000). Production uses Cloudflare R2.
 
+Hosting: api, worker, Postgres and Redis on Railway (ADR 0004); web on Vercel.
+
 See `docs/superpowers/specs` and `docs/superpowers/plans` for design and roadmap.

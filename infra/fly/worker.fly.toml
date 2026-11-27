@@ -1,6 +1,0 @@
-app = "f1-insight-worker"
-primary_region = "iad"
-[build]
-  dockerfile = "../docker/worker.Dockerfile"
-[processes]
-  worker = "arq f1_worker.settings.WorkerSettings"
