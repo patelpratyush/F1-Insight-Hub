@@ -1,14 +1,12 @@
 from f1_core.ids import uuid7
 from f1_db.base import utcnow
-from f1_db.models import Driver, DriverStanding, Season, Team
-from sqlalchemy import select
+from f1_db.models import DriverStanding
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from f1_worker.jobs._upserts import SOURCE, upsert_driver, upsert_season, upsert_team
 from f1_worker.runs import record_run
 from f1_worker.sources.jolpica import JolpicaClient
-
-SOURCE = "jolpica"
 
 
 async def ingest_driver_standings(
@@ -20,57 +18,18 @@ async def ingest_driver_standings(
             run.rows = 0
             return 0
         async with session_factory() as s:
-            await s.execute(
-                insert(Season)
-                .values(id=uuid7(), year=year)
-                .on_conflict_do_nothing(index_elements=["year"])
-            )
-            season_id = (await s.execute(select(Season.id).where(Season.year == year))).scalar_one()
+            season_id = await upsert_season(s, year)
             for r in rows:
-                await s.execute(
-                    insert(Team)
-                    .values(
-                        id=uuid7(),
-                        ref=r.team_ref,
-                        name=r.team_name,
-                        nationality=r.team_nationality,
-                        source=SOURCE,
-                        ingested_at=utcnow(),
-                    )
-                    .on_conflict_do_update(
-                        index_elements=["ref"],
-                        set_={"name": r.team_name, "nationality": r.team_nationality},
-                    )
+                team_id = await upsert_team(s, r.team_ref, r.team_name, r.team_nationality)
+                driver_id = await upsert_driver(
+                    s,
+                    r.driver_ref,
+                    r.driver_code,
+                    r.given_name,
+                    r.family_name,
+                    r.number,
+                    r.driver_nationality,
                 )
-                await s.execute(
-                    insert(Driver)
-                    .values(
-                        id=uuid7(),
-                        ref=r.driver_ref,
-                        code=r.driver_code,
-                        given_name=r.given_name,
-                        family_name=r.family_name,
-                        number=r.number,
-                        nationality=r.driver_nationality,
-                        source=SOURCE,
-                        ingested_at=utcnow(),
-                    )
-                    .on_conflict_do_update(
-                        index_elements=["ref"],
-                        set_={
-                            "code": r.driver_code,
-                            "number": r.number,
-                            "given_name": r.given_name,
-                            "family_name": r.family_name,
-                        },
-                    )
-                )
-                driver_id = (
-                    await s.execute(select(Driver.id).where(Driver.ref == r.driver_ref))
-                ).scalar_one()
-                team_id = (
-                    await s.execute(select(Team.id).where(Team.ref == r.team_ref))
-                ).scalar_one()
                 stmt = insert(DriverStanding).values(
                     id=uuid7(),
                     season_id=season_id,

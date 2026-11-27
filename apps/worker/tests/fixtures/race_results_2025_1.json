@@ -1,0 +1,102 @@
+{
+ "MRData": {
+  "RaceTable": {
+   "season": "2025",
+   "round": "1",
+   "Races": [
+    {
+     "season": "2025",
+     "round": "1",
+     "raceName": "Australian Grand Prix",
+     "Circuit": {
+      "circuitId": "c1",
+      "circuitName": "Circuit 1",
+      "Location": {
+       "lat": "0",
+       "long": "0",
+       "locality": "X",
+       "country": "Y"
+      }
+     },
+     "date": "2025-03-11",
+     "Results": [
+      {
+       "number": "33",
+       "position": "1",
+       "positionText": "1",
+       "points": "25",
+       "Driver": {
+        "driverId": "max_verstappen",
+        "permanentNumber": "33",
+        "code": "VER",
+        "givenName": "Max",
+        "familyName": "Verstappen",
+        "nationality": "Dutch"
+       },
+       "Constructor": {
+        "constructorId": "red_bull",
+        "name": "Red Bull",
+        "nationality": "Austrian"
+       },
+       "grid": "2",
+       "laps": "57",
+       "status": "Finished",
+       "Time": {
+        "millis": "5400000",
+        "time": "1:30:00.000"
+       }
+      },
+      {
+       "number": "30",
+       "position": "2",
+       "positionText": "2",
+       "points": "18",
+       "Driver": {
+        "driverId": "lawson",
+        "permanentNumber": "30",
+        "code": "LAW",
+        "givenName": "Liam",
+        "familyName": "Lawson",
+        "nationality": "New Zealander"
+       },
+       "Constructor": {
+        "constructorId": "red_bull",
+        "name": "Red Bull",
+        "nationality": "Austrian"
+       },
+       "grid": "5",
+       "laps": "57",
+       "status": "Finished",
+       "Time": {
+        "millis": "5405000",
+        "time": "1:30:00.000"
+       }
+      },
+      {
+       "number": "4",
+       "position": "3",
+       "positionText": "R",
+       "points": "0",
+       "Driver": {
+        "driverId": "norris",
+        "permanentNumber": "4",
+        "code": "NOR",
+        "givenName": "Lando",
+        "familyName": "Norris",
+        "nationality": "British"
+       },
+       "Constructor": {
+        "constructorId": "mclaren",
+        "name": "McLaren",
+        "nationality": "British"
+       },
+       "grid": "1",
+       "laps": "57",
+       "status": "Retired"
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

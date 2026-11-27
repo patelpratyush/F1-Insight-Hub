@@ -1,0 +1,35 @@
+{
+ "MRData": {
+  "StandingsTable": {
+   "season": "2025",
+   "StandingsLists": [
+    {
+     "season": "2025",
+     "round": "6",
+     "ConstructorStandings": [
+      {
+       "position": "1",
+       "points": "143.5",
+       "wins": "2",
+       "Constructor": {
+        "constructorId": "mclaren",
+        "name": "McLaren",
+        "nationality": "British"
+       }
+      },
+      {
+       "position": "2",
+       "points": "120",
+       "wins": "3",
+       "Constructor": {
+        "constructorId": "red_bull",
+        "name": "Red Bull",
+        "nationality": "Austrian"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
