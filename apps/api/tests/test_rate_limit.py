@@ -89,3 +89,24 @@ async def test_distinct_real_clients_get_separate_buckets(redis_url: str) -> Non
         other = await c.get("/limited", headers={"X-Forwarded-For": "198.51.100.9"})
     assert other.status_code == 200
     await redis.aclose()
+
+
+async def test_forwarded_header_logging_is_opt_in(
+    redis_url: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    redis = Redis.from_url(redis_url, decode_responses=True)
+    await redis.flushdb()
+    headers = {"X-Forwarded-For": "198.51.100.1, 203.0.113.7", "X-Real-IP": "203.0.113.7"}
+    with caplog.at_level(logging.INFO, logger="f1_api.middleware.rate_limit"):
+        quiet = _app(redis)
+        async with AsyncClient(transport=ASGITransport(app=quiet), base_url="http://t") as c:
+            await c.get("/limited", headers=headers)
+        assert not [r for r in caplog.records if "forwarded headers" in r.getMessage()]
+
+        loud = _app(redis)
+        loud.state.log_forwarded_headers = True
+        async with AsyncClient(transport=ASGITransport(app=loud), base_url="http://t") as c:
+            await c.get("/limited", headers=headers)
+    msg = next(r.getMessage() for r in caplog.records if "forwarded headers" in r.getMessage())
+    assert "198.51.100.1, 203.0.113.7" in msg and "x-real-ip" in msg
+    await redis.aclose()

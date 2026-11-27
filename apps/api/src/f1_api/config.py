@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     sentry_dsn: str = ""
     # Proxies in front of the api that append to X-Forwarded-For (Railway edge = 1).
     trusted_proxy_hops: int = 0
+    log_forwarded_headers: bool = False  # temporary proxy-header diagnostics
     otlp_endpoint: str = Field(default="", validation_alias="OTEL_EXPORTER_OTLP_ENDPOINT")
 
 
