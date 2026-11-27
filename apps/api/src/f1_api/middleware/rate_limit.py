@@ -16,6 +16,16 @@ def client_ip(request: Request) -> str:
     by our own proxy; everything left of it is client-controlled and must be ignored.
     """
     hops: int = getattr(request.app.state, "trusted_proxy_hops", 0)
+    if getattr(request.app.state, "log_forwarded_headers", False):
+        # shortcut: temporary diagnostics to learn what the platform proxy sends; remove after.
+        log.info(
+            "forwarded headers %s",
+            {
+                k: request.headers.get(k)
+                for k in ("x-forwarded-for", "x-real-ip", "forwarded", "x-envoy-external-address")
+            }
+            | {"client": request.client.host if request.client else None},
+        )
     forwarded = [
         h.strip() for h in request.headers.get("x-forwarded-for", "").split(",") if h.strip()
     ]
