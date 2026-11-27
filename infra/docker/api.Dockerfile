@@ -7,5 +7,6 @@ COPY apps/api ./apps/api
 RUN uv sync --frozen --no-dev --package f1-api
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
-# Behind the platform proxy (Fly edge): trust X-Forwarded-For so per-IP rate limits see real clients.
-CMD ["uvicorn", "f1_api.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Client IP for rate limiting comes from TRUSTED_PROXY_HOPS, not uvicorn proxy headers
+# (trusting all forwarded IPs would let clients spoof X-Forwarded-For).
+CMD ["uvicorn", "f1_api.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-proxy-headers"]

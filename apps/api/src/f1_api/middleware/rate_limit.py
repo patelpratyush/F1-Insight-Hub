@@ -9,9 +9,24 @@ from f1_api.errors import ProblemError
 log = logging.getLogger(__name__)
 
 
+def client_ip(request: Request) -> str:
+    """Client address for rate limiting.
+
+    Behind N trusted proxies, the Nth address from the right of X-Forwarded-For was appended
+    by our own proxy; everything left of it is client-controlled and must be ignored.
+    """
+    hops: int = getattr(request.app.state, "trusted_proxy_hops", 0)
+    forwarded = [
+        h.strip() for h in request.headers.get("x-forwarded-for", "").split(",") if h.strip()
+    ]
+    if hops > 0 and len(forwarded) >= hops:
+        return forwarded[-hops]
+    return request.client.host if request.client else "unknown"
+
+
 def rate_limit(limit: int, window_seconds: int) -> Callable[[Request], Awaitable[None]]:
     async def dependency(request: Request) -> None:
-        client = request.client.host if request.client else "unknown"
+        client = client_ip(request)
         bucket = int(time.time()) // window_seconds
         key = f"rl:{request.url.path}:{client}:{bucket}"
         try:

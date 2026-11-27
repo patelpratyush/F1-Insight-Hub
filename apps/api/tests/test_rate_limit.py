@@ -8,9 +8,10 @@ from httpx import ASGITransport, AsyncClient
 from redis.asyncio import Redis
 
 
-def _app(redis: Redis) -> FastAPI:
+def _app(redis: Redis, trusted_proxy_hops: int = 0) -> FastAPI:
     app = FastAPI()
     app.state.redis = redis
+    app.state.trusted_proxy_hops = trusted_proxy_hops
     install_error_handlers(app)
 
     @app.get("/limited", dependencies=[Depends(rate_limit(3, 60))])
@@ -48,3 +49,43 @@ async def test_fails_open_when_redis_down(caplog: pytest.LogCaptureFixture) -> N
             resp = await c.get("/limited")
     assert resp.status_code == 200
     assert any("failing open" in r.getMessage() for r in caplog.records)
+
+
+async def test_spoofed_forwarded_for_cannot_evade_limit_behind_proxy(redis_url: str) -> None:
+    """Behind one proxy, only the hop the proxy appended (rightmost) identifies the client."""
+    redis = Redis.from_url(redis_url, decode_responses=True)
+    await redis.flushdb()
+    app = _app(redis, trusted_proxy_hops=1)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        codes = [
+            (
+                await c.get("/limited", headers={"X-Forwarded-For": f"10.0.0.{i}, 203.0.113.7"})
+            ).status_code
+            for i in range(5)
+        ]
+    assert codes == [200, 200, 200, 429, 429]
+    await redis.aclose()
+
+
+async def test_forwarded_for_ignored_without_trusted_proxy(redis_url: str) -> None:
+    redis = Redis.from_url(redis_url, decode_responses=True)
+    await redis.flushdb()
+    async with AsyncClient(transport=ASGITransport(app=_app(redis)), base_url="http://t") as c:
+        codes = [
+            (await c.get("/limited", headers={"X-Forwarded-For": f"10.0.0.{i}"})).status_code
+            for i in range(5)
+        ]
+    assert codes == [200, 200, 200, 429, 429]
+    await redis.aclose()
+
+
+async def test_distinct_real_clients_get_separate_buckets(redis_url: str) -> None:
+    redis = Redis.from_url(redis_url, decode_responses=True)
+    await redis.flushdb()
+    app = _app(redis, trusted_proxy_hops=1)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        for _ in range(3):
+            await c.get("/limited", headers={"X-Forwarded-For": "203.0.113.7"})
+        other = await c.get("/limited", headers={"X-Forwarded-For": "198.51.100.9"})
+    assert other.status_code == 200
+    await redis.aclose()
