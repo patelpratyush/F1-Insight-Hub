@@ -5,8 +5,8 @@ import { StandingsTable } from "./standings-table";
 
 const row = (over: Partial<DriverStanding> = {}): DriverStanding => ({
   position: 1, points: 423.5, wins: 7, season: 2025, round: 24, updated_at: "2026-10-29T12:00:00Z",
-  driver: { id: "d1", code: "NOR", given_name: "Lando", family_name: "Norris", number: 4 },
-  team: { id: "t1", name: "McLaren" }, ...over,
+  driver: { id: "d1", ref: "norris", code: "NOR", given_name: "Lando", family_name: "Norris", number: 4 },
+  team: { id: "t1", ref: "mclaren", name: "McLaren" }, ...over,
 });
 
 describe("StandingsTable", () => {
@@ -19,7 +19,7 @@ describe("StandingsTable", () => {
     expect(screen.getByText(/no standings/i)).toBeInTheDocument();
   });
   it("falls back to family name when code is missing", () => {
-    render(<StandingsTable rows={[row({ driver: { id: "d", code: null, given_name: "A", family_name: "Zed", number: null } })]} />);
+    render(<StandingsTable rows={[row({ driver: { id: "d", ref: "zed", code: null, given_name: "A", family_name: "Zed", number: null } })]} />);
     expect(screen.getByText("ZED")).toBeInTheDocument();
   });
 });
