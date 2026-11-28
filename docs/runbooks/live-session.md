@@ -43,13 +43,13 @@ poll hits 7 endpoints). Live with under 5 s lag needs Sponsor plus MQTT (not bui
 
 ## Restart the poller
 
-The job id prevents duplicates, and arq keeps a finished or failed job's result for 1 hour,
-which also blocks a new job with the same id. To restart:
+The job id `live:<key>` prevents duplicate pollers. The poller keeps no result
+(`keep_result=0`), so once it stops or crashes, `tick_sessions` re-enqueues it within a minute
+while the session is still `live` in the DB. To restart:
 
-1. Clear the old job: `redis-cli DEL arq:job:live:<key> arq:in-progress:live:<key>
-   arq:result:live:<key> arq:retry:live:<key>`.
-2. Within a minute `tick_sessions` re-enqueues it if the session is still `live` in the DB.
-   If the worker process itself is stuck, restart the `f1-worker` service on Railway first.
+1. If the worker process itself is stuck, restart the worker service on Railway.
+2. If a job is wedged in progress, clear it: `redis-cli DEL arq:job:live:<key>
+   arq:in-progress:live:<key> arq:retry:live:<key>`; `tick_sessions` re-enqueues it.
 3. The poller resumes from `live:<key>:state` and the `:cursor` hash, so there are no
    duplicates or seq gaps; viewers reconnect with `Last-Event-ID` and catch up.
 

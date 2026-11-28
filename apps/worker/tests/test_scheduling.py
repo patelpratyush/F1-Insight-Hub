@@ -235,3 +235,14 @@ async def test_races_needing_weather(session_factory: async_sessionmaker[AsyncSe
             (await s.execute(select(Race.round).where(Race.id.in_(found)))).scalars().all()
         )
     assert rounds == [2, 3]  # within the next 7 days, inclusive
+
+
+def test_live_poller_keeps_no_result_so_it_can_be_requeued() -> None:
+    # tick_sessions re-enqueues with a fixed job id every minute; a kept result would block
+    # restarting a crashed poller for arq's default keep_result (1 h).
+    from f1_worker.settings import WorkerSettings
+
+    poll = next(
+        f for f in WorkerSettings.functions if getattr(f, "name", "") == "poll_live_session"
+    )
+    assert poll.keep_result_s == 0

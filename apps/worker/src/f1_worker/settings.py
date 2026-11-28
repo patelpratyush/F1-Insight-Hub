@@ -88,8 +88,9 @@ async def on_shutdown(ctx: dict[str, Any]) -> None:
 class WorkerSettings:
     functions: ClassVar[list[Any]] = [
         standings_task,
-        # A live poll runs for the whole session; the default 120 s timeout would kill it.
-        func(poll_live_session, timeout=4 * 3600, max_tries=1),
+        # A live poll runs for the whole session (default 120 s timeout would kill it); no kept
+        # result, so tick_sessions can re-enqueue the fixed job id after a crash.
+        func(poll_live_session, timeout=4 * 3600, max_tries=1, keep_result=0),
         flush_live_session,
     ]
     cron_jobs: ClassVar[list[CronJob]] = [
