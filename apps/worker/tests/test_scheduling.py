@@ -246,3 +246,23 @@ def test_live_poller_keeps_no_result_so_it_can_be_requeued() -> None:
         f for f in WorkerSettings.functions if getattr(f, "name", "") == "poll_live_session"
     )
     assert poll.keep_result_s == 0
+
+
+async def test_tick_finishes_old_sessions_without_flushing(
+    session_factory: async_sessionmaker[AsyncSession], race_id: uuid.UUID
+) -> None:
+    # The calendar ingests a whole season as "scheduled"; past sessions must become finished
+    # so results get ingested, but without queueing a flush for every historical session.
+    async with session_factory() as s:
+        s.add(RaceSession(race_id=race_id, type="FP1", starts_at=NOW - timedelta(days=60)))
+        await s.commit()
+    arq = FakeArq()
+    ctx = {"session_factory": session_factory, "redis": arq, "openf1": FakeOpenF1([])}
+    await tick_sessions(ctx, now=NOW - timedelta(hours=2))
+    async with session_factory() as s:
+        old = (await s.execute(select(RaceSession).where(RaceSession.type == "FP1"))).scalar_one()
+        cancelled = (
+            await s.execute(select(RaceSession).where(RaceSession.type == "Q"))
+        ).scalar_one()
+    assert old.status == "finished" and cancelled.status == "cancelled"
+    assert arq.jobs == []

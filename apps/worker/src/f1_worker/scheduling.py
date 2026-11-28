@@ -7,7 +7,7 @@ from typing import Any, Protocol
 
 import structlog
 from f1_db.models import Race, RaceSession, Season, SessionResult
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 LIVE_LEAD = timedelta(minutes=5)  # live from starts_at - 5 min
@@ -93,6 +93,17 @@ async def tick_sessions(ctx: dict[str, Any], now: datetime | None = None) -> int
     live_keys: list[int] = []
     changed = 0
     async with session_factory() as s:
+        # Sessions that ended long ago (e.g. a season ingested mid-way) are finished without a
+        # flush: queueing one per historical session would exceed OpenF1's free rate limit.
+        stale = await s.execute(
+            update(RaceSession)
+            .where(
+                RaceSession.status.in_(("scheduled", "live")),
+                RaceSession.starts_at < now - timedelta(days=1) - MAX_DURATION,
+            )
+            .values(status="finished")
+        )
+        changed += stale.rowcount or 0
         rows = (
             await s.execute(
                 select(RaceSession, Season.year)
