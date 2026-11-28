@@ -38,7 +38,15 @@ export function NextRaceCard({ race, now: initialNow }: { race: RaceSummary | nu
       </h2>
       {race.circuit ? <p className="text-carbon-200">{race.circuit.name}, {race.circuit.country}</p> : null}
       {live ? (
-        <p className="font-bold text-brand">Live now</p>
+        <p className="font-bold text-brand">
+          Live now
+          {live.openf1_session_key != null ? (
+            <>
+              {" · "}
+              <Link href={`/live/${live.openf1_session_key}`} className="underline">Watch live</Link>
+            </>
+          ) : null}
+        </p>
       ) : next ? (
         <p className="tabular">
           {next.type} · <LocalTime iso={next.starts_at} /> · Starts in {countdown(new Date(next.starts_at).getTime() - now.getTime())}

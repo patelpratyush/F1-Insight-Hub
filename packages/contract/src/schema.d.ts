@@ -498,6 +498,8 @@ export interface components {
         };
         /** SessionOut */
         SessionOut: {
+            /** Openf1 Session Key */
+            openf1_session_key?: number | null;
             /**
              * Starts At
              * Format: date-time

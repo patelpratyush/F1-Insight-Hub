@@ -47,3 +47,11 @@ async def test_far_future_season_is_422(client: AsyncClient, seeded: SeedIds) ->
 async def test_unknown_season_is_empty_list(client: AsyncClient, seeded: SeedIds) -> None:
     resp = await client.get("/v1/calendar", params={"season": 1960})
     assert resp.status_code == 200 and resp.json() == []
+
+
+async def test_sessions_expose_openf1_key_for_live_links(
+    client: AsyncClient, seeded: SeedIds
+) -> None:
+    rows = (await client.get("/v1/calendar", params={"season": YEAR})).json()
+    keys = {s["type"]: s["openf1_session_key"] for s in rows[0]["sessions"]}
+    assert keys == {"Q": None, "R": 9158}

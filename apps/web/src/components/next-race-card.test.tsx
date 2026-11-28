@@ -20,6 +20,11 @@ describe("NextRaceCard", () => {
     render(<NextRaceCard race={r} now={NOW} />);
     expect(screen.getByText("Live now")).toBeInTheDocument();
   });
+  it("links to the live race centre when the live session has an OpenF1 key", () => {
+    const r = race(1, [{ type: "R", starts_at: "2025-03-11T23:00:00Z", status: "live", openf1_session_key: 9158 }]);
+    render(<NextRaceCard race={r} now={NOW} />);
+    expect(screen.getByRole("link", { name: /Watch live/ })).toHaveAttribute("href", "/live/9158");
+  });
   it("ignores cancelled sessions and shows season complete when nothing is ahead", () => {
     const r = race(1, [
       { type: "R", starts_at: "2025-03-10T04:00:00Z", status: "finished" },

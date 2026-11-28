@@ -14,7 +14,13 @@ export function SessionList({ sessions }: { sessions: RaceSummary["sessions"] })
           <span className={s.status === "cancelled" ? "text-carbon-500 line-through" : "text-carbon-200"}>
             <LocalTime iso={s.starts_at} />
           </span>
-          {s.status === "cancelled" || s.status === "live" ? <span className="uppercase text-brand">{s.status}</span> : null}
+          {s.status === "live" && s.openf1_session_key != null ? (
+            <Link href={`/live/${s.openf1_session_key}`} className="font-bold uppercase text-brand hover:underline">
+              Watch live
+            </Link>
+          ) : s.status === "cancelled" || s.status === "live" ? (
+            <span className="uppercase text-brand">{s.status}</span>
+          ) : null}
         </li>
       ))}
     </ul>

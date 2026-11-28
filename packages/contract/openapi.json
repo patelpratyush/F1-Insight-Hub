@@ -891,6 +891,17 @@
       },
       "SessionOut": {
         "properties": {
+          "openf1_session_key": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Openf1 Session Key"
+          },
           "starts_at": {
             "format": "date-time",
             "title": "Starts At",

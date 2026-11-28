@@ -78,14 +78,25 @@ async def seed_season(pg_url: str) -> SeedIds:
         r1, r2, r3 = races
 
         def sess(
-            race: Race, type_: str, day: int, hour: int, status: str = "finished"
+            race: Race,
+            type_: str,
+            day: int,
+            hour: int,
+            status: str = "finished",
+            key: int | None = None,
         ) -> RaceSession:
-            return RaceSession(race_id=race.id, type=type_, starts_at=_at(day, hour), status=status)
+            return RaceSession(
+                race_id=race.id,
+                type=type_,
+                starts_at=_at(day, hour),
+                status=status,
+                openf1_session_key=key,
+            )
 
         s.add_all(
             [
                 sess(r1, "Q", 1, 14),
-                sess(r1, "R", 2, 14),
+                sess(r1, "R", 2, 14, key=9158),
                 sess(r2, "SQ", 7, 10),
                 sess(r2, "SPRINT", 8, 10),
                 sess(r2, "Q", 8, 14),

@@ -41,7 +41,12 @@ class CalendarService:
         by_race: dict[object, list[SessionOut]] = {}
         for s in sessions:
             by_race.setdefault(s.race_id, []).append(
-                SessionOut(type=s.type, starts_at=s.starts_at, status=s.status)
+                SessionOut(
+                    type=s.type,
+                    starts_at=s.starts_at,
+                    status=s.status,
+                    openf1_session_key=s.openf1_session_key,
+                )
             )
         return [
             RaceSummary(
