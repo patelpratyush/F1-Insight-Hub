@@ -77,6 +77,7 @@ jobs:
       - run: pnpm --filter @f1/web exec better-auth migrate --config src/lib/auth.ts -y
       # Recorded upstream fixture: deterministic, no dependency on the live Jolpica API.
       - run: uv run python apps/worker/scripts/seed_standings.py --fixture apps/worker/tests/fixtures/driver_standings_2025.json
+      - run: uv run python apps/worker/scripts/seed_browse.py --fixtures apps/worker/tests/fixtures
       - run: nohup uv run uvicorn f1_api.main:create_app --factory --port 8000 > api.log 2>&1 &
       - run: curl --fail --retry 20 --retry-delay 1 --retry-all-errors http://localhost:8000/readyz
       - run: pnpm --filter @f1/web build
