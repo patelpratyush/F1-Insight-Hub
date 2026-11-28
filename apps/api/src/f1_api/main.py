@@ -15,6 +15,7 @@ from f1_api.routers import (
     calendar,
     drivers,
     health,
+    live,
     me,
     meta,
     races,
@@ -66,4 +67,5 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(drivers.router)
     app.include_router(teams.router)
     app.include_router(search.router)
+    app.include_router(live.router)
     return app

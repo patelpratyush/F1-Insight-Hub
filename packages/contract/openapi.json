@@ -304,6 +304,200 @@
         "title": "DriverStandingOut",
         "type": "object"
       },
+      "DriverTimingOut": {
+        "properties": {
+          "best_lap_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Lap Ms"
+          },
+          "best_sectors_ms": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            ],
+            "title": "Best Sectors Ms",
+            "type": "array"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "compound": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compound"
+          },
+          "gap_to_leader": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gap To Leader"
+          },
+          "in_pit": {
+            "title": "In Pit",
+            "type": "boolean"
+          },
+          "interval": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval"
+          },
+          "last_lap_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Lap Ms"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "retired": {
+            "title": "Retired",
+            "type": "boolean"
+          },
+          "sectors": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "enum": [
+                  "purple",
+                  "green",
+                  "yellow",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "purple",
+                  "green",
+                  "yellow",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "purple",
+                  "green",
+                  "yellow",
+                  "none"
+                ],
+                "type": "string"
+              }
+            ],
+            "title": "Sectors",
+            "type": "array"
+          },
+          "tyre_age_laps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tyre Age Laps"
+          }
+        },
+        "required": [
+          "number",
+          "position",
+          "code",
+          "last_lap_ms",
+          "best_lap_ms",
+          "best_sectors_ms",
+          "gap_to_leader",
+          "interval",
+          "compound",
+          "tyre_age_laps",
+          "in_pit",
+          "retired",
+          "sectors"
+        ],
+        "title": "DriverTimingOut",
+        "type": "object"
+      },
       "FreshnessOut": {
         "properties": {
           "job": {
@@ -346,6 +540,106 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LiveStateOut": {
+        "description": "Unofficial, community data (OpenF1). `drivers` is in timing-tower order.",
+        "properties": {
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/DriverTimingOut"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "flag": {
+            "title": "Flag",
+            "type": "string"
+          },
+          "lap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lap"
+          },
+          "last_seq": {
+            "title": "Last Seq",
+            "type": "integer"
+          },
+          "session_best_lap_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Best Lap Ms"
+          },
+          "session_best_sectors_ms": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            ],
+            "title": "Session Best Sectors Ms",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "waiting",
+              "live",
+              "finished"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "drivers",
+          "flag",
+          "lap",
+          "session_best_lap_ms",
+          "session_best_sectors_ms",
+          "last_seq",
+          "status"
+        ],
+        "title": "LiveStateOut",
         "type": "object"
       },
       "MeOut": {
@@ -1039,6 +1333,92 @@
         "summary": "Driver",
         "tags": [
           "drivers"
+        ]
+      }
+    },
+    "/v1/live/{session_key}/snapshot": {
+      "get": {
+        "operationId": "getLiveSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_key",
+            "required": true,
+            "schema": {
+              "title": "Session Key",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveStateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Snapshot",
+        "tags": [
+          "live"
+        ]
+      }
+    },
+    "/v1/live/{session_key}/stream": {
+      "get": {
+        "operationId": "streamLive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_key",
+            "required": true,
+            "schema": {
+              "title": "Session Key",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "description": "Too many"
+          }
+        },
+        "summary": "Stream",
+        "tags": [
+          "live"
         ]
       }
     },

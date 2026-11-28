@@ -56,6 +56,8 @@ def _apply_lap(
     d2 = replace(
         d,
         last_lap_ms=lap_ms if lap_ms is not None else d.last_lap_ms,
+        # OpenF1 has no pit-exit event; completing the pit-out lap means the car has left.
+        in_pit=False if data.get("is_pit_out") else d.in_pit,
         best_lap_ms=_best(d.best_lap_ms, lap_ms),
         best_sectors_ms=personal,
         sectors=colors,

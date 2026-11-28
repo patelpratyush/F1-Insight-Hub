@@ -72,6 +72,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/live/{session_key}/snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Snapshot */
+        get: operations["getLiveSnapshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/live/{session_key}/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream */
+        get: operations["streamLive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me": {
         parameters: {
             query?: never;
@@ -306,6 +340,43 @@ export interface components {
             /** Wins */
             wins: number;
         };
+        /** DriverTimingOut */
+        DriverTimingOut: {
+            /** Best Lap Ms */
+            best_lap_ms: number | null;
+            /** Best Sectors Ms */
+            best_sectors_ms: [
+                number | null,
+                number | null,
+                number | null
+            ];
+            /** Code */
+            code: string | null;
+            /** Compound */
+            compound: string | null;
+            /** Gap To Leader */
+            gap_to_leader: string | null;
+            /** In Pit */
+            in_pit: boolean;
+            /** Interval */
+            interval: string | null;
+            /** Last Lap Ms */
+            last_lap_ms: number | null;
+            /** Number */
+            number: number;
+            /** Position */
+            position: number | null;
+            /** Retired */
+            retired: boolean;
+            /** Sectors */
+            sectors: [
+                "purple" | "green" | "yellow" | "none",
+                "purple" | "green" | "yellow" | "none",
+                "purple" | "green" | "yellow" | "none"
+            ];
+            /** Tyre Age Laps */
+            tyre_age_laps: number | null;
+        };
         /** FreshnessOut */
         FreshnessOut: {
             /** Job */
@@ -319,6 +390,33 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * LiveStateOut
+         * @description Unofficial, community data (OpenF1). `drivers` is in timing-tower order.
+         */
+        LiveStateOut: {
+            /** Drivers */
+            drivers: components["schemas"]["DriverTimingOut"][];
+            /** Flag */
+            flag: string;
+            /** Lap */
+            lap: number | null;
+            /** Last Seq */
+            last_seq: number;
+            /** Session Best Lap Ms */
+            session_best_lap_ms: number | null;
+            /** Session Best Sectors Ms */
+            session_best_sectors_ms: [
+                number | null,
+                number | null,
+                number | null
+            ];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "waiting" | "live" | "finished";
         };
         /** MeOut */
         MeOut: {
@@ -611,6 +709,76 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    getLiveSnapshot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_key: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveStateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    streamLive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_key: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too many */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

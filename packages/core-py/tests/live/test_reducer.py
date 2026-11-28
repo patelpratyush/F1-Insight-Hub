@@ -97,3 +97,11 @@ def test_reducer_is_pure() -> None:
     apply_event(s, ev(1, "position", 1, position=1))
     assert s.drivers == {}
     assert s.last_seq == 0
+
+
+def test_pit_out_lap_clears_in_pit() -> None:
+    s = apply_event(TimingState.empty(), ev(1, "pit", 2, in_pit=True))
+    s = apply_event(s, ev(2, "lap", 2, lap_time_ms=None, sectors_ms=[None, None, None]))
+    assert s.drivers[2].in_pit is True
+    s = apply_event(s, ev(3, "lap", 2, lap_time_ms=99000, is_pit_out=True))
+    assert s.drivers[2].in_pit is False and s.drivers[2].last_lap_ms == 99000

@@ -9,6 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from f1_worker.jobs.standings import ingest_driver_standings
 from f1_worker.sources.jolpica import JolpicaClient
+from f1_worker.sources.openf1 import OpenF1Client
 
 
 class Config(BaseSettings):
@@ -17,6 +18,8 @@ class Config(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     environment: str = "development"
     sentry_dsn: str = ""
+    # OpenF1 free tier allows 30 requests/min; one poll hits 7 endpoints.
+    openf1_poll_seconds: float = 15.0
 
 
 async def standings_task(ctx: dict[str, Any]) -> int:
@@ -38,10 +41,13 @@ async def on_startup(ctx: dict[str, Any]) -> None:
     ctx["engine"] = make_engine(cfg.database_url)
     ctx["session_factory"] = make_session_factory(ctx["engine"])
     ctx["jolpica"] = JolpicaClient()
+    ctx["openf1"] = OpenF1Client()
+    ctx["openf1_poll_seconds"] = cfg.openf1_poll_seconds
 
 
 async def on_shutdown(ctx: dict[str, Any]) -> None:
     await ctx["jolpica"].client.aclose()
+    await ctx["openf1"].client.aclose()
     await ctx["engine"].dispose()
 
 
