@@ -155,3 +155,10 @@ class OpenF1Client:
         if failures == len(ENDPOINTS):
             raise OpenF1Unavailable(f"all {failures} OpenF1 endpoints failed")
         return sorted(events, key=lambda e: e.ts)
+
+    async def records(self, endpoint: str, session_key: int) -> list[dict[str, Any]]:
+        """Raw rows for one endpoint (used by the post-session flush)."""
+        return await self._get(f"{BASE}/{endpoint}?session_key={session_key}")
+
+    async def sessions(self, year: int) -> list[dict[str, Any]]:
+        return await self._get(f"{BASE}/sessions?year={year}")
