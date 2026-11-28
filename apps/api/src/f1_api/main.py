@@ -11,7 +11,18 @@ from f1_api.config import Settings, get_settings
 from f1_api.errors import install_error_handlers
 from f1_api.logging_setup import configure_logging
 from f1_api.middleware.request_id import RequestIdMiddleware
-from f1_api.routers import health, me, meta, standings
+from f1_api.routers import (
+    calendar,
+    drivers,
+    health,
+    live,
+    me,
+    meta,
+    races,
+    search,
+    standings,
+    teams,
+)
 from f1_api.telemetry import instrument_engine, setup_telemetry
 
 
@@ -50,4 +61,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(standings.router)
     app.include_router(meta.router)
     app.include_router(me.router)
+    app.include_router(calendar.router)
+    app.include_router(races.router)
+    app.include_router(drivers.router)
+    app.include_router(teams.router)
+    app.include_router(search.router)
+    app.include_router(live.router)
     return app

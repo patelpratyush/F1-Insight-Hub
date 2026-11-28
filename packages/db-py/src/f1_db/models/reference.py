@@ -37,3 +37,4 @@ class Race(IdMixin, IngestedMixin, Base):
     name: Mapped[str]
     circuit_name: Mapped[str]
     race_date: Mapped[date]
+    circuit_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("circuits.id"))

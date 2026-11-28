@@ -38,6 +38,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calendar */
+        get: operations["getCalendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/drivers/{ref}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driver */
+        get: operations["getDriver"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/live/{session_key}/snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Snapshot */
+        get: operations["getLiveSnapshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/live/{session_key}/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream */
+        get: operations["streamLive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me": {
         parameters: {
             query?: never;
@@ -72,6 +140,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/races/{season}/{round}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Race */
+        get: operations["getRace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search */
+        get: operations["search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/standings/constructors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Constructor Standings */
+        get: operations["getConstructorStandings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/standings/drivers": {
         parameters: {
             query?: never;
@@ -89,10 +208,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/teams/{ref}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Team */
+        get: operations["getTeam"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** CircuitOut */
+        CircuitOut: {
+            /** Country */
+            country: string;
+            /** Lat */
+            lat: number;
+            /** Locality */
+            locality: string;
+            /** Lon */
+            lon: number;
+            /** Name */
+            name: string;
+            /** Ref */
+            ref: string;
+        };
+        /** ConstructorStandingOut */
+        ConstructorStandingOut: {
+            /** Points */
+            points: number;
+            /** Position */
+            position: number;
+            /** Round */
+            round: number;
+            /** Season */
+            season: number;
+            team: components["schemas"]["TeamRef"];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Wins */
+            wins: number;
+        };
+        /** DriverProfile */
+        DriverProfile: {
+            /** Code */
+            code: string | null;
+            /** Family Name */
+            family_name: string;
+            /** Given Name */
+            given_name: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nationality */
+            nationality: string | null;
+            /** Number */
+            number: number | null;
+            /** Recent Results */
+            recent_results: components["schemas"]["ResultRow"][];
+            /** Ref */
+            ref: string;
+            /** Seasons */
+            seasons: components["schemas"]["DriverSeason"][];
+            /** Team History */
+            team_history: components["schemas"]["TeamStintOut"][];
+        };
         /** DriverRef */
         DriverRef: {
             /** Code */
@@ -108,6 +304,21 @@ export interface components {
             id: string;
             /** Number */
             number: number | null;
+            /** Ref */
+            ref: string;
+        };
+        /** DriverSeason */
+        DriverSeason: {
+            /** Points */
+            points: number;
+            /** Position */
+            position: number;
+            /** Team */
+            team: string;
+            /** Wins */
+            wins: number;
+            /** Year */
+            year: number;
         };
         /** DriverStandingOut */
         DriverStandingOut: {
@@ -129,6 +340,43 @@ export interface components {
             /** Wins */
             wins: number;
         };
+        /** DriverTimingOut */
+        DriverTimingOut: {
+            /** Best Lap Ms */
+            best_lap_ms: number | null;
+            /** Best Sectors Ms */
+            best_sectors_ms: [
+                number | null,
+                number | null,
+                number | null
+            ];
+            /** Code */
+            code: string | null;
+            /** Compound */
+            compound: string | null;
+            /** Gap To Leader */
+            gap_to_leader: string | null;
+            /** In Pit */
+            in_pit: boolean;
+            /** Interval */
+            interval: string | null;
+            /** Last Lap Ms */
+            last_lap_ms: number | null;
+            /** Number */
+            number: number;
+            /** Position */
+            position: number | null;
+            /** Retired */
+            retired: boolean;
+            /** Sectors */
+            sectors: [
+                "purple" | "green" | "yellow" | "none",
+                "purple" | "green" | "yellow" | "none",
+                "purple" | "green" | "yellow" | "none"
+            ];
+            /** Tyre Age Laps */
+            tyre_age_laps: number | null;
+        };
         /** FreshnessOut */
         FreshnessOut: {
             /** Job */
@@ -143,12 +391,144 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * LiveStateOut
+         * @description Unofficial, community data (OpenF1). `drivers` is in timing-tower order.
+         */
+        LiveStateOut: {
+            /** Drivers */
+            drivers: components["schemas"]["DriverTimingOut"][];
+            /** Flag */
+            flag: string;
+            /** Lap */
+            lap: number | null;
+            /** Last Seq */
+            last_seq: number;
+            /** Session Best Lap Ms */
+            session_best_lap_ms: number | null;
+            /** Session Best Sectors Ms */
+            session_best_sectors_ms: [
+                number | null,
+                number | null,
+                number | null
+            ];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "waiting" | "live" | "finished";
+        };
         /** MeOut */
         MeOut: {
             /** Email */
             email: string | null;
             /** User Id */
             user_id: string;
+        };
+        /** RaceDetail */
+        RaceDetail: {
+            circuit: components["schemas"]["CircuitOut"] | null;
+            /** Name */
+            name: string;
+            /**
+             * Race Date
+             * Format: date
+             */
+            race_date: string;
+            /** Results */
+            results: {
+                [key: string]: components["schemas"]["ResultRow"][];
+            };
+            /** Round */
+            round: number;
+            /** Season */
+            season: number;
+            /** Sessions */
+            sessions: components["schemas"]["SessionOut"][];
+            /** Weather */
+            weather: components["schemas"]["WeatherOut"][];
+        };
+        /** RaceSummary */
+        RaceSummary: {
+            circuit: components["schemas"]["CircuitOut"] | null;
+            /** Name */
+            name: string;
+            /**
+             * Race Date
+             * Format: date
+             */
+            race_date: string;
+            /** Round */
+            round: number;
+            /** Season */
+            season: number;
+            /** Sessions */
+            sessions: components["schemas"]["SessionOut"][];
+        };
+        /** ResultRow */
+        ResultRow: {
+            driver: components["schemas"]["DriverRef"];
+            /** Grid */
+            grid: number | null;
+            /** Points */
+            points: number;
+            /** Position */
+            position: number | null;
+            /** Status */
+            status: string;
+            team: components["schemas"]["TeamRef"];
+            /** Time Ms */
+            time_ms: number | null;
+        };
+        /** SearchHit */
+        SearchHit: {
+            /** Hint */
+            hint: string | null;
+            /** Href */
+            href: string;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "driver" | "team" | "race";
+            /** Label */
+            label: string;
+        };
+        /** SessionOut */
+        SessionOut: {
+            /** Openf1 Session Key */
+            openf1_session_key?: number | null;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Status */
+            status: string;
+            /** Type */
+            type: string;
+        };
+        /** TeamProfile */
+        TeamProfile: {
+            /** Color */
+            color: string;
+            /** Drivers */
+            drivers: components["schemas"]["DriverRef"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Nationality */
+            nationality: string | null;
+            /** Ref */
+            ref: string;
+            /** Standings History */
+            standings_history: components["schemas"]["TeamStandingPoint"][];
         };
         /** TeamRef */
         TeamRef: {
@@ -159,6 +539,32 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+            /** Ref */
+            ref: string;
+        };
+        /** TeamStandingPoint */
+        TeamStandingPoint: {
+            /** Points */
+            points: number;
+            /** Position */
+            position: number;
+            /** Round */
+            round: number;
+            /** Season */
+            season: number;
+            /** Wins */
+            wins: number;
+        };
+        /** TeamStintOut */
+        TeamStintOut: {
+            /** From Round */
+            from_round: number;
+            /** Season */
+            season: number;
+            /** Team */
+            team: string;
+            /** To Round */
+            to_round: number | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -172,6 +578,26 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WeatherOut */
+        WeatherOut: {
+            /** Air Temp C */
+            air_temp_c: number | null;
+            /** Humidity */
+            humidity: number | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Rain Probability */
+            rain_probability: number | null;
+            /** Source */
+            source: string;
+            /** Track Temp C */
+            track_temp_c: number | null;
+            /** Wind Kph */
+            wind_kph: number | null;
         };
     };
     responses: never;
@@ -226,6 +652,138 @@ export interface operations {
             };
         };
     };
+    getCalendar: {
+        parameters: {
+            query?: {
+                season?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RaceSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getDriver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ref: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriverProfile"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getLiveSnapshot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_key: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveStateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    streamLive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_key: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too many */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     getMe: {
         parameters: {
             query?: never;
@@ -266,6 +824,100 @@ export interface operations {
             };
         };
     };
+    getRace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                season: number;
+                round: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RaceDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchHit"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getConstructorStandings: {
+        parameters: {
+            query?: {
+                season?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConstructorStandingOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     getDriverStandings: {
         parameters: {
             query?: {
@@ -284,6 +936,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DriverStandingOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getTeam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ref: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamProfile"];
                 };
             };
             /** @description Validation Error */

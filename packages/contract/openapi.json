@@ -1,6 +1,176 @@
 {
   "components": {
     "schemas": {
+      "CircuitOut": {
+        "properties": {
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "locality": {
+            "title": "Locality",
+            "type": "string"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "name",
+          "locality",
+          "country",
+          "lat",
+          "lon"
+        ],
+        "title": "CircuitOut",
+        "type": "object"
+      },
+      "ConstructorStandingOut": {
+        "properties": {
+          "points": {
+            "title": "Points",
+            "type": "number"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "team": {
+            "$ref": "#/components/schemas/TeamRef"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "wins": {
+            "title": "Wins",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "position",
+          "points",
+          "wins",
+          "team",
+          "season",
+          "round",
+          "updated_at"
+        ],
+        "title": "ConstructorStandingOut",
+        "type": "object"
+      },
+      "DriverProfile": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "family_name": {
+            "title": "Family Name",
+            "type": "string"
+          },
+          "given_name": {
+            "title": "Given Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nationality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nationality"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
+          "recent_results": {
+            "items": {
+              "$ref": "#/components/schemas/ResultRow"
+            },
+            "title": "Recent Results",
+            "type": "array"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "seasons": {
+            "items": {
+              "$ref": "#/components/schemas/DriverSeason"
+            },
+            "title": "Seasons",
+            "type": "array"
+          },
+          "team_history": {
+            "items": {
+              "$ref": "#/components/schemas/TeamStintOut"
+            },
+            "title": "Team History",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "ref",
+          "code",
+          "given_name",
+          "family_name",
+          "number",
+          "nationality",
+          "seasons",
+          "recent_results",
+          "team_history"
+        ],
+        "title": "DriverProfile",
+        "type": "object"
+      },
       "DriverRef": {
         "properties": {
           "code": {
@@ -37,16 +207,54 @@
               }
             ],
             "title": "Number"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
           }
         },
         "required": [
           "id",
+          "ref",
           "code",
           "given_name",
           "family_name",
           "number"
         ],
         "title": "DriverRef",
+        "type": "object"
+      },
+      "DriverSeason": {
+        "properties": {
+          "points": {
+            "title": "Points",
+            "type": "number"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "team": {
+            "title": "Team",
+            "type": "string"
+          },
+          "wins": {
+            "title": "Wins",
+            "type": "integer"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "team",
+          "position",
+          "points",
+          "wins"
+        ],
+        "title": "DriverSeason",
         "type": "object"
       },
       "DriverStandingOut": {
@@ -96,6 +304,200 @@
         "title": "DriverStandingOut",
         "type": "object"
       },
+      "DriverTimingOut": {
+        "properties": {
+          "best_lap_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Lap Ms"
+          },
+          "best_sectors_ms": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            ],
+            "title": "Best Sectors Ms",
+            "type": "array"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "compound": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compound"
+          },
+          "gap_to_leader": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gap To Leader"
+          },
+          "in_pit": {
+            "title": "In Pit",
+            "type": "boolean"
+          },
+          "interval": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval"
+          },
+          "last_lap_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Lap Ms"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "retired": {
+            "title": "Retired",
+            "type": "boolean"
+          },
+          "sectors": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "enum": [
+                  "purple",
+                  "green",
+                  "yellow",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "purple",
+                  "green",
+                  "yellow",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "purple",
+                  "green",
+                  "yellow",
+                  "none"
+                ],
+                "type": "string"
+              }
+            ],
+            "title": "Sectors",
+            "type": "array"
+          },
+          "tyre_age_laps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tyre Age Laps"
+          }
+        },
+        "required": [
+          "number",
+          "position",
+          "code",
+          "last_lap_ms",
+          "best_lap_ms",
+          "best_sectors_ms",
+          "gap_to_leader",
+          "interval",
+          "compound",
+          "tyre_age_laps",
+          "in_pit",
+          "retired",
+          "sectors"
+        ],
+        "title": "DriverTimingOut",
+        "type": "object"
+      },
       "FreshnessOut": {
         "properties": {
           "job": {
@@ -140,6 +542,106 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "LiveStateOut": {
+        "description": "Unofficial, community data (OpenF1). `drivers` is in timing-tower order.",
+        "properties": {
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/DriverTimingOut"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "flag": {
+            "title": "Flag",
+            "type": "string"
+          },
+          "lap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lap"
+          },
+          "last_seq": {
+            "title": "Last Seq",
+            "type": "integer"
+          },
+          "session_best_lap_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Best Lap Ms"
+          },
+          "session_best_sectors_ms": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            ],
+            "title": "Session Best Sectors Ms",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "waiting",
+              "live",
+              "finished"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "drivers",
+          "flag",
+          "lap",
+          "session_best_lap_ms",
+          "session_best_sectors_ms",
+          "last_seq",
+          "status"
+        ],
+        "title": "LiveStateOut",
+        "type": "object"
+      },
       "MeOut": {
         "properties": {
           "email": {
@@ -165,6 +667,320 @@
         "title": "MeOut",
         "type": "object"
       },
+      "RaceDetail": {
+        "properties": {
+          "circuit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CircuitOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "race_date": {
+            "format": "date",
+            "title": "Race Date",
+            "type": "string"
+          },
+          "results": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/ResultRow"
+              },
+              "type": "array"
+            },
+            "title": "Results",
+            "type": "object"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/SessionOut"
+            },
+            "title": "Sessions",
+            "type": "array"
+          },
+          "weather": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherOut"
+            },
+            "title": "Weather",
+            "type": "array"
+          }
+        },
+        "required": [
+          "season",
+          "round",
+          "name",
+          "circuit",
+          "race_date",
+          "sessions",
+          "weather",
+          "results"
+        ],
+        "title": "RaceDetail",
+        "type": "object"
+      },
+      "RaceSummary": {
+        "properties": {
+          "circuit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CircuitOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "race_date": {
+            "format": "date",
+            "title": "Race Date",
+            "type": "string"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/SessionOut"
+            },
+            "title": "Sessions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "season",
+          "round",
+          "name",
+          "circuit",
+          "race_date",
+          "sessions"
+        ],
+        "title": "RaceSummary",
+        "type": "object"
+      },
+      "ResultRow": {
+        "properties": {
+          "driver": {
+            "$ref": "#/components/schemas/DriverRef"
+          },
+          "grid": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grid"
+          },
+          "points": {
+            "title": "Points",
+            "type": "number"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "team": {
+            "$ref": "#/components/schemas/TeamRef"
+          },
+          "time_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Ms"
+          }
+        },
+        "required": [
+          "position",
+          "grid",
+          "status",
+          "points",
+          "time_ms",
+          "driver",
+          "team"
+        ],
+        "title": "ResultRow",
+        "type": "object"
+      },
+      "SearchHit": {
+        "properties": {
+          "hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hint"
+          },
+          "href": {
+            "title": "Href",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "driver",
+              "team",
+              "race"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "label",
+          "hint",
+          "href"
+        ],
+        "title": "SearchHit",
+        "type": "object"
+      },
+      "SessionOut": {
+        "properties": {
+          "openf1_session_key": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Openf1 Session Key"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "starts_at",
+          "status"
+        ],
+        "title": "SessionOut",
+        "type": "object"
+      },
+      "TeamProfile": {
+        "properties": {
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/DriverRef"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nationality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nationality"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "standings_history": {
+            "items": {
+              "$ref": "#/components/schemas/TeamStandingPoint"
+            },
+            "title": "Standings History",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "ref",
+          "name",
+          "nationality",
+          "color",
+          "drivers",
+          "standings_history"
+        ],
+        "title": "TeamProfile",
+        "type": "object"
+      },
       "TeamRef": {
         "properties": {
           "id": {
@@ -175,13 +991,86 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
           }
         },
         "required": [
           "id",
+          "ref",
           "name"
         ],
         "title": "TeamRef",
+        "type": "object"
+      },
+      "TeamStandingPoint": {
+        "properties": {
+          "points": {
+            "title": "Points",
+            "type": "number"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "wins": {
+            "title": "Wins",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "season",
+          "round",
+          "position",
+          "points",
+          "wins"
+        ],
+        "title": "TeamStandingPoint",
+        "type": "object"
+      },
+      "TeamStintOut": {
+        "properties": {
+          "from_round": {
+            "title": "From Round",
+            "type": "integer"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "team": {
+            "title": "Team",
+            "type": "string"
+          },
+          "to_round": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Round"
+          }
+        },
+        "required": [
+          "team",
+          "season",
+          "from_round",
+          "to_round"
+        ],
+        "title": "TeamStintOut",
         "type": "object"
       },
       "ValidationError": {
@@ -222,6 +1111,85 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WeatherOut": {
+        "properties": {
+          "air_temp_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Air Temp C"
+          },
+          "humidity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Humidity"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "rain_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rain Probability"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "track_temp_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Track Temp C"
+          },
+          "wind_kph": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Kph"
+          }
+        },
+        "required": [
+          "observed_at",
+          "air_temp_c",
+          "track_temp_c",
+          "humidity",
+          "wind_kph",
+          "rain_probability",
+          "source"
+        ],
+        "title": "WeatherOut",
         "type": "object"
       }
     }
@@ -282,6 +1250,189 @@
         ]
       }
     },
+    "/v1/calendar": {
+      "get": {
+        "operationId": "getCalendar",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "season",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 2100,
+                  "minimum": 1950,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Season"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RaceSummary"
+                  },
+                  "title": "Response 200 Getcalendar",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Calendar",
+        "tags": [
+          "calendar"
+        ]
+      }
+    },
+    "/v1/drivers/{ref}": {
+      "get": {
+        "operationId": "getDriver",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Driver",
+        "tags": [
+          "drivers"
+        ]
+      }
+    },
+    "/v1/live/{session_key}/snapshot": {
+      "get": {
+        "operationId": "getLiveSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_key",
+            "required": true,
+            "schema": {
+              "title": "Session Key",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveStateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Snapshot",
+        "tags": [
+          "live"
+        ]
+      }
+    },
+    "/v1/live/{session_key}/stream": {
+      "get": {
+        "operationId": "streamLive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_key",
+            "required": true,
+            "schema": {
+              "title": "Session Key",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "description": "Too many"
+          }
+        },
+        "summary": "Stream",
+        "tags": [
+          "live"
+        ]
+      }
+    },
     "/v1/me": {
       "get": {
         "operationId": "getMe",
@@ -325,6 +1476,163 @@
         "summary": "Freshness",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/v1/races/{season}/{round}": {
+      "get": {
+        "operationId": "getRace",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "season",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 1950,
+              "title": "Season",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "round",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Round",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RaceDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Race",
+        "tags": [
+          "races"
+        ]
+      }
+    },
+    "/v1/search": {
+      "get": {
+        "operationId": "search",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 2,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SearchHit"
+                  },
+                  "title": "Response Search",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/v1/standings/constructors": {
+      "get": {
+        "operationId": "getConstructorStandings",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "season",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 2100,
+                  "minimum": 1950,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Season"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConstructorStandingOut"
+                  },
+                  "title": "Response 200 Getconstructorstandings",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Constructor Standings",
+        "tags": [
+          "standings"
         ]
       }
     },
@@ -380,6 +1688,48 @@
         "summary": "Driver Standings",
         "tags": [
           "standings"
+        ]
+      }
+    },
+    "/v1/teams/{ref}": {
+      "get": {
+        "operationId": "getTeam",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Team",
+        "tags": [
+          "teams"
         ]
       }
     }

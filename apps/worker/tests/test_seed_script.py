@@ -3,7 +3,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
-from f1_db.models import DriverStanding, Season
+from f1_db.models import ConstructorStanding, DriverStanding, Race, Season, SessionResult
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -37,3 +37,32 @@ async def test_seed_from_fixture_needs_no_network(
         rows = (await s.execute(select(func.count()).select_from(DriverStanding))).scalar_one()
     assert year == 2025
     assert rows == 2
+
+
+async def test_seed_browse_from_fixtures(
+    session_factory: async_sessionmaker[AsyncSession],
+    pg_url: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async with session_factory() as s:
+        await s.execute(
+            text(
+                "truncate session_results, driver_team_stints, race_sessions, races, circuits,"
+                " constructor_standings, driver_standings, drivers, teams, seasons,"
+                " ingestion_runs cascade"
+            )
+        )
+        await s.commit()
+    monkeypatch.setenv("DATABASE_URL", pg_url)
+    spec = importlib.util.spec_from_file_location("seed_browse", SCRIPT.with_name("seed_browse.py"))
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    await module.main(["--fixtures", str(FIXTURE.parent)])
+    async with session_factory() as s:
+        races = (await s.execute(select(func.count()).select_from(Race))).scalar_one()
+        results = (await s.execute(select(func.count()).select_from(SessionResult))).scalar_one()
+        teams = (
+            await s.execute(select(func.count()).select_from(ConstructorStanding))
+        ).scalar_one()
+    assert (races, results, teams) == (2, 3, 2)

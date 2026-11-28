@@ -29,3 +29,11 @@ async def session_factory(pg_url: str) -> AsyncIterator[async_sessionmaker[Async
     engine = make_engine(pg_url)
     yield make_session_factory(engine)
     await engine.dispose()
+
+
+@pytest.fixture(scope="session")
+def redis_url() -> Iterator[str]:
+    from testcontainers.redis import RedisContainer
+
+    with RedisContainer("redis:7-alpine") as r:
+        yield f"redis://{r.get_container_host_ip()}:{r.get_exposed_port(6379)}/0"
