@@ -1,0 +1,39 @@
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "status", "driver_number": null, "data": {"session": "live"}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "status", "driver_number": null, "data": {"lap": 1}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "position", "driver_number": 1, "data": {"position": 1}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "position", "driver_number": 4, "data": {"position": 2}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "position", "driver_number": 16, "data": {"position": 3}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "position", "driver_number": 81, "data": {"position": 4}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "position", "driver_number": 44, "data": {"position": 5}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "stint", "driver_number": 1, "data": {"compound": "MEDIUM", "tyre_age_laps": 0, "stint_number": 1}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "stint", "driver_number": 4, "data": {"compound": "MEDIUM", "tyre_age_laps": 0, "stint_number": 1}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "stint", "driver_number": 16, "data": {"compound": "MEDIUM", "tyre_age_laps": 0, "stint_number": 1}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "stint", "driver_number": 81, "data": {"compound": "MEDIUM", "tyre_age_laps": 0, "stint_number": 1}}
+{"ts": "2025-03-16T04:00:00+00:00", "kind": "stint", "driver_number": 44, "data": {"compound": "MEDIUM", "tyre_age_laps": 0, "stint_number": 1}}
+{"ts": "2025-03-16T04:00:02+00:00", "kind": "interval", "driver_number": 1, "data": {"gap_to_leader": null, "interval": null}}
+{"ts": "2025-03-16T04:00:02+00:00", "kind": "interval", "driver_number": 4, "data": {"gap_to_leader": "+1.234", "interval": "+1.234"}}
+{"ts": "2025-03-16T04:00:02+00:00", "kind": "interval", "driver_number": 16, "data": {"gap_to_leader": "+2.500", "interval": "+1.266"}}
+{"ts": "2025-03-16T04:00:02+00:00", "kind": "interval", "driver_number": 81, "data": {"gap_to_leader": "+3.100", "interval": "+0.600"}}
+{"ts": "2025-03-16T04:00:02+00:00", "kind": "interval", "driver_number": 44, "data": {"gap_to_leader": "+1 LAP", "interval": null}}
+{"ts": "2025-03-16T04:00:05+00:00", "kind": "lap", "driver_number": 1, "data": {"lap_number": 1, "lap_time_ms": 92200, "sectors_ms": [31200, 28900, 32100], "is_pit_out": false}}
+{"ts": "2025-03-16T04:00:05+00:00", "kind": "lap", "driver_number": 4, "data": {"lap_number": 1, "lap_time_ms": 92305, "sectors_ms": [31240, 28935, 32130], "is_pit_out": false}}
+{"ts": "2025-03-16T04:00:05+00:00", "kind": "lap", "driver_number": 16, "data": {"lap_number": 1, "lap_time_ms": 92410, "sectors_ms": [31280, 28970, 32160], "is_pit_out": false}}
+{"ts": "2025-03-16T04:00:05+00:00", "kind": "lap", "driver_number": 81, "data": {"lap_number": 1, "lap_time_ms": 92515, "sectors_ms": [31320, 29005, 32190], "is_pit_out": false}}
+{"ts": "2025-03-16T04:00:05+00:00", "kind": "lap", "driver_number": 44, "data": {"lap_number": 1, "lap_time_ms": 92620, "sectors_ms": [31360, 29040, 32220], "is_pit_out": false}}
+{"ts": "2025-03-16T04:00:05+00:00", "kind": "status", "driver_number": null, "data": {"lap": 2}}
+{"ts": "2025-03-16T04:00:08+00:00", "kind": "pit", "driver_number": 44, "data": {"in_pit": true, "lap_number": 2, "duration_ms": null}}
+{"ts": "2025-03-16T04:00:10+00:00", "kind": "position", "driver_number": 16, "data": {"position": 2}}
+{"ts": "2025-03-16T04:00:10+00:00", "kind": "position", "driver_number": 4, "data": {"position": 3}}
+{"ts": "2025-03-16T04:00:10+00:00", "kind": "interval", "driver_number": 16, "data": {"gap_to_leader": "+1.800", "interval": "+1.800"}}
+{"ts": "2025-03-16T04:00:10+00:00", "kind": "interval", "driver_number": 4, "data": {"gap_to_leader": "+2.100", "interval": "+0.300"}}
+{"ts": "2025-03-16T04:00:12+00:00", "kind": "status", "driver_number": 81, "data": {"retired": true}}
+{"pause_s": 25}
+{"ts": "2025-03-16T04:00:40+00:00", "kind": "status", "driver_number": null, "data": {"lap": 3}}
+{"ts": "2025-03-16T04:00:40+00:00", "kind": "lap", "driver_number": 1, "data": {"lap_number": 2, "lap_time_ms": 91700, "sectors_ms": [31000, 28700, 32000], "is_pit_out": false}}
+{"ts": "2025-03-16T04:00:40+00:00", "kind": "lap", "driver_number": 16, "data": {"lap_number": 2, "lap_time_ms": 91810, "sectors_ms": [31050, 28720, 32040], "is_pit_out": false}}
+{"ts": "2025-03-16T04:00:40+00:00", "kind": "lap", "driver_number": 4, "data": {"lap_number": 2, "lap_time_ms": 91920, "sectors_ms": [31100, 28740, 32080], "is_pit_out": false}}
+{"ts": "2025-03-16T04:00:40+00:00", "kind": "lap", "driver_number": 44, "data": {"lap_number": 2, "lap_time_ms": null, "sectors_ms": [null, 29500, 32600], "is_pit_out": true}}
+{"ts": "2025-03-16T04:00:40+00:00", "kind": "stint", "driver_number": 44, "data": {"compound": "HARD", "tyre_age_laps": 0, "stint_number": 2}}
+{"ts": "2025-03-16T04:00:43+00:00", "kind": "interval", "driver_number": 16, "data": {"gap_to_leader": "+2.050", "interval": "+2.050"}}
+{"ts": "2025-03-16T04:00:43+00:00", "kind": "interval", "driver_number": 4, "data": {"gap_to_leader": "+2.600", "interval": "+0.550"}}
+{"ts": "2025-03-16T04:00:43+00:00", "kind": "weather", "driver_number": null, "data": {"air_temp_c": 18.4, "track_temp_c": 31.2, "humidity": 55, "rainfall": 0, "wind_kph": 7.2}}
